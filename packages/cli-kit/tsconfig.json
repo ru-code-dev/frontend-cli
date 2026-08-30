@@ -1,0 +1,14 @@
+{
+  // One config for the whole package — the shape `pixso-cli` uses
+  // (`ru-code-packages/packages/pixso-cli/tsconfig.json:5-10`), with `tests` added to the
+  // include so the suites are checked at the same strictness as the source
+  // (`ru-code-packages/packages/pixso-core/tsconfig.test.json:22-30` does the same with a
+  // second config; one config covers both halves here because this package has no tree that
+  // needs a different flag).
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ESNext"]
+  },
+  "include": ["src", "tests"]
+}

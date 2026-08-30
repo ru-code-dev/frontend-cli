@@ -1,0 +1,28 @@
+{
+  "name": "@smart-tools/frontend-cli",
+  "version": "0.1.0",
+  "license": "UNLICENSED",
+  "bin": {
+    "fe": "./dist/main.mjs"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {},
+  "scripts": {
+    "typecheck": "tsgo -p tsconfig.json",
+    "test": "vp test run --project unit",
+    "test:integration": "vp test run --project integration",
+    "build": "tsdown"
+  },
+  "devDependencies": {
+    "@smart-tools/fe-cli-kit": "workspace:*",
+    "@smart-tools/fe-pixso": "workspace:*",
+    "@smart-tools/fe-project-report": "workspace:*",
+    "@smart-tools/fe-testkit": "workspace:*",
+    "@types/node": "catalog:",
+    "tsdown": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

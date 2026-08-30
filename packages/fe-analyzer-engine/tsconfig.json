@@ -1,0 +1,16 @@
+{
+  // Modelled on `ru-code-packages/packages/pixso-cli/tsconfig.json:5-10`; `tests` rides along
+  // in the include so the suites are checked at the same strictness as the source.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ESNext"]
+  },
+  "include": ["src", "tests"],
+  // The fixtures are INPUT, not source: mini React projects the engine reads as text, with
+  // deliberate defects and imports (`react`, `styled-components`, `@emotion/*`) that this
+  // package does not and must not depend on. Typechecking them would be typechecking the
+  // test data — and the scanner is explicitly a syntactic reader that never resolves a
+  // consumer's dependencies (`src/scanner/collectors/typescript.ts` header).
+  "exclude": ["tests/fixtures"]
+}

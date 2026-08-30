@@ -1,0 +1,38 @@
+{
+  "name": "@smart-tools/fe-analyzer-report",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsgo -p tsconfig.json && tsgo -p dashboard/tsconfig.json",
+    "test": "vp test run --project unit",
+    "build": "tsgo -p dashboard/tsconfig.json && vite build dashboard && tsdown && node scripts/embed-template.mjs"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "catalog:",
+    "@tanstack/react-virtual": "catalog:",
+    "@types/node": "catalog:",
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "react": "catalog:",
+    "react-diff-viewer-continued": "catalog:",
+    "react-dom": "catalog:",
+    "recharts": "catalog:",
+    "tailwindcss": "catalog:",
+    "tsdown": "catalog:",
+    "vite": "catalog:",
+    "vite-plugin-singlefile": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

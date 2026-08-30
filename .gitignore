@@ -1,0 +1,12 @@
+node_modules
+dist
+.DS_Store
+
+# flow
+.claude/
+WORKFLOW/
+pnpm-lock.yaml
+ru-code-packages
+.pnpmfile.cjs
+
+

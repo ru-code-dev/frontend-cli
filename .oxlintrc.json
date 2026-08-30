@@ -1,0 +1,22 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "ignorePatterns": [
+    "dist",
+    "node_modules",
+    "WORKFLOW",
+    "ru-code-packages",
+    "pnpm-lock.yaml",
+    "*.tsbuildinfo"
+  ],
+  "plugins": ["eslint", "oxc", "unicorn", "typescript"],
+  "categories": {
+    "correctness": "warn",
+    "suspicious": "warn",
+    "perf": "warn"
+  },
+  "rules": {
+    "eslint/no-shadow": "off",
+    "eslint/no-await-in-loop": "off",
+    "eslint/no-underscore-dangle": "off"
+  }
+}

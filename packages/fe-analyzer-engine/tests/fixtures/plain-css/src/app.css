@@ -1,0 +1,19 @@
+/* a11y.focus.suppressed / blanket: the ring is removed and this file styles focus nowhere. */
+.icon-button {
+  outline: none;
+}
+
+/* a11y.contrast.text / normalText: 3.45:1 against white, below the 4.5:1 minimum — a
+   warning rather than an error, because the pair clears 3:1. */
+.notice {
+  color: #8a8a8a;
+  background-color: #ffffff;
+  font-size: 14px;
+}
+
+/* Passes comfortably — proves the rule is not simply firing on every colour pair. */
+.headline {
+  color: #1a1a1a;
+  background-color: #ffffff;
+  font-size: 24px;
+}

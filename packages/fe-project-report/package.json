@@ -1,0 +1,32 @@
+{
+  "name": "@smart-tools/fe-project-report",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsgo -p tsconfig.json",
+    "test": "vp test run --project unit",
+    "build": "tsdown"
+  },
+  "dependencies": {
+    "@smart-tools/fe-analyzer-engine": "workspace:*",
+    "@smart-tools/fe-analyzer-report": "workspace:*",
+    "@smart-tools/fe-cli-kit": "workspace:*",
+    "@smart-tools/fe-source": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsdown": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

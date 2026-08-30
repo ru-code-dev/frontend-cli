@@ -1,0 +1,14 @@
+.root {
+  display: flex;
+  gap: 8px;
+}
+
+/* a11y.focus.suppressed / onFocus: the ring is dropped inside a focus block that draws
+   nothing back. */
+.action:focus {
+  outline: none;
+}
+
+.box {
+  border: 1px solid #d0d0d0;
+}

@@ -1,0 +1,38 @@
+{
+  "name": "@smart-tools/fe-analyzer-engine",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsgo -p tsconfig.json",
+    "test": "vp test run --project unit",
+    "build": "tsdown"
+  },
+  "dependencies": {
+    "aria-query": "catalog:",
+    "eslint": "catalog:",
+    "eslint-plugin-jsx-a11y": "catalog:",
+    "ignore": "catalog:",
+    "postcss": "catalog:",
+    "postcss-scss": "catalog:",
+    "ts-morph": "catalog:",
+    "typescript-eslint": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/aria-query": "catalog:",
+    "@types/node": "catalog:",
+    "tsdown": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

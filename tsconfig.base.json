@@ -1,0 +1,37 @@
+{
+  // Compiler options and strictness copied verbatim from
+  // `ru-code-packages/tsconfig.base.json:2-20` — the house base every package there extends
+  // (e.g. `ru-code-packages/packages/pixso-cli/tsconfig.json:5`).
+  //
+  // ONE deliberate omission: that file's `plugins` block
+  // (`ru-code-packages/tsconfig.base.json:21-56`) configures `@effect/language-service`,
+  // whose diagnostics are all Effect-shaped (`unsafeEffectTypeAssertion`, `leakingRequirements`,
+  // `strictEffectProvide`, …). This repo contains no Effect and declares no dependency on it,
+  // so the plugin would be an unresolvable name in every tsconfig. `pixso-core` makes the same
+  // call for its own Effect-free trees, in its own words: "the Effect language service's
+  // effect-shaped diagnostics do not apply to a package that contains no Effect"
+  // (`ru-code-packages/packages/pixso-core/tsconfig.test.json:9-11`).
+  //
+  // `noEmit` is true because nothing here compiles with tsc: `tsgo -p <config>` is a pure
+  // typecheck gate and `tsdown` (rolldown) produces every artifact.
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true,
+    "erasableSyntaxOnly": true,
+    "verbatimModuleSyntax": true,
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noImplicitOverride": true,
+    "useDefineForClassFields": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true
+  }
+}

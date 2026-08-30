@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    // Added by the port: the typecheck gate here is `tsgo`, which (unlike the source repo's
+    // `tsc`) rejects the side-effect `import './index.css'` in `src/main.tsx` with TS2882
+    // unless Vite's own ambient module declarations are loaded.
+    "types": ["vite/client"]
+  },
+  "include": ["src", "vite.config.ts"]
+}
