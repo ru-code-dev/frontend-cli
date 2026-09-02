@@ -206,3 +206,24 @@ export const parseColor = (input: string): ColorValue | null => {
     hasAlpha: rgba.a < 1,
   };
 };
+
+export const isColorLiteral = (input: string): boolean => parseColor(input) !== null;
+
+/**
+ * Perceptual distance between two colours (Euclidean in OKLab). Ported verbatim from
+ * `hackathon2026/ds-analyzer/src/tokens/color.ts:208-224`.
+ *
+ * Rules of thumb: `< 0.02` is visually indistinguishable (almost certainly a mistyped token),
+ * `< 0.1` is a deliberate near-shade.
+ */
+export const colorDistance = (left: ColorValue, right: ColorValue): number => {
+  const toLab = ({ l, c, h }: Oklch): [number, number, number] => {
+    const radians = (h * Math.PI) / 180;
+    return [l, c * Math.cos(radians), c * Math.sin(radians)];
+  };
+
+  const [l1, a1, b1] = toLab(left.oklch);
+  const [l2, a2, b2] = toLab(right.oklch);
+
+  return roundTo(Math.hypot(l1 - l2, a1 - a2, b1 - b2), 5);
+};

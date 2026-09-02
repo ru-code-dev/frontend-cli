@@ -22,6 +22,7 @@
     "@smart-tools/fe-analyzer-engine": "workspace:*",
     "@smart-tools/fe-analyzer-report": "workspace:*",
     "@smart-tools/fe-cli-kit": "workspace:*",
+    "@smart-tools/fe-eds-adapter": "workspace:*",
     "@smart-tools/fe-source": "workspace:*"
   },
   "devDependencies": {

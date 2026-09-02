@@ -20,15 +20,18 @@ import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 
 import type { ReportPayload } from "@smart-tools/fe-analyzer-report";
-import { pick } from "@smart-tools/fe-cli-kit";
+import { pick, resultOf } from "@smart-tools/fe-cli-kit";
 import type { ResolvedSource } from "@smart-tools/fe-source";
 import { SourceError } from "@smart-tools/fe-source";
 import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 
 import {
+  adapterNames,
+  adapterNotFound,
   createProjectReportCommands,
-  missingOut,
+  DEFAULT_REPORT,
   missingSource,
+  phases,
   reportWritten,
   sourceFailure,
 } from "../src/index.ts";
@@ -103,12 +106,36 @@ describe("the registry entry itself", () => {
     expect(commands[0]?.alias).toBe("--preport");
   });
 
-  it("declares both arguments, and both are REQUIRED", () => {
-    // `-o` being required is the difference from the pixso face commands, where the bytes may
-    // go to stdout instead. An HTML report has no stdout form, and the help page must say so.
+  /**
+   * CHANGED IN E2b. `-o` used to be declared REQUIRED here, which is what made the help print
+   * `-o <file.html>` rather than `[-o <file.html>]` (`cli/src/help.ts:57`). The owner's law
+   * makes it optional on every command — a run without one writes {@link DEFAULT_REPORT} — so
+   * the project argument is now the ONLY required one.
+   */
+  it("declares its three arguments; only the project is REQUIRED", () => {
     const args = createProjectReportCommands()[0]?.args ?? [];
-    expect(args.map((a) => a.name)).toEqual(["<repo-link|local-path>", "-o <file.html>"]);
-    expect(args.map((a) => a.required)).toEqual([true, true]);
+    expect(args.map((a) => a.name)).toEqual([
+      "<repo-link|local-path>",
+      "-o <file.html>",
+      "--ui-kit <name>",
+    ]);
+    expect(args.map((a) => a.required)).toEqual([true, false, false]);
+  });
+
+  it("and both optional arguments document their default in both languages", () => {
+    const out = createProjectReportCommands()[0]?.args[1];
+    for (const lang of ["ru", "en"] as const) {
+      expect(pick(out?.description ?? { ru: "", en: "" }, lang)).toContain(DEFAULT_REPORT);
+    }
+  });
+
+  it("the --ui-kit description names every accepted value, in both languages", () => {
+    const uiKit = createProjectReportCommands()[0]?.args[2];
+    for (const lang of ["ru", "en"] as const) {
+      const text = pick(uiKit?.description ?? { ru: "", en: "" }, lang);
+      // Built from the registry, so a design system added there documents itself in --help.
+      for (const name of adapterNames()) expect(text).toContain(name);
+    }
   });
 
   it("ships both languages for the summary and every argument", () => {
@@ -126,7 +153,7 @@ describe("the happy flow — resolve → analyze → payload → render → writ
     const spy = freshSpy();
     const command = commandWith({ spy });
     const out = join(dir, "report.html");
-    const run = capture({ source: "/projects/app", out });
+    const run = capture({ cwd: dir, source: "/projects/app", out });
 
     expect(await command.run(run.ctx)).toBe(0);
 
@@ -142,27 +169,33 @@ describe("the happy flow — resolve → analyze → payload → render → writ
 
   it("always asks the engine for ALL THREE domains (h4-design.md:9-10)", async () => {
     const spy = freshSpy();
-    await commandWith({ spy }).run(capture({ source: "x", out: join(dir, "r.html") }).ctx);
+    await commandWith({ spy }).run(
+      capture({ cwd: dir, source: "x", out: join(dir, "r.html") }).ctx,
+    );
     expect(spy.analyzed[0]?.domains).toEqual(["a11y", "components", "icons"]);
   });
 
   it("creates missing parent directories rather than failing on them", async () => {
     const spy = freshSpy();
     const out = join(dir, "a", "b", "c", "report.html");
-    expect(await commandWith({ spy }).run(capture({ source: "x", out }).ctx)).toBe(0);
+    expect(await commandWith({ spy }).run(capture({ cwd: dir, source: "x", out }).ctx)).toBe(0);
     expect((await stat(out)).isFile()).toBe(true);
   });
 
   it("cleans the source up — on success", async () => {
     const spy = freshSpy();
-    await commandWith({ spy }).run(capture({ source: "x", out: join(dir, "r.html") }).ctx);
+    await commandWith({ spy }).run(
+      capture({ cwd: dir, source: "x", out: join(dir, "r.html") }).ctx,
+    );
     expect(spy.cleanups).toBe(1);
   });
 
   it("cleans the source up — even when the analysis throws", async () => {
     const spy = freshSpy();
     const command = commandWith({ spy, analyze: () => Promise.reject(new Error("ts-morph")) });
-    expect(await command.run(capture({ source: "x", out: join(dir, "r.html") }).ctx)).toBe(1);
+    expect(
+      await command.run(capture({ cwd: dir, source: "x", out: join(dir, "r.html") }).ctx),
+    ).toBe(1);
     // A clone left behind is a directory nobody will ever remove. `finally` is what makes this
     // hold on every arm (`packages/fe-source/src/resolve.ts:76-83` explains why `cleanup` is
     // on the value rather than a free function).
@@ -174,7 +207,7 @@ describe("payloadOf gets the REAL engine result — the B2/B3 reconciliation", (
   it("maps every finding and keeps the engine's own counters", async () => {
     const spy = freshSpy();
     await commandWith({ spy }).run(
-      capture({ source: "/projects/app", out: join(dir, "r.html") }).ctx,
+      capture({ cwd: dir, source: "/projects/app", out: join(dir, "r.html") }).ctx,
     );
     const payload = spy.payloads[0];
     expect(payload).toBeDefined();
@@ -192,25 +225,28 @@ describe("payloadOf gets the REAL engine result — the B2/B3 reconciliation", (
     // the dashboard's own types do not describe.
     const spy = freshSpy();
     const command = commandWith({ spy });
-    return command.run(capture({ source: "x", out: join(dir, "r.html") }).ctx).then(() => {
-      const byCategory = spy.payloads[0]?.summary.findings.byCategory;
-      expect(byCategory).toEqual({
-        token: 0,
-        typography: 0,
-        font: 0,
-        api: 0,
-        override: 0,
-        component: 0,
-        icon: 1,
-        a11y: 1,
+    return command
+      .run(capture({ cwd: dir, source: "x", out: join(dir, "r.html") }).ctx)
+      .then(() => {
+        const byCategory = spy.payloads[0]?.summary.findings.byCategory;
+        expect(byCategory).toEqual({
+          token: 0,
+          typography: 0,
+          font: 0,
+          api: 0,
+          override: 0,
+          component: 0,
+          icon: 1,
+          a11y: 1,
+        });
       });
-    });
   });
 
   it("names the project by what the USER typed and roots it where it landed", async () => {
     const spy = freshSpy();
     await commandWith({ spy }).run(
-      capture({ source: "https://example.invalid/app.git", out: join(dir, "r.html") }).ctx,
+      capture({ cwd: dir, source: "https://example.invalid/app.git", out: join(dir, "r.html") })
+        .ctx,
     );
     // For a clone these two differ, and the sidebar prints `name ?? root`
     // (`dashboard/src/App.tsx:142-143`): a report titled with a temp directory that no longer
@@ -221,7 +257,9 @@ describe("payloadOf gets the REAL engine result — the B2/B3 reconciliation", (
 
   it("carries the engine's rule descriptions, so the report can say what was checked", async () => {
     const spy = freshSpy();
-    await commandWith({ spy }).run(capture({ source: "x", out: join(dir, "r.html") }).ctx);
+    await commandWith({ spy }).run(
+      capture({ cwd: dir, source: "x", out: join(dir, "r.html") }).ctx,
+    );
     const descriptions = spy.payloads[0]?.ruleDescriptions ?? {};
     // Eleven ported rules (B2 §2). Named by count rather than listed, so adding a rule to the
     // engine does not require editing this file — but a registry that went empty would fail.
@@ -235,7 +273,7 @@ describe("payloadOf gets the REAL engine result — the B2/B3 reconciliation", (
 describe("usage errors — exit 2, and nothing is acquired", () => {
   it("no project argument", async () => {
     const spy = freshSpy();
-    const run = capture({ out: join(dir, "r.html") });
+    const run = capture({ cwd: dir, out: join(dir, "r.html") });
     expect(await commandWith({ spy }).run(run.ctx)).toBe(2);
     expect(text(run.err)).toBe(`${missingSource.ru}\n`);
     expect(spy.resolved).toEqual([]);
@@ -243,30 +281,16 @@ describe("usage errors — exit 2, and nothing is acquired", () => {
 
   it('an EMPTY project argument is the same refusal, not an attempt on ""', async () => {
     const spy = freshSpy();
-    expect(await commandWith({ spy }).run(capture({ source: "", out: "r.html" }).ctx)).toBe(2);
-    expect(spy.resolved).toEqual([]);
-  });
-
-  it("-o is required", async () => {
-    const spy = freshSpy();
-    const run = capture({ source: "/projects/app" });
-    expect(await commandWith({ spy }).run(run.ctx)).toBe(2);
-    expect(text(run.err)).toBe(`${missingOut.ru}\n`);
-    // BEFORE the clone. A user who forgot `-o` should not wait for a repository to download
-    // to be told so.
-    expect(spy.resolved).toEqual([]);
-  });
-
-  it("an empty -o is the same refusal", async () => {
-    const spy = freshSpy();
-    expect(await commandWith({ spy }).run(capture({ source: "x", out: "" }).ctx)).toBe(2);
+    expect(
+      await commandWith({ spy }).run(capture({ cwd: dir, source: "", out: "r.html" }).ctx),
+    ).toBe(2);
     expect(spy.resolved).toEqual([]);
   });
 
   for (const lang of ["ru", "en"] as const) {
     it(`refuses in ${lang} when the language says so`, async () => {
       const spy = freshSpy();
-      const run = capture({ lang });
+      const run = capture({ cwd: dir, lang });
       await commandWith({ spy }).run(run.ctx);
       expect(text(run.err)).toBe(`${pick(missingSource, lang)}\n`);
     });
@@ -286,7 +310,7 @@ describe("SourceError mapping — one localized sentence per code, exit 1", () =
         });
         const spy = freshSpy();
         const command = commandWith({ spy, source: () => Promise.reject(error) });
-        const run = capture({ source: "/nope", out: join(dir, "r.html"), lang });
+        const run = capture({ cwd: dir, source: "/nope", out: join(dir, "r.html"), lang });
 
         expect(await command.run(run.ctx)).toBe(1);
         expect(text(run.err)).toBe(`${pick(sourceFailure(error), lang)}\n`);
@@ -332,7 +356,7 @@ describe("SourceError mapping — one localized sentence per code, exit 1", () =
   it("a non-SourceError escaping the seam still exits 1 with a localized line", async () => {
     const spy = freshSpy();
     const command = commandWith({ spy, source: () => Promise.reject(new Error("boom")) });
-    const run = capture({ source: "x", out: join(dir, "r.html") });
+    const run = capture({ cwd: dir, source: "x", out: join(dir, "r.html") });
     expect(await command.run(run.ctx)).toBe(1);
     expect(text(run.err)).toContain("boom");
     expect(text(run.err)).toMatch(/[А-Яа-яЁё]/u);
@@ -343,7 +367,7 @@ describe("runtime failures after the source is in hand — exit 1", () => {
   it("the analysis throwing", async () => {
     const spy = freshSpy();
     const command = commandWith({ spy, analyze: () => Promise.reject(new Error("parse died")) });
-    const run = capture({ source: "x", out: join(dir, "r.html") });
+    const run = capture({ cwd: dir, source: "x", out: join(dir, "r.html") });
     expect(await command.run(run.ctx)).toBe(1);
     expect(text(run.err)).toContain("parse died");
   });
@@ -356,12 +380,14 @@ describe("runtime failures after the source is in hand — exit 1", () => {
         throw new Error("no ds-data slot");
       },
     });
-    expect(await command.run(capture({ source: "x", out: join(dir, "r.html") }).ctx)).toBe(1);
+    expect(
+      await command.run(capture({ cwd: dir, source: "x", out: join(dir, "r.html") }).ctx),
+    ).toBe(1);
   });
 
   it("the write failing — a directory where the file should go", async () => {
     const spy = freshSpy();
-    const run = capture({ source: "x", out: dir });
+    const run = capture({ cwd: dir, source: "x", out: dir });
     // `dir` exists and is a directory; `writeFile` cannot replace it.
     expect(await commandWith({ spy }).run(run.ctx)).toBe(1);
     expect(text(run.err)).not.toBe("");
@@ -373,19 +399,29 @@ describe("the success line — one line, on stdout, in the language in play", ()
     it(`${lang}: counts of findings, severities and files scanned`, async () => {
       const spy = freshSpy();
       const out = join(dir, "report.html");
-      const run = capture({ source: "x", out, lang });
+      const run = capture({ cwd: dir, source: "x", out, lang });
 
       expect(await commandWith({ spy }).run(run.ctx)).toBe(0);
 
       const printed = text(run.out);
+      // CHANGED IN E2b: THREE lines, not two, and the path moved off the counts line onto its
+      // own. In order: which design system the run measured against (here none, since the faked
+      // project directory has no manifest); the counts; the absolute path of the one file
+      // written. The notice comes first because it describes what is about to be measured, and
+      // the path comes last because that is the one output shape every command in this repo now
+      // ends with (`packages/cli-kit/src/out.ts`'s `resultOf`).
       expect(printed).toBe(
-        `${pick(reportWritten({ out, findings: 2, errors: 1, warnings: 1, files: 9 }), lang)}\n`,
+        `${pick(adapterNotFound(adapterNames()), lang)}\n` +
+          `${pick(
+            resultOf(reportWritten({ findings: 2, errors: 1, warnings: 1, files: 9 }), [out]),
+            lang,
+          )}\n`,
       );
-      // ONE line, and the numbers the fixture seeded are actually in it.
-      expect(printed.trimEnd().split("\n")).toHaveLength(1);
+      expect(printed.trimEnd().split("\n")).toHaveLength(3);
       expect(printed).toContain("2");
       expect(printed).toContain("9");
-      expect(printed).toContain(out);
+      // The path is a LINE, alone — not a fragment inside the counts sentence.
+      expect(printed.trimEnd().split("\n").at(-1)).toBe(out);
       expect(text(run.err)).toBe("");
     });
   }
@@ -394,13 +430,152 @@ describe("the success line — one line, on stdout, in the language in play", ()
     const spy = freshSpy();
     expect(ENGINE_RESULT.summary.findings.total).toBeGreaterThan(0);
     expect(
-      await commandWith({ spy }).run(capture({ source: "x", out: join(dir, "r.html") }).ctx),
+      await commandWith({ spy }).run(
+        capture({ cwd: dir, source: "x", out: join(dir, "r.html") }).ctx,
+      ),
     ).toBe(0);
   });
 
   it("the two languages are genuinely different lines", () => {
-    const counts = { out: "/tmp/r.html", findings: 2, errors: 1, warnings: 1, files: 9 };
+    const counts = { findings: 2, errors: 1, warnings: 1, files: 9 };
     expect(reportWritten(counts).ru).not.toBe(reportWritten(counts).en);
     expect(reportWritten(counts).en).not.toMatch(/[А-Яа-яЁё]/u);
+  });
+});
+
+/**
+ * THE PROGRESS PHASES — five of them, two of which are driven by the engine itself.
+ *
+ * The engine's `onProgress` is the only place the scan/rules boundary is observable
+ * (`packages/fe-analyzer-engine/src/index.ts` — `AnalyzeProgress`), so the fake below EMITS
+ * that callback rather than ignoring it: what is under test is the translation from the
+ * engine's ticks into phases and percentages, and a fake that never ticked would leave exactly
+ * that untested. How a phase LOOKS on a terminal belongs to
+ * `packages/cli-kit/tests/ui.test.ts`; what belongs here is which phases exist and in what
+ * order they are announced.
+ */
+describe("the terminal UI the command drives", () => {
+  /** A command whose engine reports two scan ticks and two rule ticks as it goes. */
+  function commandWithProgress() {
+    const commands = createProjectReportCommands({
+      resolveSource: () =>
+        Promise.resolve({ kind: "local", dir: "/projects/app", cleanup: () => Promise.resolve() }),
+      analyzeProject: (options) => {
+        options.onProgress?.({ stage: "scan", done: 1, total: 2 });
+        options.onProgress?.({ stage: "scan", done: 2, total: 2 });
+        options.onProgress?.({ stage: "rules", done: 1, total: 2 });
+        options.onProgress?.({ stage: "rules", done: 2, total: 2 });
+        return Promise.resolve(ENGINE_RESULT);
+      },
+      renderReport: () => HTML,
+    });
+    return commands[0] as (typeof commands)[number];
+  }
+
+  /** CHANGED IN E2b: the card's last entry is `resultOf(headline, [path])` — the counts
+   *  sentence, then the absolute path on its own line — rather than a sentence with the path
+   *  spliced into it. */
+  it("announces resolve → scan → rules → render → write, and ends with counts + the path", async () => {
+    const out = join(dir, "report.html");
+    const { ctx, ui } = capture({ cwd: dir, source: "/projects/app", out });
+    expect(await commandWithProgress().run(ctx)).toBe(0);
+
+    expect(ui).toEqual([
+      `phase:${phases.resolve.ru}`,
+      `phase:${phases.scan.ru}`,
+      "progress:1/2",
+      "progress:2/2",
+      `phase:${phases.rules.ru}`,
+      "progress:1/2",
+      "progress:2/2",
+      `phase:${phases.render.ru}`,
+      `phase:${phases.write.ru}`,
+      `done:${
+        resultOf(reportWritten({ findings: 2, errors: 1, warnings: 1, files: 9 }), [out]).ru
+      }`,
+    ]);
+  });
+
+  /**
+   * THE DEFAULT PATH, end to end: no `-o`, and the file lands at `./fe-out/report.html` under
+   * the context's cwd with the card naming it absolutely. This is the case the owner's law is
+   * actually about, and it used to be an exit-2 refusal.
+   */
+  it("with no -o the report is written to ./fe-out/report.html and the card names it", async () => {
+    const { ctx, ui, out } = capture({ cwd: dir, source: "/projects/app" });
+    expect(await commandWithProgress().run(ctx)).toBe(0);
+
+    const expected = join(dir, DEFAULT_REPORT);
+    expect(await readFile(expected, "utf8")).toBe(HTML);
+    expect(ui.at(-1)).toBe(
+      `done:${
+        resultOf(reportWritten({ findings: 2, errors: 1, warnings: 1, files: 9 }), [expected]).ru
+      }`,
+    );
+    // …and the same list on stdout, as the last line.
+    expect(text(out).trimEnd().split("\n").at(-1)).toBe(expected);
+  });
+
+  it("a relative -o resolves against the CONTEXT's cwd, never the process's", async () => {
+    const { ctx } = capture({ cwd: dir, source: "/projects/app", out: "nested/r.html" });
+    expect(await commandWithProgress().run(ctx)).toBe(0);
+    expect(await readFile(join(dir, "nested", "r.html"), "utf8")).toBe(HTML);
+  });
+
+  it("the rules phase is announced ONCE, on the first tick that says the engine moved on", async () => {
+    const out = join(dir, "report.html");
+    const { ctx, ui } = capture({ cwd: dir, source: "/projects/app", out });
+    await commandWithProgress().run(ctx);
+    expect(ui.filter((line) => line === `phase:${phases.rules.ru}`)).toHaveLength(1);
+  });
+
+  it("the scan phase exists even for a project the engine reports nothing about", async () => {
+    const out = join(dir, "report.html");
+    const spy = freshSpy();
+    const { ctx, ui } = capture({ cwd: dir, source: "/projects/app", out });
+    expect(await commandWith({ spy }).run(ctx)).toBe(0);
+    // No tick ever arrives from this fake, and the run still names every phase it went through
+    // except the one the engine alone can announce.
+    expect(ui).toEqual([
+      `phase:${phases.resolve.ru}`,
+      `phase:${phases.scan.ru}`,
+      `phase:${phases.render.ru}`,
+      `phase:${phases.write.ru}`,
+      ui.at(-1) ?? "",
+    ]);
+    expect(ui.at(-1)?.startsWith("done:")).toBe(true);
+  });
+
+  it("a clone that fails fails the RESOLVE phase, and no card claims success", async () => {
+    const spy = freshSpy();
+    const command = commandWith({
+      spy,
+      source: () =>
+        Promise.reject(
+          new SourceError({
+            code: "clone-failed",
+            input: "git@example.com:nope.git",
+            gitStderr: "repository not found",
+          }),
+        ),
+    });
+    const { ctx, ui } = capture({
+      cwd: dir,
+      source: "git@example.com:nope.git",
+      out: join(dir, "r.html"),
+    });
+    expect(await command.run(ctx)).toBe(1);
+    expect(ui[0]).toBe(`phase:${phases.resolve.ru}`);
+    expect(ui.at(-1)?.startsWith("fail:")).toBe(true);
+    expect(ui.filter((line) => line.startsWith("done:"))).toEqual([]);
+  });
+
+  it("--lang en renders every phase label in English", async () => {
+    const out = join(dir, "report.html");
+    const { ctx, ui } = capture({ cwd: dir, source: "/projects/app", out, lang: "en" });
+    expect(await commandWithProgress().run(ctx)).toBe(0);
+    expect(ui).toContain(`phase:${phases.scan.en}`);
+    expect(ui).toContain(`phase:${phases.rules.en}`);
+    expect(ui.join("\n")).not.toMatch(/[А-Яа-яЁё]/u);
   });
 });

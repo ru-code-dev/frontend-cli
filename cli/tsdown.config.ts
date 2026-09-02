@@ -107,6 +107,16 @@ export default defineConfig({
     //
     // `zod` is NOT repeated: it is already listed above, shared by pixso-core and the engine.
     // `jiti` is deliberately ABSENT — it is `external`, see the top of this file.
+    //
+    // X3 ADDED NOTHING HERE, and that is a result rather than an oversight.
+    // `packages/fe-project-report` now statically imports `@smart-tools/fe-eds-adapter`, which
+    // is matched by the `noExternal` pattern above and whose own third-party surface is `zod`
+    // (already listed) — its 5.6 MB of `dist` is artifacts and its own code, not packages. The
+    // build was re-run from clean and the bundled-dependency check emitted no
+    // `is located in node_modules but is not included in inlineOnly option` line, which is the
+    // same diagnostic that produced the 154 names below. The bundle grew 16 051 732 ->
+    // 20 044 687 bytes; the guard that watches that number is
+    // `cli/tests/project-report.integration.test.ts`, raised in the same change.
     "acorn",
     "acorn-jsx",
     "aria-query",

@@ -9,13 +9,15 @@ import { readFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { createUi, silentUi } from "@smart-tools/fe-cli-kit";
 import { describe, expect, it } from "vite-plus/test";
 
 import { type RunDeps, run } from "../src/main.ts";
+import { COMMANDS } from "../src/registry.ts";
 import { EXIT_FAILURE, EXIT_OK, EXIT_USAGE } from "../src/parse.ts";
 import { SETTING_KEYS } from "../src/settings.ts";
 import { CLI_VERSION } from "../src/version.ts";
-import { FAKE_COMMANDS, calls } from "./fixtures.ts";
+import { FAKE_COMMANDS, REFUSAL_TEXT, calls, loudlyRefusingCommand } from "./fixtures.ts";
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -38,6 +40,10 @@ function harness(overrides: Partial<RunDeps> = {}): Harness {
     loadEnv: () => ({ loaded: false }),
     stdout: (s) => void outChunks.push(s),
     stderr: (s) => void errChunks.push(s),
+    // `silentUi` by default, so every assertion in this file keeps measuring DISPATCH rather
+    // than rendering: the terminal UI has its own suite (`packages/cli-kit/tests/ui.test.ts`)
+    // and would otherwise put a banner and a card into `err()` in every case here.
+    ui: () => silentUi,
     ...overrides,
   };
   return { deps, out: () => outChunks.join(""), err: () => errChunks.join("") };
@@ -127,6 +133,29 @@ describe("errors go to stderr, localized, exit 2", () => {
     expect(await run(["--lang", "de", "--fake-beta"], h.deps)).toBe(EXIT_USAGE);
     expect(h.err()).toContain("de");
   });
+
+  /**
+   * V3 MAJOR-1 through the real dispatch path: a flag the command has not declared exits 2,
+   * says so on stderr in the resolved language, and NOTHING runs. The registry is the shipped
+   * one here because the defect is about the shipped commands' surfaces; `parse.test.ts` proves
+   * the derivation rule generically.
+   */
+  it("a flag the selected command has not declared exits 2 without running it", async () => {
+    const h = harness({ commands: COMMANDS });
+    expect(await run(["--parse-ui-kit", "eds", "-o", "/tmp/zzz"], h.deps)).toBe(EXIT_USAGE);
+    expect(h.out()).toBe("");
+    expect(h.err()).toContain("-o");
+    expect(h.err()).toContain("--parse-ui-kit");
+    expect(h.err()).toContain("fe --help");
+  });
+
+  it("the same refusal in en", async () => {
+    const h = harness({ commands: COMMANDS });
+    expect(await run(["--lang", "en", "--project-report", "/p", "--source", "/x"], h.deps)).toBe(
+      EXIT_USAGE,
+    );
+    expect(h.err()).toContain("is not supported by --project-report");
+  });
 });
 
 describe("dispatch", () => {
@@ -151,6 +180,39 @@ describe("dispatch", () => {
     expect(ctx?.source).toBe("https://example/design");
     expect(ctx?.out).toBe("card.svg");
     expect(ctx?.lang).toBe("en");
+  });
+
+  /**
+   * THE CWD SEAM. `-o` is optional on every command now, so a run without one writes to a
+   * cwd-relative default (`packages/cli-kit/src/out.ts`). That makes `deps.cwd` an input to
+   * where files LAND, not just to where `.env` is looked for — so it has to reach the context,
+   * and it has to be the SAME cwd the `.env` loader was given, or a run and its `.env` would
+   * disagree about where "here" is.
+   */
+  it("hands the command the invocation's cwd — the same one the .env loader was given", async () => {
+    calls.length = 0;
+    const seen: string[] = [];
+    const h = harness({
+      cwd: () => "/somewhere/else",
+      loadEnv: (cwd) => {
+        seen.push(cwd);
+        return { loaded: false };
+      },
+    });
+    await run(["--fake-beta"], h.deps);
+    expect(calls[0]?.ctx.cwd).toBe("/somewhere/else");
+    expect(seen).toEqual(["/somewhere/else"]);
+  });
+
+  it("`-o` absent leaves ctx.out undefined — the command decides the default, not the CLI", async () => {
+    calls.length = 0;
+    const h = harness();
+    await run(["--fake-beta"], h.deps);
+    // The CLI does NOT substitute a default path: which default a command has is that command's
+    // to know (a pixso face, a report and a corpus have three different answers), and a value
+    // invented here would be one the help page could not describe.
+    expect(calls[0]?.ctx.out).toBeUndefined();
+    expect(calls[0]?.ctx.cwd).toBe(packageRoot);
   });
 
   it("hands the command the RESOLVED settings under the owner-fixed env names", async () => {
@@ -264,5 +326,71 @@ describe("a broken ./.env stops the run with a localized message", () => {
     });
     await run(["--lang", "en", "--fake-beta"], h.deps);
     expect(h.err()).toContain("could not load .env");
+  });
+});
+
+/**
+ * THE ONE-VOICE RULE (V2 audit MINOR-1).
+ *
+ * The completion and failure sentences used to reach stderr TWICE — once inside the `╔═╗` card
+ * and once again as a bare trailing line — because a command's refusal path hands the message
+ * to `ui.fail` and then writes it itself, an idiom from before the card existed. The card
+ * carries the sentence in every mode, plain non-TTY lane included, so the bare line was the
+ * same words a second time.
+ *
+ * The fix lives at the seam that owns the streams (`cli/src/main.ts`) rather than in the two
+ * feature packages, so it holds for any command added later. These tests pin BOTH halves of it,
+ * because getting only the first half right is how the sentence disappears instead: printed
+ * once when there is a card, and still printed once when there is not.
+ */
+describe("the failure sentence is printed exactly once", () => {
+  /** A recorder that is BOTH the UI's stream and `deps.stderr`, as `process.stderr` is in life. */
+  function sharedStderr(): { chunks: string[]; write: (s: string) => void } {
+    const chunks: string[] = [];
+    return { chunks, write: (s: string) => void chunks.push(s) };
+  }
+
+  const occurrences = (haystack: string, needle: string): number =>
+    haystack.split(needle).length - 1;
+
+  it("once, not twice, when the UI draws a card", async () => {
+    const sink = sharedStderr();
+    // A real UI over a non-TTY stream: the plain lane, no escapes, and a card that still
+    // carries the message — which is exactly the shape of a `2>` redirect or a CI log.
+    const ui = createUi({ stream: { write: sink.write }, lang: "ru", env: {} });
+    const h = harness({
+      commands: [loudlyRefusingCommand],
+      stderr: sink.write,
+      ui: () => ui,
+    });
+    expect(await run(["--fake-loud-refuse"], h.deps)).toBe(EXIT_USAGE);
+    expect(occurrences(sink.chunks.join(""), REFUSAL_TEXT.ru)).toBe(1);
+  });
+
+  it("still once, not zero, when the UI draws nothing", async () => {
+    // `silentUi` writes no card, so suppressing the command's own line would lose the failure
+    // altogether. Every hand-built test context in this repo is wired this way.
+    const sink = sharedStderr();
+    const h = harness({
+      commands: [loudlyRefusingCommand],
+      stderr: sink.write,
+      ui: () => silentUi,
+    });
+    expect(await run(["--fake-loud-refuse"], h.deps)).toBe(EXIT_USAGE);
+    expect(occurrences(sink.chunks.join(""), REFUSAL_TEXT.ru)).toBe(1);
+  });
+
+  it("once for a command that THROWS, and the --debug hint survives", async () => {
+    const sink = sharedStderr();
+    const ui = createUi({ stream: { write: sink.write }, lang: "ru", env: {} });
+    const h = harness({ stderr: sink.write, ui: () => ui });
+    expect(await run(["--fake-explode"], h.deps)).toBe(EXIT_FAILURE);
+    const err = sink.chunks.join("");
+    // The engine's own words, once. The card wraps long messages across box rows, so the
+    // sentence is counted by the part that cannot be broken by wrapping.
+    expect(occurrences(err, "engine said no")).toBe(1);
+    // The hint is NOT the card's sentence and must still be there: it is the only thing telling
+    // a user how to see the stack.
+    expect(err).toContain("--debug");
   });
 });

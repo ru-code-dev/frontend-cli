@@ -12,15 +12,26 @@ import { SEVERITY_RANK, SEVERITY_WEIGHT } from "./severity.js";
  */
 
 /**
- * Distinct accessibility checks that ship: eight written here, twenty-nine run from
- * `eslint-plugin-jsx-a11y`.
+ * Distinct accessibility checks that ran, printed on the accessibility screen.
  *
- * Pinned rather than derived — the dashboard is a static bundle with no access to the rule
- * registry, and threading a count through the payload to render one sentence would be a
- * contract change to save a constant. One lower than the source dashboard's 38: this build
- * does not port `a11y.pattern.keyboard`, the one kit-gated a11y rule (h5 §1a).
+ * The source dashboard pinned this at 38 — nine hand-written a11y rules plus twenty-nine run
+ * from `eslint-plugin-jsx-a11y` — because its tool always had every rule. This build has two
+ * shapes: without a design-system adapter one of the nine (`a11y.pattern.keyboard`, the
+ * kit-gated one, h5 §1a) does not run, and with an adapter it does. A pinned constant would
+ * therefore be wrong in one of the two runs, which is the one thing a printed count must not
+ * be.
+ *
+ * So it is DERIVED, from the rule registry the payload already carries for the filter panel
+ * (`ruleDescriptions`, `dashboard/src/contract.ts`): every `a11y.*` id except `a11y.lint`,
+ * which is not one check but the twenty-nine below. Nothing new is threaded through the
+ * contract — b3's reason for pinning it — because that field was already there.
  */
-export const A11Y_CHECK_COUNT = 37;
+export const JSX_A11Y_CHECK_COUNT = 29;
+
+export const a11yCheckCount = (ruleDescriptions: Record<string, string>): number =>
+  JSX_A11Y_CHECK_COUNT +
+  Object.keys(ruleDescriptions).filter((rule) => rule.startsWith("a11y.") && rule !== "a11y.lint")
+    .length;
 
 /** One decision: every occurrence sharing an `impactKey`, with its accessibility facet. */
 export interface A11yGroup {

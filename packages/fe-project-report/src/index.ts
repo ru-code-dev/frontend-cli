@@ -16,17 +16,58 @@
  */
 export {
   createProjectReportCommands,
+  DEFAULT_REPORT,
   projectReportCommands,
   type ProjectReportDeps,
 } from "./command.ts";
 
 export {
+  createParseUiKitCommands,
+  parsableKitNames,
+  PARSABLE_KITS,
+  parseUiKitCommands,
+  type ParsableKit,
+  type ParseUiKitDeps,
+} from "./parse-ui-kit.ts";
+
+export {
+  ADAPTERS,
+  NO_ADAPTER,
+  resolveAdapter,
+  type AdapterResolution,
+  adapterNames,
+  countKitImports,
+  declaredDependencies,
+  requestedAdapter,
+  selectAdapter,
+  type AdapterChoice,
+  type AdapterEntry,
+  type SelectAdapterOptions,
+} from "./adapters.ts";
+
+export {
+  adapterDisabled,
+  adapterNotFound,
+  adapterSelected,
+  adapterStamp,
   argDescriptions,
+  corpusWarning,
+  corpusWritten,
   failed,
-  missingOut,
+  failedToParse,
+  missingKit,
   missingSource,
+  npmFailure,
+  parseArgDescriptions,
+  parsePhases,
+  parseSummary,
+  phases,
+  provenanceLabel,
   reportWritten,
   sourceFailure,
   summary,
+  unknownAdapter,
+  unknownParseKit,
+  type CorpusCounts,
   type ReportCounts,
 } from "./strings.ts";

@@ -8,13 +8,12 @@ import type { RawFinding, Rule, RuleContext } from "../types.ts";
  * `a11y.contrast.text` — text whose colour does not carry against the background it is
  * written on. Ported from `hackathon2026/ds-analyzer/src/rules/a11y/contrast.ts:1-169`.
  *
- * Two changes, both in the DELTAS table. `colorOf` loses its `var(--…)` branch (source lines
- * 71-79), which resolved a custom property through `context.kit.tokenByCssVariable` and
- * returned `null` for every property that was not one of that kit's tokens — h2 §5.4 records
- * that a project's own `:root{--brand:…}` already fell through it silently, so on a kit-less
- * project the branch and its absence are the same behaviour. And the `fix` sentence no longer
- * tells the reader to take a colour "из ролей кита" (source line 159), advice this engine
- * cannot make good on.
+ * Two things here depend on whether a design system is connected, and both were DELTAS rows
+ * this seam reverses. `colorOf`'s `var(--…)` branch (source lines 71-79) resolves a custom
+ * property through the adapter's token table; with no adapter it returns `null`, which is what
+ * h2 §5.4 records already happened for any property outside that kit's tokens. And the `fix`
+ * sentence sends the reader to "роли кита" (source line 159) only when there are roles to send
+ * them to.
  *
  * Contrast is normally the one check that forces a browser into the pipeline, because the
  * hard part is not the arithmetic but discovering which two colours ended up stacked. Here a
@@ -70,13 +69,29 @@ const groupIntoBlocks = (styleValues: readonly StyleValue[]): Map<string, Block>
 };
 
 /**
- * Resolves a declaration to a colour.
+ * Resolves a declaration to a colour, following a custom property when the connected design
+ * system names one. Restored from `hackathon2026/ds-analyzer/src/rules/a11y/contrast.ts:65-80`.
  *
- * A value that is a `var(…)` reference resolves to nothing here and the pair is skipped —
- * the same outcome the source produced for any custom property outside its own kit's token
- * table.
+ * `var(--…)` is the correct way to write a colour, and a project that does it everywhere would
+ * otherwise be exempt from contrast checking entirely — the one outcome that would make this
+ * rule reward the wrong behaviour. With no adapter there is nothing to resolve the property
+ * against, and the pair is skipped exactly as before.
  */
-const colorOf = (styleValue: StyleValue): ColorValue | null => parseColor(styleValue.value.trim());
+const colorOf = (styleValue: StyleValue, context: RuleContext): ColorValue | null => {
+  const direct = parseColor(styleValue.value.trim());
+  if (direct !== null) {
+    return direct;
+  }
+
+  const variable = /var\(\s*(--[a-zA-Z0-9-]+)/.exec(styleValue.value);
+  if (variable?.[1] === undefined || context.kit === null) {
+    return null;
+  }
+
+  const hex = context.kit.tokenColorHex(variable[1]);
+
+  return hex === null ? null : parseColor(hex);
+};
 
 const weightOf = (styleValue: StyleValue | null): number | null => {
   if (styleValue === null) {
@@ -104,8 +119,8 @@ export const textContrastRule: Rule = {
         continue;
       }
 
-      const foregroundColor = colorOf(color);
-      const backgroundColor = colorOf(background);
+      const foregroundColor = colorOf(color, context);
+      const backgroundColor = colorOf(background, context);
 
       if (foregroundColor === null || backgroundColor === null) {
         continue;
@@ -155,9 +170,14 @@ export const textContrastRule: Rule = {
           pattern: null,
           impact: `Текст с контрастом ${formatRatio(verdict.ratio)} нечитаем для значительной доли пользователей.`,
           // No colour is named on purpose. Which of the two to move is a design decision, and
-          // picking one here would be a guess presented as a requirement.
+          // picking one here would be a guess presented as a requirement. With a design system
+          // connected the advice points at its roles, exactly as the source did
+          // (`ds-analyzer/src/rules/a11y/contrast.ts:158-160`); without one there are no roles
+          // to send the reader to, so the same sentence states the requirement instead.
           fix:
-            `Разведите цвет текста и фона так, чтобы пара давала минимум ` +
+            (context.kit === null
+              ? `Разведите цвет текста и фона так, чтобы пара давала минимум `
+              : `Возьмите цвет текста или фона из ролей кита так, чтобы пара давала минимум `) +
             `${String(verdict.threshold)}:1 — обычно достаточно затемнить текст на пару ступеней шкалы.`,
         },
         impactKey: `a11y.contrast.text:${color.value}:${background.value}`,

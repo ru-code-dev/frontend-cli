@@ -982,6 +982,9 @@ export const collectTypeScript = (input: TypeScriptCollectionInput): TypeScriptC
         ariaAttributes: sortStrings(ariaAttributes),
         nativeTags: sortStrings(nativeTags),
         jsxShape: sortStrings(jsxShape),
+        // Filled by `scanProject`'s kit-usage pass when an adapter is connected; the collector
+        // sees one file at a time and cannot know what counts as a kit component.
+        kitComponentsUsed: [],
         cssProperties: sortStrings(cssProperties),
         hasInlineSvg,
         eventHandlers: sortStrings(declarationHandlers),

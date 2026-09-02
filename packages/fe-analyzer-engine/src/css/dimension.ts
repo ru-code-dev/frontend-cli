@@ -74,3 +74,23 @@ export const parseDimension = (
 
   return { value, unit, px: toPixels(value, unit, remBasePx) };
 };
+
+export const isDimensionLiteral = (input: string | number): boolean =>
+  parseDimension(input) !== null;
+
+/**
+ * Builds the sorted, de-duplicated pixel scale implied by a set of dimensions. Ported verbatim
+ * from `hackathon2026/ds-analyzer/src/tokens/dimension.ts:81-95`. Context-dependent units are
+ * excluded because they have no pixel projection.
+ */
+export const toPixelScale = (dimensions: readonly DimensionValue[]): number[] => {
+  const pixels = new Set<number>();
+
+  for (const dimension of dimensions) {
+    if (dimension.px !== null) {
+      pixels.add(dimension.px);
+    }
+  }
+
+  return [...pixels].sort((a, b) => a - b);
+};

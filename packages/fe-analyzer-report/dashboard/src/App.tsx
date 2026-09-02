@@ -289,7 +289,9 @@ export const App = (): React.ReactElement => {
               onSelectToggle={toggleSelection}
             />
           )}
-          {state.screen === "design" && <DesignScreen payload={fullData} navigate={navigate} />}
+          {state.screen === "design" && (
+            <DesignScreen payload={fullData} state={state} go={go} navigate={navigate} />
+          )}
           {state.screen === "a11y" && (
             <A11yScreen
               payload={data}

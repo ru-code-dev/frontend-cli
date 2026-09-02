@@ -1,0 +1,33 @@
+{
+  "name": "@smart-tools/fe-eds-adapter",
+  "version": "0.1.0",
+  "private": true,
+  "license": "UNLICENSED",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsgo -p tsconfig.json",
+    "test": "vp test run --project unit",
+    "test:integration": "vp test run --project integration",
+    "build": "tsdown"
+  },
+  "dependencies": {
+    "@smart-tools/fe-analyzer-engine": "workspace:*",
+    "ts-morph": "catalog:",
+    "typescript": "catalog:",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@types/node": "catalog:",
+    "tsdown": "catalog:",
+    "vite-plus": "catalog:"
+  }
+}

@@ -1,29 +1,52 @@
 /**
- * THE ARTIFACT ITSELF: one file, no network, and exactly the panels this port keeps.
+ * THE ARTIFACT ITSELF: one file, no network, and exactly the panels this build ships.
  *
- * The owner's rule for this port is 0 visual regression against the hackathon dashboard —
- * same look, only fewer metrics. Two of these suites are that rule made mechanical: every
- * panel whose rules are NOT ported must be gone from the built HTML, and every panel that
- * survives must still be in it. Markers are the panels' own heading text, which is what a
- * reader would look for on screen.
+ * The owner's rule is 0 visual regression against the hackathon dashboard. Three suites make
+ * it mechanical, and X3 split the first one in two because the panels now come in three kinds
+ * rather than two:
+ *
+ *  - **gone forever** — PrFlow, which carried a live Jenkins webhook and its token (h3 §5),
+ *    and the sidebar badge naming a private design system. These must never be in the build,
+ *    with or without an adapter, and deletion (not disabling) is the requirement.
+ *  - **conditional** — the kit panels B3 deleted for lack of rules and X3 restored. Their
+ *    markup SHIPS (the template is one static build serving both kinds of report) and the
+ *    payload decides whether they draw. Asserting their presence here is what proves the
+ *    restoration actually reached the artifact; whether they render is `kit.test.ts`.
+ *  - **always shown** — the generic panels.
+ *
+ * Markers are the panels' own heading text, which is what a reader would look for on screen.
  */
 import { describe, expect, it } from "vite-plus/test";
 
 import { builtBundle, builtTemplate } from "./support.ts";
 
-/** Panels deleted by this port, by the heading each one showed. */
+/** Deleted forever, whatever the payload says. */
 const REMOVED_MARKERS: readonly string[] = [
-  // PrFlow — the component carrying the hardcoded Jenkins webhook (h3 §5).
+  // PrFlow — the component carrying the hardcoded Jenkins webhook (h3 §5). Its feature has no
+  // counterpart in this product and its secret must not enter this repository in any form.
   "Создать pull request",
   "Заголовок PR",
-  // Kit-metric verdict strip (no ported rule behind any of it).
+  // The kit-version badge in the sidebar named a specific private design system.
+  "sds-eng",
+];
+
+/**
+ * Restored by X3, and present in the build because one template serves both kinds of report.
+ *
+ * Each one is fed by an adapter rule or by `usage`, so each is drawn only when the payload
+ * carries adapter-domain data (`dashboard/src/lib/kit.ts`, asserted in `kit.test.ts`). If any
+ * of these is missing from the artifact, the restoration did not survive the build — which is
+ * a failure a payload-level test could not see.
+ */
+const KIT_MARKERS: readonly string[] = [
+  // Kit-metric verdict strip.
   "Здоровье",
   "Компоненты из ДС",
   "Кастомные на токенах ДС",
   "Кастомные без токенов ДС",
   "Покрытие токенами",
   // Token / kit-adoption panels: `token.literal.color`, `token.literal.dimension` and the
-  // usage tables are all kit-parametric (h5 §1b, §2a).
+  // usage tables (h5 §1b, §2a) — all adapter rules.
   "Пробелы кита",
   "Палитра мимо токенов",
   "Размеры против шкалы кита",
@@ -32,8 +55,6 @@ const REMOVED_MARKERS: readonly string[] = [
   "Кастомные компоненты",
   "Сторонние компоненты",
   "Компоненты кита, не использованные ни разу",
-  // The kit-version badge in the sidebar named a specific private design system.
-  "sds-eng",
 ];
 
 /** Panels the port keeps, by the heading each one shows. */
@@ -81,10 +102,18 @@ describe("the built dashboard template", () => {
   });
 });
 
-describe("0 visual regression — the panels that had to go", () => {
+describe("0 visual regression — the panels that had to go, and stay gone", () => {
   for (const marker of REMOVED_MARKERS) {
     it(`has no trace of «${marker}»`, () => {
       expect(builtTemplate()).not.toContain(marker);
+    });
+  }
+});
+
+describe("the restored kit panels reached the artifact", () => {
+  for (const marker of KIT_MARKERS) {
+    it(`ships «${marker}»`, () => {
+      expect(builtTemplate()).toContain(marker);
     });
   }
 });

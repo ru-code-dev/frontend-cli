@@ -2,17 +2,21 @@
  * TIER 1 — unit. `parseInvocation` is pure, so this suite is the argv surface tested directly:
  * no process, no filesystem, no subprocess (design 2.1:148-153).
  */
+import type { CliCommand } from "@smart-tools/fe-cli-kit";
 import { describe, expect, it } from "vite-plus/test";
 
 import { COMMANDS } from "../src/registry.ts";
 import {
   DEFAULT_LANG,
+  declaredOptions,
   EXIT_OK,
   EXIT_USAGE,
+  HELP_GLOBAL_ORDER,
   optionName,
   optionsFor,
   parseInvocation,
   preresolveLang,
+  scopedOptionNames,
 } from "../src/parse.ts";
 import { FAKE_COMMANDS, alphaCommand, betaCommand } from "./fixtures.ts";
 
@@ -269,5 +273,216 @@ describe("the positional is the source", () => {
 
   it("does not confuse a command with its neighbour", () => {
     expect(alphaCommand.flag).not.toBe(betaCommand.flag);
+  });
+});
+
+/**
+ * X3: `--ui-kit` takes a VALUE, and its value reaches the command.
+ *
+ * It is declared among the parser's options because `parseArgs` is strict — an undeclared
+ * option is an unknown flag — but it is a command's option, not a global, and `ctx.flags` is
+ * the only channel a command-specific option has (`packages/cli-kit/src/index.ts:53-63` names
+ * `source` and `out` and nothing else, and that contract is frozen).
+ */
+describe("--ui-kit", () => {
+  it("is parsed as a string and handed to the command through flags", () => {
+    const parsed = parseInvocation(["--project-report", "/p", "--ui-kit", "eds"], COMMANDS);
+    expect(parsed.kind).toBe("command");
+    expect(parsed.kind === "command" && parsed.flags["ui-kit"]).toBe("eds");
+  });
+
+  it("accepts the `--ui-kit=value` spelling too, since Node's parser does", () => {
+    const parsed = parseInvocation(["--project-report", "/p", "--ui-kit=none"], COMMANDS);
+    expect(parsed.kind === "command" && parsed.flags["ui-kit"]).toBe("none");
+  });
+
+  it("is absent from flags when nobody typed it — autodetection is the default", () => {
+    const parsed = parseInvocation(["--project-report", "/p"], COMMANDS);
+    expect(parsed.kind === "command" && parsed.flags["ui-kit"]).toBeUndefined();
+  });
+
+  it("without a value is a flag-usage error, not a silent empty string", () => {
+    const parsed = parseInvocation(["--project-report", "/p", "--ui-kit"], COMMANDS);
+    expect(parsed.kind).toBe("error");
+  });
+
+  it("is NOT printed among the global options — it belongs to one command", () => {
+    // `--debug` sets the precedent (`cli/src/parse.ts:38-42`): being parseable and being a
+    // documented global are two different things.
+    expect([...HELP_GLOBAL_ORDER]).not.toContain("ui-kit");
+  });
+});
+
+/**
+ * V3 MAJOR-1 — a flag the selected command has not declared is REFUSED, not ignored.
+ *
+ * The defect this replaces: `--parse-ui-kit eds -o /tmp/x` exited 0, wrote the corpus to
+ * `FE_KITS_DIR` and never created `/tmp/x`, because `parseArgs`'s options table is shared by
+ * every command and an option a command does not declare used to be an option it silently
+ * ignored. The audit's other two repro shapes — `--project-report … --source` and
+ * `--psvg … --ui-kit` — are the same bug and are covered here too.
+ *
+ * These cases run against the REAL registry rather than `FAKE_COMMANDS`, because the thing under
+ * test is which flags the shipped commands declare; the derivation RULE is proven separately
+ * below, against fixtures, so neither test can pass vacuously.
+ */
+describe("a flag the command has not declared", () => {
+  const real = (argv: readonly string[]) => parseInvocation(argv, COMMANDS);
+
+  it("refuses `-o` on --parse-ui-kit, which declares no output flag", () => {
+    const parsed = real(["--parse-ui-kit", "eds", "-o", "/tmp/zzz"]);
+    expect(parsed.kind).toBe("error");
+  });
+
+  it("names BOTH the flag as typed and the command, in ru", () => {
+    const parsed = real(["--parse-ui-kit", "eds", "-o", "/tmp/zzz"]);
+    const message = parsed.kind === "error" ? parsed.message.ru : "";
+    expect(message).toContain("-o");
+    expect(message).toContain("--parse-ui-kit");
+    expect(/[А-Яа-яЁё]/u.test(message)).toBe(true);
+  });
+
+  it("says the same thing in en", () => {
+    const parsed = real(["--lang", "en", "--parse-ui-kit", "eds", "-o", "/tmp/zzz"]);
+    expect(parsed.kind === "error" && parsed.lang).toBe("en");
+    const message = parsed.kind === "error" ? parsed.message.en : "";
+    expect(message).toContain("-o");
+    expect(message).toContain("--parse-ui-kit");
+    expect(/[А-Яа-яЁё]/u.test(message)).toBe(false);
+  });
+
+  it("quotes the long spelling when that is what the user typed", () => {
+    const parsed = real(["--parse-ui-kit", "eds", "--out=/tmp/zzz"]);
+    expect(parsed.kind === "error" && parsed.message.ru).toContain("--out");
+  });
+
+  it("refuses `--source` on --project-report, which declares only <src>, -o and --ui-kit", () => {
+    const parsed = real(["--project-report", "/p", "--source", "/tmp/zzz"]);
+    expect(parsed.kind).toBe("error");
+    expect(parsed.kind === "error" && parsed.message.en).toContain("--source");
+    expect(parsed.kind === "error" && parsed.message.en).toContain("--project-report");
+  });
+
+  it("refuses `--ui-kit` on a pixso command", () => {
+    const parsed = real(["--psvg", "11:10", "--ui-kit", "eds"]);
+    expect(parsed.kind).toBe("error");
+    expect(parsed.kind === "error" && parsed.message.ru).toContain("--ui-kit");
+  });
+
+  it("names the command by the spelling the user typed, alias included", () => {
+    // `--psvg` is `--get-pixso-svg`'s alias. Answering with the canonical spelling would hand
+    // back a line the user did not write, which is the same defect as answering `--out` to
+    // someone who typed `-o`.
+    expect(real(["--psvg", "11:10", "--ui-kit", "eds"]).kind === "error").toBe(true);
+    const aliased = real(["--psvg", "11:10", "--ui-kit", "eds"]);
+    const primary = real(["--get-pixso-svg", "11:10", "--ui-kit", "eds"]);
+    expect(aliased.kind === "error" && aliased.message.ru).toContain("--psvg");
+    expect(primary.kind === "error" && primary.message.ru).toContain("--get-pixso-svg");
+  });
+
+  it("is an error the caller turns into exit 2 — the `error` arm, never a command", () => {
+    // `EXIT_USAGE` is what `run` returns for every `kind: "error"` (`cli/src/main.ts:119-121`);
+    // the end-to-end proof of the code is in `run.test.ts` and the bundle suite.
+    expect(EXIT_USAGE).toBe(2);
+    expect(real(["--parse-ui-kit", "eds", "-o", "/x"]).kind).not.toBe("command");
+  });
+});
+
+describe("a flag the command HAS declared still parses", () => {
+  const real = (argv: readonly string[]) => parseInvocation(argv, COMMANDS);
+
+  it("--parse-ui-kit takes --source", () => {
+    const parsed = real(["--parse-ui-kit", "eds", "--source", "/some/kit"]);
+    expect(parsed.kind).toBe("command");
+    expect(parsed.kind === "command" && parsed.flags["source"]).toBe("/some/kit");
+  });
+
+  it("--project-report takes both -o and --ui-kit", () => {
+    const parsed = real(["--project-report", "/p", "-o", "r.html", "--ui-kit", "eds"]);
+    expect(parsed.kind).toBe("command");
+    expect(parsed.kind === "command" && parsed.out).toBe("r.html");
+  });
+
+  it("a pixso command takes -o", () => {
+    expect(real(["--psvg", "11:10", "-o", "a.svg"]).kind).toBe("command");
+  });
+
+  it("omitting a scoped flag is never a refusal", () => {
+    expect(real(["--parse-ui-kit", "eds"]).kind).toBe("command");
+    expect(real(["--project-report", "/p"]).kind).toBe("command");
+  });
+
+  it("keeps --token/--endpoint on every command, because no command declares them", () => {
+    // They are the CLI's own configuration surface: `resolveSettings` runs for EVERY invocation
+    // and hands all three values to EVERY command through `ctx.env`
+    // (`cli/src/settings.ts`). Nothing claims them in an `ArgSpec`, so nothing narrows them.
+    expect(scopedOptionNames(COMMANDS, optionsFor(COMMANDS))).not.toContain("token");
+    expect(scopedOptionNames(COMMANDS, optionsFor(COMMANDS))).not.toContain("endpoint");
+    expect(real(["--psvg", "11:10", "--token", "t", "--endpoint", "http://e"]).kind).toBe(
+      "command",
+    );
+    expect(real(["--parse-ui-kit", "eds", "--token", "t"]).kind).toBe("command");
+  });
+
+  it("keeps the meta-flags everywhere too", () => {
+    expect(real(["--parse-ui-kit", "eds", "--lang", "en", "--debug"]).kind).toBe("command");
+  });
+});
+
+/**
+ * THE RULE ITSELF, proven against fixtures rather than against the shipped registry: an option
+ * that AT LEAST ONE command names in its `args` is that command's; an option nobody names is the
+ * CLI's own. Written this way so the fix is a rule and not a table — if `--token` were declared
+ * by a command tomorrow, it would narrow with no edit to `parse.ts`.
+ */
+describe("scoping is DERIVED from each command's declared args", () => {
+  const declaring: CliCommand = {
+    flag: "--fake-declaring",
+    summary: { ru: "объявляет флаги", en: "declares flags" },
+    args: [
+      { name: "<src>", description: { ru: "источник", en: "source" }, required: true },
+      { name: "-o <path>", description: { ru: "куда", en: "where" }, required: false },
+      { name: "--token <t>", description: { ru: "токен", en: "token" }, required: false },
+    ],
+    run: () => Promise.resolve(0),
+  };
+  const silent: CliCommand = {
+    flag: "--fake-silent",
+    summary: { ru: "ничего не объявляет", en: "declares nothing" },
+    args: [],
+    run: () => Promise.resolve(0),
+  };
+  const registry = [declaring, silent] as const;
+  const options = optionsFor(registry);
+
+  it("reads a command's flags out of its ArgSpec names, short spelling included", () => {
+    expect([...declaredOptions(declaring, options)].sort()).toEqual(["out", "token"]);
+  });
+
+  it("ignores positional placeholders — `<src>` is not a flag", () => {
+    expect(declaredOptions(declaring, options)).not.toContain("src");
+    expect([...declaredOptions(silent, options)]).toEqual([]);
+  });
+
+  it("narrows `--token` the moment a command declares it, with no edit here", () => {
+    expect(scopedOptionNames(registry, options)).toContain("token");
+    expect(parseInvocation(["--fake-declaring", "x", "--token", "t"], registry).kind).toBe(
+      "command",
+    );
+    expect(parseInvocation(["--fake-silent", "--token", "t"], registry).kind).toBe("error");
+  });
+
+  it("leaves an option nobody declares universal", () => {
+    expect(scopedOptionNames(registry, options)).not.toContain("endpoint");
+    expect(parseInvocation(["--fake-silent", "--endpoint", "http://e"], registry).kind).toBe(
+      "command",
+    );
+  });
+
+  it("reports the refusal in a stable order for a line carrying two stray flags", () => {
+    const first = parseInvocation(["--fake-silent", "--token", "t", "-o", "x"], registry);
+    const again = parseInvocation(["--fake-silent", "-o", "x", "--token", "t"], registry);
+    expect(first.kind === "error" && first.message.en).toContain("-o");
+    expect(again.kind === "error" && again.message.en).toContain("-o");
   });
 });

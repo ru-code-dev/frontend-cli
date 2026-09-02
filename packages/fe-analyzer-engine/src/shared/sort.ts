@@ -14,3 +14,12 @@ export const compareStrings = (left: string, right: string): number =>
 
 /** Sorts a copy of `values` in deterministic code-unit order. */
 export const sortStrings = (values: Iterable<string>): string[] => [...values].sort(compareStrings);
+
+export const compareNumbers = (left: number, right: number): number => left - right;
+
+/** Numbers ascending, materialised. */
+export const sortNumbers = (values: Iterable<number>): number[] => [...values].sort(compareNumbers);
+
+/** Items by a string key, stable and reproducible. */
+export const sortBy = <T>(items: Iterable<T>, keyOf: (item: T) => string): T[] =>
+  [...items].sort((left, right) => compareStrings(keyOf(left), keyOf(right)));

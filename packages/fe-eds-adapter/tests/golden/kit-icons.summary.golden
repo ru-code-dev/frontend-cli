@@ -1,0 +1,50 @@
+{
+  "healthScore": 41,
+  "healthFormula": "health = round(100 × (0.5 × (1 − min(1, Σ(вес severity) / файлы / 12)) + 0.3 × adoption + 0.2 × tokenCoverage)); веса: error 3 · warning 1 · info 0.25 · candidate 0",
+  "adoption": 0,
+  "tokenCoverage": 0,
+  "files": {
+    "scanned": 2,
+    "clean": 0
+  },
+  "findings": {
+    "total": 8,
+    "bySeverity": {
+      "error": 0,
+      "warning": 4,
+      "info": 1,
+      "candidate": 3
+    },
+    "byRule": {
+      "icon.foreign-pack": 1,
+      "icon.foreign-file": 3,
+      "component.ambiguous": 1,
+      "icon.inline-svg": 2,
+      "token.literal.color": 1
+    },
+    "byCategory": {
+      "token": 1,
+      "typography": 0,
+      "font": 0,
+      "api": 0,
+      "override": 0,
+      "component": 1,
+      "icon": 6,
+      "a11y": 0
+    },
+    "autoFixable": 0,
+    "needsAgent": 7
+  },
+  "positives": [
+    {
+      "label": "Нет импортов в обход кита",
+      "detail": "Ни одного прямого обращения к обёрнутой библиотеке."
+    },
+    {
+      "label": "Типографика на месте",
+      "detail": "Чужих гарнитур не найдено."
+    }
+  ],
+  "kitGaps": [],
+  "limitations": []
+}

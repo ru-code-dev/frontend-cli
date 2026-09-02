@@ -5,15 +5,11 @@ import type { RawFinding, Rule, RuleContext } from "../types.ts";
  * `a11y.pattern.focus` — hand-rolled dialogs that trap nothing and close on nothing. Ported
  * from `hackathon2026/ds-analyzer/src/rules/a11y/dialog.ts:1-141`.
  *
- * The one thing not carried over is the optional `equivalent` suggestion — "the kit's Modal
- * already does this" — which the source computes as
- * `context.a11y.available ? context.a11y.canonicalComponentFor('dialog') : null` (source line
- * 86) and then branches on four times (98-101, 105, 111-124, 130-132). With no kit spec
- * loaded that expression is `null` on every run, so all four branches take their `null` arm;
- * the branches are dropped rather than kept as unreachable code, and the finding this rule
- * emits is byte-identical to what the source emits when `a11y.available === false` — the case
- * h2 §2 row 9 calls out as degrading cleanly. The `kitComponent !== null` skip (source line
- * 49) is kept as a dead-false check, like the other element rules'.
+ * The optional `equivalent` suggestion — "the kit's Modal already does this" — is the source's
+ * (line 86, branched on at 98-101, 105, 111-124, 130-132), now asked of the connected adapter
+ * instead of a loaded artifact. With no adapter the expression is `null` on every run and all
+ * four branches take their `null` arm, which is byte-identical to what the source emits when
+ * `a11y.available === false` — the case h2 §2 row 9 calls out as degrading cleanly.
  *
  * A modal has three obligations beyond its markup, and none of them are visible to a tool
  * that inspects attributes or a rendered snapshot: `Escape` closes it, focus stays inside
@@ -97,6 +93,15 @@ export const dialogFocusRule: Rule = {
         continue;
       }
 
+      // Restored from `ds-analyzer/src/rules/a11y/dialog.ts:86`: with a design system
+      // connected, "the kit's Modal already does this" is a statement backed by that kit's own
+      // code, and it comes with the replacement. Without one every branch below takes its
+      // `null` arm, which is the output this rule had before the seam existed.
+      const equivalent =
+        context.kit !== null && context.kit.a11yAvailable
+          ? context.kit.canonicalComponentFor("dialog")
+          : null;
+
       findings.push({
         rule: "a11y.pattern.focus",
         subkind: handlesEscape ? "noFocusTrap" : "noEscape",
@@ -107,22 +112,47 @@ export const dialogFocusRule: Rule = {
         line: element.propLines["role"] ?? element.line,
         column: element.column,
         actual: `<${element.name} role="dialog">`,
-        expected: null,
+        expected:
+          equivalent === null
+            ? null
+            : {
+                token: null,
+                cssVar: null,
+                component: equivalent.component,
+                value: `<${equivalent.component} …>`,
+              },
         why:
           `Диалог ${owner.name} объявлен ролью, но в нём не найдено: ${missing.join(", ")}. ` +
-          "Пользователь клавиатуры откроет его и не сможет ни выйти, ни вернуться к тому, что открыл.",
+          "Пользователь клавиатуры откроет его и не сможет ни выйти, ни вернуться к тому, что открыл." +
+          (equivalent === null ? "" : ` Компонент кита ${equivalent.component} это делает.`),
         note: "Признаки читаются синтаксически: фокус, перенесённый через внешний хук, отсюда не виден.",
         rootCause: { file: owner.file, line: owner.line, name: owner.name },
         appliedTo: null,
         autoFixable: false,
         needsAgent: true,
-        candidates: [],
+        candidates:
+          equivalent === null
+            ? []
+            : [
+                {
+                  component: equivalent.component,
+                  score: 0.85,
+                  reasons: [
+                    'рендерит role="dialog"',
+                    ...(equivalent.keysHandled.includes("Escape") ? ["закрывается по Escape"] : []),
+                    ...(equivalent.managesFocus ? ["управляет фокусом"] : []),
+                  ],
+                },
+              ],
         a11y: {
           wcag: handlesEscape ? ["2.1.2"] : ["2.1.2", "2.4.3"],
           pattern: "dialog-modal",
           impact:
             "Фокус остаётся заперт вне диалога или не возвращается: пользователь клавиатуры теряет управление.",
-          fix: `Допишите недостающее: ${missing.join(", ")}.`,
+          fix:
+            equivalent === null
+              ? `Допишите недостающее: ${missing.join(", ")}.`
+              : `Возьмите ${equivalent.component} из кита — он закрывается по Escape и сам управляет фокусом.`,
         },
         impactKey: "a11y.pattern.focus",
         replaceWith: null,

@@ -49,7 +49,7 @@ function embedded(html: string): Record<string, unknown> {
 describe("the written file is the real report", () => {
   it("is one self-contained page carrying the payload the engine result produced", async () => {
     const out = join(dir, "report.html");
-    expect(await command?.run(capture({ source: "app", out }).ctx)).toBe(0);
+    expect(await command?.run(capture({ cwd: dir, source: "app", out }).ctx)).toBe(0);
 
     const html = await readFile(out, "utf8");
     expect(html.startsWith("<!doctype html>")).toBe(true);
@@ -70,7 +70,7 @@ describe("the written file is the real report", () => {
 
   it("the payload survives the substitution byte for byte", async () => {
     const out = join(dir, "report.html");
-    await command?.run(capture({ source: "app", out }).ctx);
+    await command?.run(capture({ cwd: dir, source: "app", out }).ctx);
     const data = embedded(await readFile(out, "utf8"));
     const findings = data["findings"] as {
       id: string;

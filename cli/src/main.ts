@@ -20,9 +20,17 @@
  * (`ru-code-packages/packages/pixso-cli/package.json:13`, rationale at that package's
  * `src/main.ts:14-17`). Tests therefore import `../src/*.ts` relatively.
  */
-import { pathToFileURL } from "node:url";
+import { realpathSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
-import { type CliCommand, type CommandContext, pick } from "@smart-tools/fe-cli-kit";
+import {
+  type CliCommand,
+  type CommandContext,
+  type Lang,
+  type TerminalUi,
+  createUi,
+  pick,
+} from "@smart-tools/fe-cli-kit";
 
 import { type DotEnvResult, loadDotEnv } from "./dotenv.ts";
 import { helpText } from "./help.ts";
@@ -44,6 +52,17 @@ export interface RunDeps {
   readonly loadEnv: (cwd: string) => DotEnvResult;
   readonly stdout: (s: string) => void;
   readonly stderr: (s: string) => void;
+  /**
+   * The terminal UI, built per invocation because it needs the language the argv resolved to.
+   *
+   * It is a FACTORY rather than a value for that reason alone: `--lang` is known only after
+   * `parseInvocation` has run, and a UI that had to be told the language afterwards would be a
+   * UI that could draw one label in the wrong one. The production factory points it at
+   * `process.stderr` — never `stdout`, which stays exactly the bytes a caller piped — and hands
+   * it `process.env`, which is where `NO_COLOR`, `FORCE_COLOR` and `COLORTERM` are read from
+   * (`packages/cli-kit/src/ui.ts`).
+   */
+  readonly ui: (lang: Lang) => TerminalUi;
 }
 
 /** The production wiring. Referenced only by `run`'s default argument and the entry guard. */
@@ -56,6 +75,7 @@ export function defaultDeps(): RunDeps {
     loadEnv: loadDotEnv,
     stdout: (s) => void process.stdout.write(s),
     stderr: (s) => void process.stderr.write(s),
+    ui: (lang) => createUi({ stream: process.stderr, lang, env: process.env, wordmark: "fe" }),
   };
 }
 
@@ -105,9 +125,20 @@ export async function run(argv: readonly string[], deps: RunDeps = defaultDeps()
         { endpoint: parsed.endpoint, token: parsed.token },
         deps.readEnv(),
       );
+      // Built HERE and not before: `--help`, `--version` and every parse error return above
+      // this line, and none of them should print a banner. The UI draws nothing at all until a
+      // command asks it to (`packages/cli-kit/src/ui.ts` — the banner is lazy, on the first
+      // `phase`), so an invocation that never reaches a command leaves stderr untouched.
+      const ui = deps.ui(lang);
       const ctx: CommandContext = {
         source: parsed.source,
         out: parsed.out,
+        // The invocation's working directory, injected rather than read inside a command —
+        // `deps.cwd()` is the same function `.env` loading already goes through, so a run and
+        // its `.env` can never disagree about where "here" is. It matters more than it used to:
+        // `-o` is optional for every command now, and the defaults are cwd-relative
+        // (`packages/cli-kit/src/out.ts`), so this decides where a bare run WRITES.
+        cwd: deps.cwd(),
         lang,
         // The resolved settings OVERLAY the ambient environment under the three owner-fixed
         // names, so a command reading `ctx.env.PIXSO_LOCAL_MCP_URL` gets the value the
@@ -123,8 +154,31 @@ export async function run(argv: readonly string[], deps: RunDeps = defaultDeps()
         // so either read order reaches the same answer; writing both means the seam does not
         // depend on which one a future feature package happens to consult.
         flags: { ...parsed.flags, ...settingsToEnv(runtime) },
-        stdout: deps.stdout,
-        stderr: deps.stderr,
+        // Wrapped so a command's stdout line cannot land in the middle of a live progress bar:
+        // the bar occupies a row with no newline on it, and `suspend` erases that row before
+        // the write so the next animator frame redraws the bar BELOW the printed line rather
+        // than over it. The bytes handed to `deps.stdout` are untouched — this changes where
+        // the terminal cursor is, never what stdout carries.
+        stdout: (s) => {
+          ui.suspend();
+          deps.stdout(s);
+        },
+        // Same wrapping, plus the ONE-VOICE rule: once the UI has drawn its card, the card is
+        // the last thing on stderr. Every `ctx.stderr` call site in the repo is a refusal path
+        // that writes the very sentence it has just handed to `ui.fail`
+        // (`packages/fe-pixso/src/commands.ts:79-83`,
+        // `packages/fe-project-report/src/command.ts:144-146`) — the habit from before the card
+        // existed. The card carries that sentence in every mode, plain non-TTY lane included,
+        // so letting the bare line through prints it twice. Dropping it here rather than in
+        // those two files keeps the policy where the streams are owned, and holds for any
+        // command added later. `silentUi.ended()` is false forever, so a context with no
+        // terminal — every hand-built test context — still gets the bare line.
+        stderr: (s) => {
+          if (ui.ended()) return;
+          ui.suspend();
+          deps.stderr(s);
+        },
+        ui,
       };
       try {
         return await parsed.command.run(ctx);
@@ -133,7 +187,17 @@ export async function run(argv: readonly string[], deps: RunDeps = defaultDeps()
         // said; core's own error text passes through untranslated because core owns it. The
         // stack is reachable, but only for whoever asked for it with the hidden `--debug`.
         const detail = cause instanceof Error ? cause.message : String(cause);
-        deps.stderr(`${pick(commandFailed(detail), lang)}\n`);
+        // The card first, so whatever phase was in flight is marked `✗` and the animator that
+        // was easing its bar is stopped before anything else prints. `fail` is terminal and
+        // idempotent, so a command that already drew its own card is not given a second one
+        // (`packages/cli-kit/src/ui.ts`).
+        ui.fail(commandFailed(detail));
+        // ONE VOICE, the same rule and the same predicate as the `ctx.stderr` wrapper above:
+        // the card already carries this sentence, so the bare line is written only when there
+        // was no card. `silentUi` never draws one and answers `ended()` false forever
+        // (`packages/cli-kit/src/ui.ts`) — so a context wired to it, which is every hand-built
+        // test context, still gets the failure rather than losing it to a UI that drew nothing.
+        if (!ui.ended()) deps.stderr(`${pick(commandFailed(detail), lang)}\n`);
         if (parsed.debug) {
           deps.stderr(`${cause instanceof Error ? (cause.stack ?? detail) : detail}\n`);
         } else {
@@ -150,8 +214,33 @@ export async function run(argv: readonly string[], deps: RunDeps = defaultDeps()
  * test must not thereby execute it. Without the guard, merely importing this module ran the CLI
  * against the test runner's argv, printing usage into the suite's output and setting
  * `process.exitCode` (`ru-code-packages/packages/pixso-cli/src/main.ts:73-86`).
+ *
+ * The comparison is on REAL paths, and that is the whole point. `npm install` materialises
+ * `bin/fe` as a SYMLINK into `dist/main.mjs`; Node then sets `process.argv[1]` to the symlink
+ * while `import.meta.url` is the resolved target, so a naive `pathToFileURL(argv[1]).href ===
+ * import.meta.url` is false and the published binary exits 0 having done nothing. Resolving
+ * both sides with `realpathSync` makes the installed shape — the one every user actually runs —
+ * take the same branch as `node dist/main.mjs`. Covered by
+ * `cli/tests/installed-bin.integration.test.ts`, which packs, installs and runs the symlink.
+ *
+ * `realpathSync` throws on a path that does not exist or cannot be read (a deleted script, a
+ * broken link, an argv[1] that is not a file at all). That is not a reason to run: it only means
+ * we cannot prove this module IS the entry, so the guard stays closed and falls back to the
+ * unresolved comparison, which is exactly the old behaviour.
  */
 const entry = process.argv[1];
-if (entry !== undefined && import.meta.url === pathToFileURL(entry).href) {
+if (entry !== undefined && isEntry(entry, import.meta.url)) {
   process.exitCode = await run(process.argv.slice(2));
+}
+
+/** Exported for the unit test; see the ENTRY GUARD note above for why it resolves both sides. */
+export function isEntry(argv1: string, moduleUrl: string): boolean {
+  const real = (p: string): string => {
+    try {
+      return realpathSync(p);
+    } catch {
+      return p;
+    }
+  };
+  return real(fileURLToPath(moduleUrl)) === real(argv1);
 }

@@ -9,6 +9,7 @@
 
 export type {
   A11yFacet,
+  CustomComponent,
   Expected,
   Finding,
   FindingCategory,
@@ -16,6 +17,7 @@ export type {
   Severity,
   Snippet,
   Summary,
+  Usage,
 } from "./contract.js";
 
 import type { FindingCategory, Payload, Severity } from "./contract.js";

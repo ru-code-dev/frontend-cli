@@ -79,7 +79,75 @@ export interface Finding {
   impactKey: string;
 }
 
+/**
+ * A locally declared component the design-system team should look at.
+ *
+ * `snippetHtml` is added at render time (Shiki, like finding snippets); the analyzer's
+ * artifact carries only the raw `snippet` text.
+ */
+export interface CustomComponent {
+  name: string;
+  file: string;
+  line: number;
+  usages: number;
+  files: number;
+  props: string[];
+  kitComponentsUsed: string[];
+  hasInlineSvg: boolean;
+  snippet: string;
+  snippetHtml: string;
+  /** `kit-like`: resembles a kit component · `kit-candidate`: reused, kit has nothing like it · `local`: neither. */
+  verdict: "kit-like" | "kit-candidate" | "local";
+  nameMatch: { component: string; kind: "exact" | "contains" | "similar" } | null;
+  /** Kit-token references attributable to this component (own file + imported stylesheets). */
+  tokenRefs: number;
+  /** Hardcoded design values in the same scope, counted off the findings. */
+  hardcodedValues: number;
+  tokenVerdict: "tokens" | "mixed" | "hardcode" | "no-styles";
+}
+
+export interface Usage {
+  components: {
+    name: string;
+    usages: number;
+    files: number;
+    findings: number;
+    overrides: number;
+    props: Record<string, Record<string, number>>;
+  }[];
+  unusedComponents: string[];
+  foreignComponents: { name: string; usages: number; local: boolean; source: string | null }[];
+  customComponents: CustomComponent[];
+  /** Every rendered component element in exactly one bucket; sums to `total`. */
+  elementBreakdown: {
+    total: number;
+    kit: number;
+    kitClean: number;
+    customTokens: number;
+    customMixed: number;
+    customHardcode: number;
+    customUnstyled: number;
+    foreign: number;
+  };
+  tokenUsage: Record<string, number>;
+}
+
+/**
+ * THE ADAPTER-GATED FIELDS ARE OPTIONAL, AND THAT IS THE VISIBILITY MECHANISM.
+ *
+ * `healthScore`, `healthFormula`, `adoption`, `tokenCoverage` and `kitGaps` are the source
+ * dashboard's kit-adoption metrics. They are meaningless without a design system to measure
+ * adoption OF (h5 §2d), and the engine emits them only when a `KitAdapter` is connected
+ * (`packages/fe-analyzer-engine/src/domain/findings.ts:262-303`, all `.optional()`). Spelling
+ * them optional here is what makes `tsgo` refuse a screen that reads one without a guard — the
+ * panels are hidden by the type system rather than by a convention somebody has to remember.
+ * `lib/kit.ts` is the single place that turns the optionality into a decision.
+ */
 export interface Summary {
+  healthScore?: number;
+  healthFormula?: string;
+  adoption?: number;
+  tokenCoverage?: number;
   files: { scanned: number; clean: number };
   findings: {
     total: number;
@@ -90,12 +158,21 @@ export interface Summary {
     needsAgent: number;
   };
   positives: { label: string; detail: string }[];
+  kitGaps?: { value: string; token: string; role: string; occurrences: number }[];
   limitations: { file: string; line: number | null; reason: string; detail: string }[];
 }
 
 export interface Payload {
   project: { name: string | null; root: string };
   generatedAt: string;
+  /**
+   * Which design-system adapter produced this report, and `null` when none matched.
+   *
+   * Types only — no screen reads it. It is declared because this file is the description of
+   * what actually arrives in the `ds-data` slot, and a field the payload carries but the
+   * contract omits is a contract that has started lying.
+   */
+  adapter: { name: string; version: string } | null;
   /**
    * Diff-check context (`ds.mjs check`): compared range and the findings sitting on
    * changed lines. `null` on regular audits — the dashboard then shows nothing extra.
@@ -112,6 +189,8 @@ export interface Payload {
    */
   iconPreviews: Record<string, { viewBox: string | null; shapes: string[] }>;
   summary: Summary;
+  /** Adapter-gated, like the kit half of {@link Summary}; absent on an adapter-less report. */
+  usage?: Usage;
   findings: Finding[];
   /** Rule id → one-line description, for the filter panel. */
   ruleDescriptions: Record<string, string>;

@@ -10,6 +10,17 @@
  *
  * No `Math.random`: the hash family is derived from fixed odd multipliers, so sketches are
  * reproducible across runs — a requirement, since findings must be deterministic.
+ *
+ * **The shingle separator is `\0`, and it is load-bearing.** The hackathon's committed source
+ * joins with a space (`ds-analyzer/src/rules/components/minhash.ts:46`), but its *shipped*
+ * `skills/ds-audit/scripts/ds.mjs` — the runnable tool this port is measured against — joins
+ * with `\0`. The two produce different shingle *strings* for the same token stream, therefore
+ * different FNV hashes, therefore different sketches and different similarity estimates: on the
+ * `kit-components` parity fixture the space form estimates `App`≈`Dashboard` at 0.8125 and the
+ * `\0` form below the 0.8 duplicate threshold, which is one finding of difference. Neither is
+ * "more correct" — MinHash is an estimator — but only one of them matches the tool, and matching
+ * the tool is the acceptance test (`tests/parity.test.ts`). The engine's own 38 tests pass
+ * unchanged either way: no fixture of theirs sits near a threshold.
  */
 
 const SHINGLE_SIZE = 3;
@@ -48,7 +59,7 @@ export const buildSketch = (tokens: readonly string[]): Uint32Array | null => {
 
   const shingles = new Set<string>();
   for (let index = 0; index + SHINGLE_SIZE <= tokens.length; index += 1) {
-    shingles.add(tokens.slice(index, index + SHINGLE_SIZE).join(" "));
+    shingles.add(tokens.slice(index, index + SHINGLE_SIZE).join("\0"));
   }
 
   const sketch = new Uint32Array(SKETCH_SIZE).fill(0xffffffff);

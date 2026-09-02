@@ -95,8 +95,82 @@ export interface Limitation {
   readonly detail: string;
 }
 
-/** `dashboard/src/contract.ts:74-91` (Summary), after the kit-metric excision. */
+/** `dashboard/src/contract.ts:82-107` (CustomComponent). Adapter-gated, via {@link Usage}. */
+export interface CustomComponent {
+  readonly name: string;
+  readonly file: string;
+  readonly line: number;
+  readonly usages: number;
+  readonly files: number;
+  readonly props: readonly string[];
+  readonly kitComponentsUsed: readonly string[];
+  readonly hasInlineSvg: boolean;
+  readonly snippet: string;
+  /** Added at render time, like `Snippet.beforeHtml`; the engine carries only `snippet`. */
+  readonly snippetHtml: string;
+  readonly verdict: "kit-like" | "kit-candidate" | "local";
+  readonly nameMatch: {
+    readonly component: string;
+    readonly kind: "exact" | "contains" | "similar";
+  } | null;
+  readonly tokenRefs: number;
+  readonly hardcodedValues: number;
+  readonly tokenVerdict: "tokens" | "mixed" | "hardcode" | "no-styles";
+}
+
+/** `dashboard/src/contract.ts:109-133` (Usage). Adapter-gated; see {@link ReportPayload}. */
+export interface Usage {
+  readonly components: readonly {
+    readonly name: string;
+    readonly usages: number;
+    readonly files: number;
+    readonly findings: number;
+    readonly overrides: number;
+    readonly props: Readonly<Record<string, Readonly<Record<string, number>>>>;
+  }[];
+  readonly unusedComponents: readonly string[];
+  readonly foreignComponents: readonly {
+    readonly name: string;
+    readonly usages: number;
+    readonly local: boolean;
+    readonly source: string | null;
+  }[];
+  readonly customComponents: readonly CustomComponent[];
+  readonly elementBreakdown: {
+    readonly total: number;
+    readonly kit: number;
+    readonly kitClean: number;
+    readonly customTokens: number;
+    readonly customMixed: number;
+    readonly customHardcode: number;
+    readonly customUnstyled: number;
+    readonly foreign: number;
+  };
+  readonly tokenUsage: Readonly<Record<string, number>>;
+}
+
+/** One colour the kit has no role for. `dashboard/src/contract.ts` (Summary.kitGaps). */
+export interface KitGap {
+  readonly value: string;
+  readonly token: string;
+  readonly role: string;
+  readonly occurrences: number;
+}
+
+/**
+ * `dashboard/src/contract.ts:135-152` (Summary).
+ *
+ * The five kit-adoption fields are OPTIONAL, exactly as they are in the engine's schema
+ * (`packages/fe-analyzer-engine/src/domain/findings.ts:262-303`) and in the dashboard's own
+ * contract. Optionality is the visibility mechanism: the dashboard's `lib/kit.ts` turns their
+ * absence into "this report has no design-system data" and the panels they feed are not
+ * rendered at all, rather than rendered around zeros.
+ */
 export interface Summary {
+  readonly healthScore?: number | undefined;
+  readonly healthFormula?: string | undefined;
+  readonly adoption?: number | undefined;
+  readonly tokenCoverage?: number | undefined;
   readonly files: { readonly scanned: number; readonly clean: number };
   readonly findings: {
     readonly total: number;
@@ -107,6 +181,7 @@ export interface Summary {
     readonly needsAgent: number;
   };
   readonly positives: readonly { readonly label: string; readonly detail: string }[];
+  readonly kitGaps?: readonly KitGap[] | undefined;
   readonly limitations: readonly Limitation[];
 }
 
@@ -121,6 +196,14 @@ export interface Summary {
 export interface ReportPayload {
   readonly project: { readonly name: string | null; readonly root: string };
   readonly generatedAt: string;
+  /**
+   * WHICH DESIGN SYSTEM THIS REPORT WAS MEASURED AGAINST, or `null` when none was.
+   *
+   * Always present, never omitted: a report that answers the question with `null` is a report
+   * that answered it. `name` is the `--ui-kit` spelling (`eds`), `version` the adapter
+   * package's own version, so a payload can be traced to the artifacts that produced it.
+   */
+  readonly adapter: { readonly name: string; readonly version: string } | null;
   readonly diff: {
     readonly range: string;
     readonly changedFiles: number;
@@ -131,6 +214,8 @@ export interface ReportPayload {
     Record<string, { readonly viewBox: string | null; readonly shapes: readonly string[] }>
   >;
   readonly summary: Summary;
+  /** Adapter-gated, like the kit half of {@link Summary}; absent without an adapter. */
+  readonly usage?: Usage | undefined;
   readonly findings: readonly Finding[];
   readonly ruleDescriptions: Readonly<Record<string, string>>;
 }

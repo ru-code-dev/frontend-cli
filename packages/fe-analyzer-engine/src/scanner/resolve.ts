@@ -142,3 +142,31 @@ export const resolveSpecifier = (
   // specifier is what the rules reason about.
   return { kind: "package", file: null };
 };
+
+/**
+ * Package a bare specifier belongs to, or `null` for a relative/absolute path. Ported verbatim
+ * from `hackathon2026/ds-analyzer/src/scanner/resolve.ts:136-154`.
+ *
+ * Scoped packages take two segments (`@scope/name`); everything else takes one, so a deep
+ * import still names the package it reaches into.
+ */
+export const packageNameOf = (specifier: string): string | null => {
+  if (specifier.startsWith(".") || specifier.startsWith("/")) {
+    return null;
+  }
+
+  const segments = specifier.split("/");
+
+  if (specifier.startsWith("@")) {
+    return segments.length >= 2 ? `${segments[0] ?? ""}/${segments[1] ?? ""}` : null;
+  }
+
+  return segments[0] ?? null;
+};
+
+/** `true` when `specifier` reaches past a package's public entry points. */
+export const isDeepPackageImport = (specifier: string): boolean => {
+  const packageName = packageNameOf(specifier);
+
+  return packageName !== null && specifier.length > packageName.length;
+};

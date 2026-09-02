@@ -179,7 +179,13 @@ export const suppressedFocusRule: Rule = {
             "Пользователь клавиатуры перестаёт видеть, где он находится."
           : "Кольцо фокуса убрано, а оформления фокуса в этом файле нет вообще. " +
             "Элемент останется рабочим, но невидимым при навигации с клавиатуры.",
-        note: "Если фокус оформлен в другом файле или глобально, это правило об этом не знает — проверьте вручную.",
+        // The source names the escape hatch its own config file provided
+        // (`ds-analyzer/src/rules/a11y/focus.ts:172`). This engine has no such file, so with no
+        // adapter the sentence says what the reader can actually do instead.
+        note:
+          context.kit === null
+            ? "Если фокус оформлен в другом файле или глобально, это правило об этом не знает — проверьте вручную."
+            : "Если фокус оформлен в другом файле или глобально, отключите правило в ds.config.json.",
         rootCause: styleValue.rootCause,
         appliedTo:
           styleValue.appliedTo?.kind === "kit-component" && styleValue.appliedTo.name !== null

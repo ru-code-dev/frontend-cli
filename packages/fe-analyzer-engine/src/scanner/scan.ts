@@ -31,17 +31,30 @@ import {
   readPackageManifest,
 } from "./profile/root.ts";
 import { isTsconfigFile, scanTsconfigs } from "./profile/tsconfig.ts";
-import { resolveSpecifier, type ResolverContext } from "./resolve.ts";
+import {
+  computeKitClosure,
+  EMPTY_KIT_CLOSURE,
+  kitComponentFor,
+  type KitClosure,
+} from "./profile/kit-sources.ts";
+import { packageNameOf, resolveSpecifier, type ResolverContext } from "./resolve.ts";
 import { isCodeFile, isStyleFile, walkProject } from "./walk.ts";
 
 /**
  * Profile the project, then collect facts from it. Ported from
- * `hackathon2026/ds-analyzer/src/scanner/scan.ts:1-395` with the kit machinery removed:
- * no `ds.config.json` loader (source lines 15,173-180,199-203,318 — the brief rules it out
- * for v1), no `computeKitClosure`/`kitComponentFor` (17,315-319,343 — the module holding
- * them hardcodes a vendor scope), and no `linkKitUsage` (143-166), which existed only to
- * fill the `kitComponentsUsed` field this package's `Declaration` no longer has. Everything
- * else, including the two remaining linking passes, is the source's.
+ * `hackathon2026/ds-analyzer/src/scanner/scan.ts:1-395` with one thing removed and one thing
+ * made conditional.
+ *
+ * Removed: the `ds.config.json` loader (source lines 15,173-180,199-203,318), which the brief
+ * ruled out for v1 and which nothing here has since needed.
+ *
+ * Conditional: the kit closure (`computeKitClosure`/`kitComponentFor`, source 17,315-319,343)
+ * and the kit-usage pass (143-166) run **only when a caller supplies `kit`** — the packages
+ * that count and the upstream scope the kit wraps come from the adapter, never from a constant
+ * in this package. `kit` omitted means {@link EMPTY_KIT_CLOSURE}: every `kitComponent` stays
+ * `null`, every `kitComponentsUsed` stays `[]`, `appliedTo.kind` is never `kit-component`, and
+ * the profile's three kit fields stay empty — which is the state the whole existing test suite
+ * was written against.
  *
  * The whole tree below the project root is walked even when a narrower scope was requested.
  * Configuration lives at the root, and a `tsconfig.json` that was never read is an alias that
@@ -54,6 +67,21 @@ export interface ScanOptions {
   readonly path: string;
   /** Extra ignore patterns, gitignore syntax. */
   readonly ignore?: readonly string[];
+  /**
+   * What counts as the design system, from the connected adapter. Omitted means "no adapter":
+   * no closure is computed and no element is ever tagged with a kit component.
+   */
+  readonly kit?: {
+    readonly kitPackages: readonly string[];
+    readonly wrappedUpstreamScope: string | null;
+  };
+  /**
+   * Called once per file the collectors have finished with, carrying how many are done and how
+   * many are in scope. PURELY OBSERVATIONAL — no observation, limitation or profile field
+   * depends on it, and omitting it leaves this function bit-for-bit what it was. It is here so
+   * a CLI can put a real bar over the slowest stage of a run (`packages/cli-kit/src/ui.ts`).
+   */
+  readonly onFile?: (done: number, total: number) => void;
 }
 
 export interface ScanResult {
@@ -70,18 +98,23 @@ const readFileSafely = (path: string): string | null => {
 };
 
 /**
- * Attaches import origin to every rendered element.
+ * Module key a JSX element's origin is known by.
  *
- * The source additionally tagged each element's kit component here
- * (`ds-analyzer/src/scanner/scan.ts:89`); with no kit artifacts loaded that call could only
- * ever return `null`, so the field is left at the `null` the collector already wrote.
+ * Local modules use their project path so that every spelling of the same file collapses to one
+ * key; packages use their package name so that a deep import still points at the package it
+ * reaches into.
  */
+const moduleKeyOf = (resolution: { file: string | null }, specifier: string): string | null =>
+  resolution.file ?? packageNameOf(specifier);
+
+/** Attaches import origin — and, with an adapter, kit identity — to every rendered element. */
 const classifyJsxElements = (
   elements: readonly JsxElement[],
   importsByFile: ReadonlyMap<
     string,
     { specifier: string; local: string; imported: string; file: string | null }[]
   >,
+  closure: KitClosure,
 ): JsxElement[] =>
   elements.map((element) => {
     // `Button.Icon` is provided by whatever provides `Button`.
@@ -92,8 +125,47 @@ const classifyJsxElements = (
       return element;
     }
 
-    return { ...element, resolvedFrom: binding.specifier };
+    const moduleKey = moduleKeyOf({ file: binding.file }, binding.specifier);
+
+    return {
+      ...element,
+      resolvedFrom: binding.specifier,
+      kitComponent: kitComponentFor(closure, moduleKey, binding.imported),
+    };
   });
+
+/**
+ * Records which kit components each local declaration composes. Ported verbatim from
+ * `hackathon2026/ds-analyzer/src/scanner/scan.ts:142-166`; a no-op without an adapter, since
+ * no element carries a `kitComponent` then.
+ */
+const linkKitUsage = (
+  declarations: readonly Declaration[],
+  elements: readonly JsxElement[],
+): Declaration[] => {
+  const byFile = new Map<string, JsxElement[]>();
+
+  for (const element of elements) {
+    const bucket = byFile.get(element.file);
+    if (bucket) {
+      bucket.push(element);
+    } else {
+      byFile.set(element.file, [element]);
+    }
+  }
+
+  return declarations.map((declaration) => {
+    const used = new Set<string>();
+
+    for (const element of byFile.get(declaration.file) ?? []) {
+      if (element.kitComponent !== null && element.line >= declaration.line) {
+        used.add(element.kitComponent);
+      }
+    }
+
+    return { ...declaration, kitComponentsUsed: sortStrings(used) };
+  });
+};
 
 /**
  * Resolves where each style declaration ends up.
@@ -114,14 +186,18 @@ const linkAppliedTo = (
   const byClass = new Map<string, Target>();
 
   for (const element of elements) {
-    const kind: Target["kind"] = /^[a-z]/.test(element.name) ? "host-element" : "local-component";
+    const kind: Target["kind"] = element.kitComponent
+      ? "kit-component"
+      : /^[a-z]/.test(element.name)
+        ? "host-element"
+        : "local-component";
 
     for (const ref of element.styleRefs) {
       const key = `${ref.module}::${ref.className}`;
       // First writer wins; a class applied to two different components is rare and the first
       // use is the one the report points at.
       if (!byClass.has(key)) {
-        byClass.set(key, { kind, name: element.name, slot: ref.slot });
+        byClass.set(key, { kind, name: element.kitComponent ?? element.name, slot: ref.slot });
       }
     }
   }
@@ -182,6 +258,18 @@ export const scanProject = (options: ScanOptions): ScanResult => {
   const styleFiles = files.filter(isStyleFile);
   const codeFiles = files.filter(isCodeFile);
 
+  // The two collector loops below are the run's slow half, and they are the only thing worth
+  // reporting: everything before them is directory walking and config reading. `scanned`
+  // counts across BOTH loops against their combined length, so the bar a CLI draws from it
+  // moves monotonically from 0 to 100 over one continuous stage rather than resetting.
+  const onFile = options.onFile;
+  const totalFiles = styleFiles.length + codeFiles.length;
+  let scanned = 0;
+  const fileDone = (): void => {
+    scanned += 1;
+    onFile?.(scanned, totalFiles);
+  };
+
   // Variables are resolved against *every* stylesheet in the project, not only those in
   // scope: `_vars.scss` routinely sits outside the folder being audited.
   const stylesheetContents = new Map<string, string>();
@@ -215,6 +303,7 @@ export const scanProject = (options: ScanOptions): ScanResult => {
         reason: "parse-error",
         detail: "file could not be read",
       });
+      fileDone();
       continue;
     }
 
@@ -228,6 +317,7 @@ export const scanProject = (options: ScanOptions): ScanResult => {
     if (result.limitations.some((entry) => entry.reason === "parse-error")) {
       unparseable += 1;
     }
+    fileDone();
   }
 
   const project = new Project({
@@ -251,6 +341,7 @@ export const scanProject = (options: ScanOptions): ScanResult => {
         reason: "parse-error",
         detail: "file could not be read",
       });
+      fileDone();
       continue;
     }
 
@@ -281,6 +372,7 @@ export const scanProject = (options: ScanOptions): ScanResult => {
     if (result.limitations.some((entry) => entry.reason === "parse-error")) {
       unparseable += 1;
     }
+    fileDone();
   }
 
   for (const file of files) {
@@ -314,8 +406,24 @@ export const scanProject = (options: ScanOptions): ScanResult => {
     importsByFile.set(record.file, bucket);
   }
 
-  const classifiedElements = classifyJsxElements(jsxElements, importsByFile);
+  // Re-exports are read from the whole project so that a barrel outside the requested scope
+  // still makes the kit visible inside it.
+  const closure =
+    options.kit === undefined
+      ? EMPTY_KIT_CLOSURE
+      : computeKitClosure({
+          reExports,
+          imports,
+          kitPackages: options.kit.kitPackages,
+          wrappedUpstreamScope: options.kit.wrappedUpstreamScope,
+        });
+
+  const classifiedElements = classifyJsxElements(jsxElements, importsByFile, closure);
   const linkedStyleValues = linkAppliedTo(styleValues, classifiedElements);
+  const linkedDeclarations = linkKitUsage(declarations, classifiedElements);
+
+  const kitPackageName =
+    closure.sources.find((source) => source.kind === "package")?.specifier ?? null;
 
   const profile: ProjectProfile = {
     $schema: "fe-analyzer-engine/project-profile@1",
@@ -329,6 +437,9 @@ export const scanProject = (options: ScanOptions): ScanResult => {
     })(),
     tsconfigs: tsconfigScan.configs,
     aliases,
+    kitSources: closure.sources,
+    kitVersion: kitPackageName === null ? null : (manifest.dependencies[kitPackageName] ?? null),
+    usesKit: closure.usesKit,
     styleSyntaxes: [...syntaxes].sort(compareStrings),
     files: {
       scanned: scannedFiles.length,
@@ -348,7 +459,7 @@ export const scanProject = (options: ScanOptions): ScanResult => {
     jsxElements: classifiedElements,
     imports,
     reExports,
-    declarations,
+    declarations: linkedDeclarations,
     lintMessages: lintMessages.sort(
       (left, right) =>
         compareStrings(left.file, right.file) ||

@@ -1,0 +1,1359 @@
+[
+  {
+    "id": "f_0001",
+    "rule": "style.override.repaint",
+    "subkind": null,
+    "category": "override",
+    "severity": "warning",
+    "confidence": 0.9,
+    "file": "src/overrides.module.css",
+    "line": 2,
+    "column": 3,
+    "snippet": {
+      "before": ".kitButton {\n  background-color: #ff2078;\n  color: #ffffff;\n  padding: 20px;\n  margin: 4px;\n}",
+      "after": null,
+      "highlightLine": 2,
+      "startLine": 1
+    },
+    "actual": ".kitButton",
+    "expected": null,
+    "why": ".kitButton перекрашивает Button (background-color, color). Компонент выглядит как кит, а ведёт себя иначе — именно это и разъезжается по продукту.",
+    "note": "У Button могут быть варианты под эту задачу — проверьте набор view/size, прежде чем красить руками.",
+    "rootCause": null,
+    "appliedTo": {
+      "component": "Button",
+      "slot": null
+    },
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "style.override.repaint:Button"
+  },
+  {
+    "id": "f_0002",
+    "rule": "token.literal.color",
+    "subkind": "near",
+    "category": "token",
+    "severity": "warning",
+    "confidence": 0.85,
+    "file": "src/overrides.module.css",
+    "line": 2,
+    "column": 21,
+    "snippet": {
+      "before": ".kitButton {\n  background-color: #ff2078;\n  color: #ffffff;\n  padding: 20px;\n  margin: 4px;\n}",
+      "after": ".kitButton {\n  background-color: var(--sds-eng-palette-pink-pink500);\n  color: #ffffff;\n  padding: 20px;\n  margin: 4px;\n}",
+      "highlightLine": 2,
+      "startLine": 1
+    },
+    "actual": "#ff2078",
+    "expected": {
+      "token": "ref.palette.pink.pink500",
+      "cssVar": "--sds-eng-palette-pink-pink500",
+      "component": null,
+      "value": "var(--sds-eng-palette-pink-pink500)"
+    },
+    "why": "#ff2078 визуально неотличим от ref.palette.pink.pink500 (ΔE 0.0007), но токеном не является.",
+    "note": "Цвет похож на токен, но им не является — скорее всего, пипетка из макета вместо переменной.",
+    "rootCause": null,
+    "appliedTo": {
+      "component": "Button",
+      "slot": null
+    },
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 2,
+      "files": 2
+    },
+    "impactKey": "token.literal.color:#ff2078"
+  },
+  {
+    "id": "f_0003",
+    "rule": "a11y.contrast.text",
+    "subkind": "normalText",
+    "category": "a11y",
+    "severity": "warning",
+    "confidence": 0.8,
+    "file": "src/overrides.module.css",
+    "line": 3,
+    "column": 3,
+    "snippet": {
+      "before": ".kitButton {\n  background-color: #ff2078;\n  color: #ffffff;\n  padding: 20px;\n  margin: 4px;\n}\n",
+      "after": null,
+      "highlightLine": 3,
+      "startLine": 1
+    },
+    "actual": "#ffffff на #ff2078",
+    "expected": null,
+    "why": "Контраст 3.66:1 при минимуме 4.5:1. Текст этого размера на этом фоне не прочитают при слабом зрении, на солнце или на плохом экране. Размер шрифта в этом блоке не задан, поэтому взят строгий порог.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": {
+      "component": "Button",
+      "slot": null
+    },
+    "a11y": {
+      "wcag": [
+        "1.4.3"
+      ],
+      "pattern": null,
+      "impact": "Текст с контрастом 3.66:1 нечитаем для значительной доли пользователей.",
+      "fix": "Возьмите цвет текста или фона из ролей кита так, чтобы пара давала минимум 4.5:1 — обычно достаточно затемнить текст на пару ступеней шкалы."
+    },
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "a11y.contrast.text:#ffffff:#ff2078"
+  },
+  {
+    "id": "f_0004",
+    "rule": "token.literal.color",
+    "subkind": "exact",
+    "category": "token",
+    "severity": "error",
+    "confidence": 1,
+    "file": "src/overrides.module.css",
+    "line": 3,
+    "column": 10,
+    "snippet": {
+      "before": ".kitButton {\n  background-color: #ff2078;\n  color: #ffffff;\n  padding: 20px;\n  margin: 4px;\n}\n",
+      "after": ".kitButton {\n  background-color: #ff2078;\n  color: var(--sds-eng-palette-white);\n  padding: 20px;\n  margin: 4px;\n}\n",
+      "highlightLine": 3,
+      "startLine": 1
+    },
+    "actual": "#ffffff",
+    "expected": {
+      "token": "ref.palette.white",
+      "cssVar": "--sds-eng-palette-white",
+      "component": null,
+      "value": "var(--sds-eng-palette-white)"
+    },
+    "why": "#ffffff — это в точности ref.palette.white, но записан литералом: при смене палитры значение здесь не поменяется.",
+    "note": "В ките нет sys-роли «foreground» с этим цветом — подставлен ref-токен. Значение не переключится в тёмной теме; это пробел кита, а не ошибка проекта.",
+    "rootCause": null,
+    "appliedTo": {
+      "component": "Button",
+      "slot": null
+    },
+    "a11y": null,
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.literal.color:#ffffff"
+  },
+  {
+    "id": "f_0005",
+    "rule": "style.override.size",
+    "subkind": null,
+    "category": "override",
+    "severity": "info",
+    "confidence": 0.7,
+    "file": "src/overrides.module.css",
+    "line": 4,
+    "column": 3,
+    "snippet": {
+      "before": ".kitButton {\n  background-color: #ff2078;\n  color: #ffffff;\n  padding: 20px;\n  margin: 4px;\n}\n\n.kitButtonSpinner {",
+      "after": null,
+      "highlightLine": 4,
+      "startLine": 1
+    },
+    "actual": ".kitButton",
+    "expected": null,
+    "why": ".kitButton задаёт padding на Button — обычно это значит, что не подошёл размер компонента.",
+    "note": "Проверьте проп size у Button, прежде чем править отступы снаружи.",
+    "rootCause": null,
+    "appliedTo": {
+      "component": "Button",
+      "slot": null
+    },
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "style.override.size:Button"
+  },
+  {
+    "id": "f_0006",
+    "rule": "token.literal.dimension",
+    "subkind": "noScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 0.5,
+    "file": "src/overrides.module.css",
+    "line": 4,
+    "column": 12,
+    "snippet": {
+      "before": ".kitButton {\n  background-color: #ff2078;\n  color: #ffffff;\n  padding: 20px;\n  margin: 4px;\n}\n\n.kitButtonSpinner {",
+      "after": null,
+      "highlightLine": 4,
+      "startLine": 1
+    },
+    "actual": "20px",
+    "expected": null,
+    "why": "20px — сырой отступ. В ките нет шкалы отступов, поэтому проверить его не с чем; значение зафиксировано как есть.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": {
+      "component": "Button",
+      "slot": null
+    },
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:padding:20px"
+  },
+  {
+    "id": "f_0007",
+    "rule": "style.override.inner",
+    "subkind": null,
+    "category": "override",
+    "severity": "error",
+    "confidence": 1,
+    "file": "src/overrides.module.css",
+    "line": 9,
+    "column": 3,
+    "snippet": {
+      "before": "  margin: 4px;\n}\n\n.kitButtonSpinner {\n  border-color: #2969e3;\n}\n\n.kitButtonShout {\n  background: #2969e3 !important;",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 5
+    },
+    "actual": ".kitButtonSpinner",
+    "expected": null,
+    "why": ".kitButtonSpinner целится в слот «spinner» компонента Button, помеченный в ките как @inner. Приватные слоты переименовывают без депрекации — стиль отвалится молча при обновлении.",
+    "note": "Публичные слоты того же компонента можно посмотреть на экране «Токены и компоненты».",
+    "rootCause": null,
+    "appliedTo": {
+      "component": "Button",
+      "slot": "spinner"
+    },
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "style.override.inner:Button.spinner"
+  },
+  {
+    "id": "f_0008",
+    "rule": "token.literal.color",
+    "subkind": "exact",
+    "category": "token",
+    "severity": "error",
+    "confidence": 1,
+    "file": "src/overrides.module.css",
+    "line": 9,
+    "column": 17,
+    "snippet": {
+      "before": "  margin: 4px;\n}\n\n.kitButtonSpinner {\n  border-color: #2969e3;\n}\n\n.kitButtonShout {\n  background: #2969e3 !important;",
+      "after": "  margin: 4px;\n}\n\n.kitButtonSpinner {\n  border-color: var(--sds-eng-Border-borderAccent);\n}\n\n.kitButtonShout {\n  background: #2969e3 !important;",
+      "highlightLine": 5,
+      "startLine": 5
+    },
+    "actual": "#2969e3",
+    "expected": {
+      "token": "sys.Border.borderAccent",
+      "cssVar": "--sds-eng-Border-borderAccent",
+      "component": null,
+      "value": "var(--sds-eng-Border-borderAccent)"
+    },
+    "why": "#2969e3 — это в точности sys.Border.borderAccent, но записан литералом: при смене палитры значение здесь не поменяется.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": {
+      "component": "Button",
+      "slot": "spinner"
+    },
+    "a11y": null,
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 3,
+      "files": 2
+    },
+    "impactKey": "token.literal.color:#2969e3"
+  },
+  {
+    "id": "f_0009",
+    "rule": "style.override.important",
+    "subkind": null,
+    "category": "override",
+    "severity": "error",
+    "confidence": 1,
+    "file": "src/overrides.module.css",
+    "line": 13,
+    "column": 3,
+    "snippet": {
+      "before": "  border-color: #2969e3;\n}\n\n.kitButtonShout {\n  background: #2969e3 !important;\n}",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 9
+    },
+    "actual": ".kitButtonShout",
+    "expected": null,
+    "why": ".kitButtonShout перебивает стиль Button через !important (background) — это явная борьба с дизайн-системой, и она сломается, как только кит поменяет специфичность.",
+    "note": "Если варианта или токена под задачу нет — это запрос в дизайн-систему, а не повод повышать специфичность.",
+    "rootCause": null,
+    "appliedTo": {
+      "component": "Button",
+      "slot": null
+    },
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "style.override.important:Button"
+  },
+  {
+    "id": "f_0010",
+    "rule": "token.literal.color",
+    "subkind": "exact",
+    "category": "token",
+    "severity": "error",
+    "confidence": 1,
+    "file": "src/overrides.module.css",
+    "line": 13,
+    "column": 15,
+    "snippet": {
+      "before": "  border-color: #2969e3;\n}\n\n.kitButtonShout {\n  background: #2969e3 !important;\n}",
+      "after": "  border-color: #2969e3;\n}\n\n.kitButtonShout {\n  background: var(--sds-eng-Background-backAccent) !important;\n}",
+      "highlightLine": 5,
+      "startLine": 9
+    },
+    "actual": "#2969e3",
+    "expected": {
+      "token": "sys.Background.backAccent",
+      "cssVar": "--sds-eng-Background-backAccent",
+      "component": null,
+      "value": "var(--sds-eng-Background-backAccent)"
+    },
+    "why": "#2969e3 — это в точности sys.Background.backAccent, но записан литералом: при смене палитры значение здесь не поменяется.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": {
+      "component": "Button",
+      "slot": null
+    },
+    "a11y": null,
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 3,
+      "files": 2
+    },
+    "impactKey": "token.literal.color:#2969e3"
+  },
+  {
+    "id": "f_0011",
+    "rule": "token.literal.color",
+    "subkind": "exact",
+    "category": "token",
+    "severity": "error",
+    "confidence": 1,
+    "file": "src/panel.module.css",
+    "line": 2,
+    "column": 21,
+    "snippet": {
+      "before": ".panel {\n  background-color: #2969e3;\n  color: #1549ac;\n  border: 1px solid #ff2078;\n  border-radius: 6px;\n  padding: 13px;",
+      "after": ".panel {\n  background-color: var(--sds-eng-Background-backAccent);\n  color: #1549ac;\n  border: 1px solid #ff2078;\n  border-radius: 6px;\n  padding: 13px;",
+      "highlightLine": 2,
+      "startLine": 1
+    },
+    "actual": "#2969e3",
+    "expected": {
+      "token": "sys.Background.backAccent",
+      "cssVar": "--sds-eng-Background-backAccent",
+      "component": null,
+      "value": "var(--sds-eng-Background-backAccent)"
+    },
+    "why": "#2969e3 — это в точности sys.Background.backAccent, но записан литералом: при смене палитры значение здесь не поменяется.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 3,
+      "files": 2
+    },
+    "impactKey": "token.literal.color:#2969e3"
+  },
+  {
+    "id": "f_0012",
+    "rule": "a11y.contrast.text",
+    "subkind": "normalText",
+    "category": "a11y",
+    "severity": "error",
+    "confidence": 0.8,
+    "file": "src/panel.module.css",
+    "line": 3,
+    "column": 3,
+    "snippet": {
+      "before": ".panel {\n  background-color: #2969e3;\n  color: #1549ac;\n  border: 1px solid #ff2078;\n  border-radius: 6px;\n  padding: 13px;\n  gap: 11px;",
+      "after": null,
+      "highlightLine": 3,
+      "startLine": 1
+    },
+    "actual": "#1549ac на #2969e3",
+    "expected": null,
+    "why": "Контраст 1.63:1 при минимуме 4.5:1. Текст этого размера на этом фоне не прочитают при слабом зрении, на солнце или на плохом экране. Размер шрифта в этом блоке не задан, поэтому взят строгий порог.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [
+        "1.4.3"
+      ],
+      "pattern": null,
+      "impact": "Текст с контрастом 1.63:1 нечитаем для значительной доли пользователей.",
+      "fix": "Возьмите цвет текста или фона из ролей кита так, чтобы пара давала минимум 4.5:1 — обычно достаточно затемнить текст на пару ступеней шкалы."
+    },
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "a11y.contrast.text:#1549ac:#2969e3"
+  },
+  {
+    "id": "f_0013",
+    "rule": "token.literal.color",
+    "subkind": "near",
+    "category": "token",
+    "severity": "warning",
+    "confidence": 0.85,
+    "file": "src/panel.module.css",
+    "line": 3,
+    "column": 10,
+    "snippet": {
+      "before": ".panel {\n  background-color: #2969e3;\n  color: #1549ac;\n  border: 1px solid #ff2078;\n  border-radius: 6px;\n  padding: 13px;\n  gap: 11px;",
+      "after": ".panel {\n  background-color: #2969e3;\n  color: var(--sds-eng-Foreground-foreAccent);\n  border: 1px solid #ff2078;\n  border-radius: 6px;\n  padding: 13px;\n  gap: 11px;",
+      "highlightLine": 3,
+      "startLine": 1
+    },
+    "actual": "#1549ac",
+    "expected": {
+      "token": "sys.Foreground.foreAccent",
+      "cssVar": "--sds-eng-Foreground-foreAccent",
+      "component": null,
+      "value": "var(--sds-eng-Foreground-foreAccent)"
+    },
+    "why": "#1549ac визуально неотличим от sys.Foreground.foreAccent (ΔE 0.0016), но токеном не является.",
+    "note": "Цвет похож на токен, но им не является — скорее всего, пипетка из макета вместо переменной.",
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.literal.color:#1549ac"
+  },
+  {
+    "id": "f_0014",
+    "rule": "token.literal.dimension",
+    "subkind": "offScale",
+    "category": "token",
+    "severity": "warning",
+    "confidence": 1,
+    "file": "src/panel.module.css",
+    "line": 4,
+    "column": 11,
+    "snippet": {
+      "before": ".panel {\n  background-color: #2969e3;\n  color: #1549ac;\n  border: 1px solid #ff2078;\n  border-radius: 6px;\n  padding: 13px;\n  gap: 11px;\n}",
+      "after": null,
+      "highlightLine": 4,
+      "startLine": 1
+    },
+    "actual": "1px",
+    "expected": null,
+    "why": "1px нет в шкале толщин границы [0, 2]; ближайшие — 0 и 2.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:border:1px"
+  },
+  {
+    "id": "f_0015",
+    "rule": "token.literal.color",
+    "subkind": "near",
+    "category": "token",
+    "severity": "warning",
+    "confidence": 0.85,
+    "file": "src/panel.module.css",
+    "line": 4,
+    "column": 21,
+    "snippet": {
+      "before": ".panel {\n  background-color: #2969e3;\n  color: #1549ac;\n  border: 1px solid #ff2078;\n  border-radius: 6px;\n  padding: 13px;\n  gap: 11px;\n}",
+      "after": ".panel {\n  background-color: #2969e3;\n  color: #1549ac;\n  border: 1px solid var(--sds-eng-palette-pink-pink500);\n  border-radius: 6px;\n  padding: 13px;\n  gap: 11px;\n}",
+      "highlightLine": 4,
+      "startLine": 1
+    },
+    "actual": "#ff2078",
+    "expected": {
+      "token": "ref.palette.pink.pink500",
+      "cssVar": "--sds-eng-palette-pink-pink500",
+      "component": null,
+      "value": "var(--sds-eng-palette-pink-pink500)"
+    },
+    "why": "#ff2078 визуально неотличим от ref.palette.pink.pink500 (ΔE 0.0007), но токеном не является.",
+    "note": "Цвет похож на токен, но им не является — скорее всего, пипетка из макета вместо переменной.",
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 2,
+      "files": 2
+    },
+    "impactKey": "token.literal.color:#ff2078"
+  },
+  {
+    "id": "f_0016",
+    "rule": "token.literal.dimension",
+    "subkind": "offScale",
+    "category": "token",
+    "severity": "warning",
+    "confidence": 1,
+    "file": "src/panel.module.css",
+    "line": 5,
+    "column": 18,
+    "snippet": {
+      "before": ".panel {\n  background-color: #2969e3;\n  color: #1549ac;\n  border: 1px solid #ff2078;\n  border-radius: 6px;\n  padding: 13px;\n  gap: 11px;\n}\n",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 1
+    },
+    "actual": "6px",
+    "expected": null,
+    "why": "6px нет в шкале скруглений [0, 2, 4, 8, 9999]; ближайшие — 4 и 8.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:border-radius:6px"
+  },
+  {
+    "id": "f_0017",
+    "rule": "token.literal.dimension",
+    "subkind": "noScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 0.5,
+    "file": "src/panel.module.css",
+    "line": 6,
+    "column": 12,
+    "snippet": {
+      "before": "  background-color: #2969e3;\n  color: #1549ac;\n  border: 1px solid #ff2078;\n  border-radius: 6px;\n  padding: 13px;\n  gap: 11px;\n}\n\n.heading {",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 2
+    },
+    "actual": "13px",
+    "expected": null,
+    "why": "13px — сырой отступ. В ките нет шкалы отступов, поэтому проверить его не с чем; значение зафиксировано как есть.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:padding:13px"
+  },
+  {
+    "id": "f_0018",
+    "rule": "token.literal.dimension",
+    "subkind": "noScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 0.5,
+    "file": "src/panel.module.css",
+    "line": 7,
+    "column": 8,
+    "snippet": {
+      "before": "  color: #1549ac;\n  border: 1px solid #ff2078;\n  border-radius: 6px;\n  padding: 13px;\n  gap: 11px;\n}\n\n.heading {\n  font-family: Inter, sans-serif;",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 3
+    },
+    "actual": "11px",
+    "expected": null,
+    "why": "11px — сырой отступ. В ките нет шкалы отступов, поэтому проверить его не с чем; значение зафиксировано как есть.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:gap:11px"
+  },
+  {
+    "id": "f_0019",
+    "rule": "font.foreign",
+    "subkind": null,
+    "category": "font",
+    "severity": "error",
+    "confidence": 1,
+    "file": "src/panel.module.css",
+    "line": 11,
+    "column": 16,
+    "snippet": {
+      "before": "  gap: 11px;\n}\n\n.heading {\n  font-family: Inter, sans-serif;\n  font-size: 18px;\n  line-height: 26px;\n  font-weight: 500;\n}",
+      "after": "  gap: 11px;\n}\n\n.heading {\n  font-family: var(--sds-eng-fontFamilies-text), sans-serif;\n  font-size: 18px;\n  line-height: 26px;\n  font-weight: 500;\n}",
+      "highlightLine": 5,
+      "startLine": 7
+    },
+    "actual": "Inter",
+    "expected": {
+      "token": "ref.fontFamilies.text",
+      "cssVar": "--sds-eng-fontFamilies-text",
+      "component": null,
+      "value": "var(--sds-eng-fontFamilies-text)"
+    },
+    "why": "Inter не входит в стек кита (2 гарнитур: SB Sans Text / SB Sans Display) — текст будет отрисован чужим шрифтом.",
+    "note": "Гарнитуры кита — это целые стеки с фолбэками, поэтому подставлять надо переменную, а не одно имя.",
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "font.foreign:inter"
+  },
+  {
+    "id": "f_0020",
+    "rule": "token.literal.dimension",
+    "subkind": "onScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 1,
+    "file": "src/panel.module.css",
+    "line": 12,
+    "column": 14,
+    "snippet": {
+      "before": "}\n\n.heading {\n  font-family: Inter, sans-serif;\n  font-size: 18px;\n  line-height: 26px;\n  font-weight: 500;\n}\n",
+      "after": "}\n\n.heading {\n  font-family: Inter, sans-serif;\n  font-size: var(--sds-eng-fontSize-l);\n  line-height: 26px;\n  font-weight: 500;\n}\n",
+      "highlightLine": 5,
+      "startLine": 8
+    },
+    "actual": "18px",
+    "expected": {
+      "token": "ref.fontSize.l",
+      "cssVar": "--sds-eng-fontSize-l",
+      "component": null,
+      "value": "var(--sds-eng-fontSize-l)"
+    },
+    "why": "18px есть в шкале кеглей, но записан литералом — при изменении шкалы значение здесь не поедет.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 2,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:font-size:18px"
+  },
+  {
+    "id": "f_0021",
+    "rule": "token.literal.dimension",
+    "subkind": "offScale",
+    "category": "token",
+    "severity": "warning",
+    "confidence": 1,
+    "file": "src/panel.module.css",
+    "line": 13,
+    "column": 16,
+    "snippet": {
+      "before": "\n.heading {\n  font-family: Inter, sans-serif;\n  font-size: 18px;\n  line-height: 26px;\n  font-weight: 500;\n}\n\n.accent {",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 9
+    },
+    "actual": "26px",
+    "expected": null,
+    "why": "26px нет в шкале интерлиньяжа [12, 14, 16, 20, 24, 30, 32, 36, 46, 62]; ближайшие — 24 и 30.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 2,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:line-height:26px"
+  },
+  {
+    "id": "f_0022",
+    "rule": "token.tier.violation",
+    "subkind": null,
+    "category": "token",
+    "severity": "error",
+    "confidence": 1,
+    "file": "src/panel.module.css",
+    "line": 18,
+    "column": 17,
+    "snippet": {
+      "before": "  font-weight: 500;\n}\n\n.accent {\n  border-color: var(--sds-eng-palette-electric-electric700);\n  background: var(--sds-eng-Background-backAccent);\n}\n\n.figure {",
+      "after": "  font-weight: 500;\n}\n\n.accent {\n  border-color: var(var(--sds-eng-Border-borderAccent));\n  background: var(--sds-eng-Background-backAccent);\n}\n\n.figure {",
+      "highlightLine": 5,
+      "startLine": 14
+    },
+    "actual": "--sds-eng-palette-electric-electric700",
+    "expected": {
+      "token": "sys.Border.borderAccent",
+      "cssVar": "--sds-eng-Border-borderAccent",
+      "component": null,
+      "value": "var(--sds-eng-Border-borderAccent)"
+    },
+    "why": "--sds-eng-palette-electric-electric700 — это краска (ref.palette.electric.electric700), а не роль. В тёмной теме sys.Border.borderAccent становится #528eff, а ref.palette.electric.electric700 остаётся #2969e3.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.tier.violation:--sds-eng-palette-electric-electric700"
+  },
+  {
+    "id": "f_0023",
+    "rule": "token.literal.dimension",
+    "subkind": "onScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 1,
+    "file": "src/panel.module.css",
+    "line": 23,
+    "column": 18,
+    "snippet": {
+      "before": "  background: var(--sds-eng-Background-backAccent);\n}\n\n.figure {\n  border-radius: 4px;\n  padding: 8px;\n  gap: 8px;\n  font-size: 14px;\n  line-height: 20px;",
+      "after": "  background: var(--sds-eng-Background-backAccent);\n}\n\n.figure {\n  border-radius: var(--sds-eng-borderRadius-m);\n  padding: 8px;\n  gap: 8px;\n  font-size: 14px;\n  line-height: 20px;",
+      "highlightLine": 5,
+      "startLine": 19
+    },
+    "actual": "4px",
+    "expected": {
+      "token": "ref.borderRadius.m",
+      "cssVar": "--sds-eng-borderRadius-m",
+      "component": null,
+      "value": "var(--sds-eng-borderRadius-m)"
+    },
+    "why": "4px есть в шкале скруглений, но записан литералом — при изменении шкалы значение здесь не поедет.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:border-radius:4px"
+  },
+  {
+    "id": "f_0024",
+    "rule": "token.literal.dimension",
+    "subkind": "noScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 0.5,
+    "file": "src/panel.module.css",
+    "line": 24,
+    "column": 12,
+    "snippet": {
+      "before": "}\n\n.figure {\n  border-radius: 4px;\n  padding: 8px;\n  gap: 8px;\n  font-size: 14px;\n  line-height: 20px;\n}",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 20
+    },
+    "actual": "8px",
+    "expected": null,
+    "why": "8px — сырой отступ. В ките нет шкалы отступов, поэтому проверить его не с чем; значение зафиксировано как есть.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 2,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:padding:8px"
+  },
+  {
+    "id": "f_0025",
+    "rule": "token.literal.dimension",
+    "subkind": "noScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 0.5,
+    "file": "src/panel.module.css",
+    "line": 25,
+    "column": 8,
+    "snippet": {
+      "before": "\n.figure {\n  border-radius: 4px;\n  padding: 8px;\n  gap: 8px;\n  font-size: 14px;\n  line-height: 20px;\n}\n",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 21
+    },
+    "actual": "8px",
+    "expected": null,
+    "why": "8px — сырой отступ. В ките нет шкалы отступов, поэтому проверить его не с чем; значение зафиксировано как есть.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 2,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:gap:8px"
+  },
+  {
+    "id": "f_0026",
+    "rule": "token.literal.dimension",
+    "subkind": "onScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 1,
+    "file": "src/panel.module.css",
+    "line": 26,
+    "column": 14,
+    "snippet": {
+      "before": ".figure {\n  border-radius: 4px;\n  padding: 8px;\n  gap: 8px;\n  font-size: 14px;\n  line-height: 20px;\n}\n\n.grid {",
+      "after": ".figure {\n  border-radius: 4px;\n  padding: 8px;\n  gap: 8px;\n  font-size: var(--sds-eng-fontSize-s);\n  line-height: 20px;\n}\n\n.grid {",
+      "highlightLine": 5,
+      "startLine": 22
+    },
+    "actual": "14px",
+    "expected": {
+      "token": "ref.fontSize.s",
+      "cssVar": "--sds-eng-fontSize-s",
+      "component": null,
+      "value": "var(--sds-eng-fontSize-s)"
+    },
+    "why": "14px есть в шкале кеглей, но записан литералом — при изменении шкалы значение здесь не поедет.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:font-size:14px"
+  },
+  {
+    "id": "f_0027",
+    "rule": "token.literal.dimension",
+    "subkind": "onScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 1,
+    "file": "src/panel.module.css",
+    "line": 27,
+    "column": 16,
+    "snippet": {
+      "before": "  border-radius: 4px;\n  padding: 8px;\n  gap: 8px;\n  font-size: 14px;\n  line-height: 20px;\n}\n\n.grid {\n  padding: 8px;",
+      "after": "  border-radius: 4px;\n  padding: 8px;\n  gap: 8px;\n  font-size: 14px;\n  line-height: var(--sds-eng-lineHeights-lh20);\n}\n\n.grid {\n  padding: 8px;",
+      "highlightLine": 5,
+      "startLine": 23
+    },
+    "actual": "20px",
+    "expected": {
+      "token": "ref.lineHeights.lh20",
+      "cssVar": "--sds-eng-lineHeights-lh20",
+      "component": null,
+      "value": "var(--sds-eng-lineHeights-lh20)"
+    },
+    "why": "20px есть в шкале интерлиньяжа, но записан литералом — при изменении шкалы значение здесь не поедет.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:line-height:20px"
+  },
+  {
+    "id": "f_0028",
+    "rule": "token.literal.dimension",
+    "subkind": "noScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 0.5,
+    "file": "src/panel.module.css",
+    "line": 31,
+    "column": 12,
+    "snippet": {
+      "before": "  line-height: 20px;\n}\n\n.grid {\n  padding: 8px;\n  gap: 8px;\n  border-radius: 8px;\n  border-width: 2px;\n}",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 27
+    },
+    "actual": "8px",
+    "expected": null,
+    "why": "8px — сырой отступ. В ките нет шкалы отступов, поэтому проверить его не с чем; значение зафиксировано как есть.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 2,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:padding:8px"
+  },
+  {
+    "id": "f_0029",
+    "rule": "token.literal.dimension",
+    "subkind": "noScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 0.5,
+    "file": "src/panel.module.css",
+    "line": 32,
+    "column": 8,
+    "snippet": {
+      "before": "}\n\n.grid {\n  padding: 8px;\n  gap: 8px;\n  border-radius: 8px;\n  border-width: 2px;\n}\n",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 28
+    },
+    "actual": "8px",
+    "expected": null,
+    "why": "8px — сырой отступ. В ките нет шкалы отступов, поэтому проверить его не с чем; значение зафиксировано как есть.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 2,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:gap:8px"
+  },
+  {
+    "id": "f_0030",
+    "rule": "token.literal.dimension",
+    "subkind": "onScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 1,
+    "file": "src/panel.module.css",
+    "line": 33,
+    "column": 18,
+    "snippet": {
+      "before": "\n.grid {\n  padding: 8px;\n  gap: 8px;\n  border-radius: 8px;\n  border-width: 2px;\n}\n\n.dense {",
+      "after": "\n.grid {\n  padding: 8px;\n  gap: 8px;\n  border-radius: var(--sds-eng-borderRadius-l);\n  border-width: 2px;\n}\n\n.dense {",
+      "highlightLine": 5,
+      "startLine": 29
+    },
+    "actual": "8px",
+    "expected": {
+      "token": "ref.borderRadius.l",
+      "cssVar": "--sds-eng-borderRadius-l",
+      "component": null,
+      "value": "var(--sds-eng-borderRadius-l)"
+    },
+    "why": "8px есть в шкале скруглений, но записан литералом — при изменении шкалы значение здесь не поедет.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:border-radius:8px"
+  },
+  {
+    "id": "f_0031",
+    "rule": "token.literal.dimension",
+    "subkind": "onScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 1,
+    "file": "src/panel.module.css",
+    "line": 34,
+    "column": 17,
+    "snippet": {
+      "before": ".grid {\n  padding: 8px;\n  gap: 8px;\n  border-radius: 8px;\n  border-width: 2px;\n}\n\n.dense {\n  padding: 4px;",
+      "after": ".grid {\n  padding: 8px;\n  gap: 8px;\n  border-radius: 8px;\n  border-width: var(--sds-eng-borderWidth-2);\n}\n\n.dense {\n  padding: 4px;",
+      "highlightLine": 5,
+      "startLine": 30
+    },
+    "actual": "2px",
+    "expected": {
+      "token": "ref.borderWidth.2",
+      "cssVar": "--sds-eng-borderWidth-2",
+      "component": null,
+      "value": "var(--sds-eng-borderWidth-2)"
+    },
+    "why": "2px есть в шкале толщин границы, но записан литералом — при изменении шкалы значение здесь не поедет.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:border-width:2px"
+  },
+  {
+    "id": "f_0032",
+    "rule": "token.literal.dimension",
+    "subkind": "noScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 0.5,
+    "file": "src/panel.module.css",
+    "line": 38,
+    "column": 12,
+    "snippet": {
+      "before": "  border-width: 2px;\n}\n\n.dense {\n  padding: 4px;\n  gap: 4px;\n  border-radius: 2px;\n}\n",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 34
+    },
+    "actual": "4px",
+    "expected": null,
+    "why": "4px — сырой отступ. В ките нет шкалы отступов, поэтому проверить его не с чем; значение зафиксировано как есть.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:padding:4px"
+  },
+  {
+    "id": "f_0033",
+    "rule": "token.literal.dimension",
+    "subkind": "noScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 0.5,
+    "file": "src/panel.module.css",
+    "line": 39,
+    "column": 8,
+    "snippet": {
+      "before": "}\n\n.dense {\n  padding: 4px;\n  gap: 4px;\n  border-radius: 2px;\n}\n\n.typo {",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 35
+    },
+    "actual": "4px",
+    "expected": null,
+    "why": "4px — сырой отступ. В ките нет шкалы отступов, поэтому проверить его не с чем; значение зафиксировано как есть.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:gap:4px"
+  },
+  {
+    "id": "f_0034",
+    "rule": "token.literal.dimension",
+    "subkind": "onScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 1,
+    "file": "src/panel.module.css",
+    "line": 40,
+    "column": 18,
+    "snippet": {
+      "before": "\n.dense {\n  padding: 4px;\n  gap: 4px;\n  border-radius: 2px;\n}\n\n.typo {\n  font-family:",
+      "after": "\n.dense {\n  padding: 4px;\n  gap: 4px;\n  border-radius: var(--sds-eng-borderRadius-s);\n}\n\n.typo {\n  font-family:",
+      "highlightLine": 5,
+      "startLine": 36
+    },
+    "actual": "2px",
+    "expected": {
+      "token": "ref.borderRadius.s",
+      "cssVar": "--sds-eng-borderRadius-s",
+      "component": null,
+      "value": "var(--sds-eng-borderRadius-s)"
+    },
+    "why": "2px есть в шкале скруглений, но записан литералом — при изменении шкалы значение здесь не поедет.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:border-radius:2px"
+  },
+  {
+    "id": "f_0035",
+    "rule": "token.typography.partial",
+    "subkind": null,
+    "category": "typography",
+    "severity": "warning",
+    "confidence": 0.8,
+    "file": "src/panel.module.css",
+    "line": 44,
+    "column": 3,
+    "snippet": {
+      "before": "  border-radius: 2px;\n}\n\n.typo {\n  font-family:\n    SB Sans Text,\n    SBSansText,\n    system-ui,\n    Segoe UI,",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 40
+    },
+    "actual": "18px/26px/500",
+    "expected": {
+      "token": "sys.Typography.Body.BodyL",
+      "cssVar": null,
+      "component": null,
+      "value": "sys.Typography.Body.BodyL"
+    },
+    "why": "Стиль совпал с sys.Typography.Body.BodyL на 3 из 4 полей, расходится в: line-height: 26px вместо 24px. Это классический случай «кегль из токена, интерлиньяж руками».",
+    "note": "Типографика в ките — единый кортеж из пяти полей; брать из него части по одному значит терять вертикальный ритм.",
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.typography.partial:sys.Typography.Body.BodyL"
+  },
+  {
+    "id": "f_0036",
+    "rule": "token.literal.dimension",
+    "subkind": "onScale",
+    "category": "token",
+    "severity": "info",
+    "confidence": 1,
+    "file": "src/panel.module.css",
+    "line": 56,
+    "column": 14,
+    "snippet": {
+      "before": "    Fira Sans,\n    Droid Sans,\n    Helvetica Neue,\n    sans-serif;\n  font-size: 18px;\n  font-weight: 500;\n  line-height: 26px;\n}\n",
+      "after": "    Fira Sans,\n    Droid Sans,\n    Helvetica Neue,\n    sans-serif;\n  font-size: var(--sds-eng-fontSize-l);\n  font-weight: 500;\n  line-height: 26px;\n}\n",
+      "highlightLine": 5,
+      "startLine": 52
+    },
+    "actual": "18px",
+    "expected": {
+      "token": "ref.fontSize.l",
+      "cssVar": "--sds-eng-fontSize-l",
+      "component": null,
+      "value": "var(--sds-eng-fontSize-l)"
+    },
+    "why": "18px есть в шкале кеглей, но записан литералом — при изменении шкалы значение здесь не поедет.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 2,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:font-size:18px"
+  },
+  {
+    "id": "f_0037",
+    "rule": "token.literal.dimension",
+    "subkind": "offScale",
+    "category": "token",
+    "severity": "warning",
+    "confidence": 1,
+    "file": "src/panel.module.css",
+    "line": 58,
+    "column": 16,
+    "snippet": {
+      "before": "    Helvetica Neue,\n    sans-serif;\n  font-size: 18px;\n  font-weight: 500;\n  line-height: 26px;\n}\n\n.quiet:focus {\n  outline: none;",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 54
+    },
+    "actual": "26px",
+    "expected": null,
+    "why": "26px нет в шкале интерлиньяжа [12, 14, 16, 20, 24, 30, 32, 36, 46, 62]; ближайшие — 24 и 30.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 2,
+      "files": 1
+    },
+    "impactKey": "token.literal.dimension:line-height:26px"
+  },
+  {
+    "id": "f_0038",
+    "rule": "a11y.focus.suppressed",
+    "subkind": "onFocus",
+    "category": "a11y",
+    "severity": "error",
+    "confidence": 0.95,
+    "file": "src/panel.module.css",
+    "line": 62,
+    "column": 3,
+    "snippet": {
+      "before": "  line-height: 26px;\n}\n\n.quiet:focus {\n  outline: none;\n}",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 58
+    },
+    "actual": "outline: none",
+    "expected": null,
+    "why": "Кольцо фокуса убрано прямо в блоке про фокус, и ничего видимого взамен не нарисовано. Пользователь клавиатуры перестаёт видеть, где он находится.",
+    "note": "Если фокус оформлен в другом файле или глобально, отключите правило в ds.config.json.",
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [
+        "2.4.7"
+      ],
+      "pattern": null,
+      "impact": "Навигация с клавиатуры становится невидимой — непонятно, какой элемент сейчас активен.",
+      "fix": "Нарисуйте в этом же блоке видимый индикатор — outline или box-shadow контрастным цветом."
+    },
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "a11y.focus.suppressed"
+  }
+]

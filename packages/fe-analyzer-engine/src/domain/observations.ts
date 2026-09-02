@@ -205,6 +205,15 @@ export const declarationSchema = z.object({
   nativeTags: z.array(z.string()),
   /** Parent>child chains, capped in depth, used as a structural fingerprint. */
   jsxShape: z.array(z.string()),
+  /**
+   * Kit components this declaration composes, sorted.
+   *
+   * Filled by the scanner's kit-usage pass only when an adapter is connected; `[]` otherwise,
+   * exactly as when the field was absent. A component that *renders* a kit component is
+   * composition, not duplication, and the component-identity rules use this to exclude the
+   * thing being wrapped from their own candidate set.
+   */
+  kitComponentsUsed: z.array(z.string()),
   /** CSS properties reachable from this declaration, for the style fingerprint. */
   cssProperties: z.array(z.string()),
   hasInlineSvg: z.boolean(),

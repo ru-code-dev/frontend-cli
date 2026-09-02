@@ -1,22 +1,32 @@
+import type { KitBinding } from "../adapter.ts";
 import type { A11yFacet, Expected, FindingCategory, Severity } from "../domain/findings.ts";
-import type { ImportRecord, JsxElement, Observations, StyleValue } from "../domain/observations.ts";
+import type {
+  Declaration,
+  ImportRecord,
+  JsxElement,
+  Observations,
+  StyleValue,
+} from "../domain/observations.ts";
 import type { Limitation, ProjectProfile } from "../domain/profile.ts";
 
 /**
  * Stage C contracts. Ported from `hackathon2026/ds-analyzer/src/rules/types.ts:1-169`.
  *
- * A rule is a pure function from facts to findings. It receives no filesystem, no parser and
- * no network — everything it may know is in {@link RuleContext}. That constraint is what
- * makes the rules testable in isolation and what keeps a syntax change from rippling past the
- * collectors.
+ * A rule is a pure function from facts to findings. It receives no filesystem, no parser and no
+ * network — everything it may know is in {@link RuleContext}. That constraint is what makes the
+ * rules testable in isolation and what keeps a syntax change from rippling past the collectors.
  *
- * {@link RuleContext} is where this port differs from the source, and every removed member
- * fed a rule that is not here: `kit` (a `KitSpec`, source line 91 — the unguarded artifact
- * load h2 §3 identified as the porting blocker), `icons`/`knowledge`/`a11y` (92-109, the
- * three optional kit specs), `svg` (101, read only by `icon.foreign-file`) and `spacing`
- * (114, the frequency index only `token.literal.dimension` consults). `overStyleValues`,
- * `overElements`, `overImports` and `isAnalysableStyleValue` are kept, `overDeclarations`'
- * type aliases with them.
+ * {@link RuleContext} differs from the source in exactly one way, and it is the whole seam. The
+ * source held four concrete kit classes — `kit: KitSpec` (line 91), `icons`/`knowledge`/`a11y`
+ * (92-109) — each loaded from a directory of JSON on disk. Here there is one nullable
+ * {@link KitBinding}, an object the caller passed in, and `null` is a first-class state rather
+ * than a crash. A kit adapter's own rules do not read it at all: they close over their own
+ * artifacts, which is why the engine can stay ignorant of what those artifacts contain.
+ *
+ * `svg` (source line 101) and `spacing` (114) are back verbatim and are *not* kit-shaped: one
+ * reads `.svg` files out of the analysed project, the other counts that project's own pixel
+ * values. Both are computed for every run, adapter or not — they are project facts, and a rule
+ * that wants them should not have to ask whether a design system is connected.
  */
 
 /**
@@ -88,6 +98,15 @@ export interface RawFinding {
   readonly replaceScope?: "value" | "line";
 }
 
+/** Frequency of raw pixel values across the project, for properties no scale governs. */
+export interface FrequencyIndex {
+  /** Pixel value → number of occurrences. */
+  readonly counts: ReadonlyMap<number, number>;
+  readonly total: number;
+  /** `true` when the value is rare enough against the project's own habits to look magic. */
+  readonly isMagic: (px: number) => boolean;
+}
+
 export interface RuleContext {
   readonly profile: ProjectProfile;
   readonly observations: Observations;
@@ -95,6 +114,22 @@ export interface RuleContext {
   readonly sources: ReadonlyMap<string, readonly string[]>;
   /** JSX elements grouped by file, so element rules do not rescan. */
   readonly elementsByFile: ReadonlyMap<string, readonly JsxElement[]>;
+  /** Project's own distribution of raw pixel values on scaleless properties. */
+  readonly spacing: FrequencyIndex;
+  /**
+   * Contents of an `.svg` file referenced from `fromFile` by a relative or root-absolute path;
+   * `null` when unresolvable. Reading happens in the context builder — rules stay pure and
+   * never open files.
+   */
+  readonly svg: (fromFile: string, reference: string) => string | null;
+  /**
+   * The connected design system, or `null`.
+   *
+   * `null` is not a degraded object pretending to know nothing — it is the absence itself, so a
+   * rule that forgets to check it fails to compile rather than silently reporting a clean bill
+   * of health for code nobody looked at.
+   */
+  readonly kit: KitBinding | null;
 }
 
 export interface Rule {
@@ -122,6 +157,9 @@ export type ElementRule = (element: JsxElement, context: RuleContext) => RawFind
 
 /** A rule that walks import statements. */
 export type ImportRule = (record: ImportRecord, context: RuleContext) => RawFinding[];
+
+/** A rule that walks local component declarations. */
+export type DeclarationRule = (declaration: Declaration, context: RuleContext) => RawFinding[];
 
 /** Lifts a per-declaration rule to a whole-project rule. */
 export const overStyleValues =

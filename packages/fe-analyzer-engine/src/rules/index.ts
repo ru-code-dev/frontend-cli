@@ -41,14 +41,48 @@ export const RULES: readonly Rule[] = [
   duplicateComponentRule,
 ];
 
-/** Which domain a rule belongs to, derived from the category it already declares. */
+/**
+ * Which domain a rule belongs to, derived from the category it already declares.
+ *
+ * The first three rows are the engine's own. The other five exist for the categories only a kit
+ * adapter's rules carry: token/typography/font work lands in `tokens`, API and override work in
+ * `api`. Mapping them here rather than letting an adapter name its own domain per rule is what
+ * keeps `rulesFor(["tokens"])` answerable without asking the adapter.
+ */
 const DOMAIN_OF_CATEGORY: Readonly<Record<FindingCategory, Domain>> = {
   a11y: "a11y",
   component: "components",
   icon: "icons",
+  token: "tokens",
+  typography: "tokens",
+  font: "tokens",
+  api: "api",
+  override: "api",
 };
 
 export const domainOf = (rule: Rule): Domain => DOMAIN_OF_CATEGORY[rule.category];
+
+/**
+ * The registry for one run: the engine's eleven, minus anything the adapter takes over, plus
+ * the adapter's own.
+ *
+ * `replaces` exists for one rule. This package splits `component.duplicate` out of the
+ * hackathon's `component.novel` so the clustering — which needs zero kit data — can run without
+ * one (h5 §1e). An adapter that ports `component.novel` whole gets the clustering back with it,
+ * so the split-out copy must step aside or the same cluster would be reported twice.
+ */
+export const registryFor = (adapter?: {
+  readonly rules: readonly Rule[];
+  readonly replaces?: readonly string[];
+}): readonly Rule[] => {
+  if (adapter === undefined) {
+    return RULES;
+  }
+
+  const replaced = new Set(adapter.replaces ?? []);
+
+  return [...RULES.filter((rule) => !replaced.has(rule.id)), ...adapter.rules];
+};
 
 /** Stable, zero-padded so that lexical order matches numeric order in the report. */
 const findingId = (index: number): string => `f_${String(index + 1).padStart(4, "0")}`;
@@ -63,12 +97,25 @@ const compareFindings = (left: RawFinding, right: RawFinding): number =>
 export interface RunOptions {
   /** Domains to run; every rule runs when omitted. */
   readonly domains?: readonly Domain[];
+  /** The registry for this run; the engine's own eleven when omitted. */
+  readonly rules?: readonly Rule[];
+  /**
+   * Called after each rule finishes, with how many of the selected rules have run and how many
+   * there are. PURELY OBSERVATIONAL: it cannot change a finding, it cannot be read back, and
+   * omitting it leaves this function bit-for-bit what it was. It exists so a CLI can draw a
+   * progress bar over a run that otherwise takes minutes in silence
+   * (`packages/cli-kit/src/ui.ts`).
+   */
+  readonly onRule?: (done: number, total: number) => void;
 }
 
 const selectRules = (options: RunOptions): readonly Rule[] => {
+  const registry = options.rules ?? RULES;
   const domains = options.domains;
 
-  return domains === undefined ? RULES : RULES.filter((rule) => domains.includes(domainOf(rule)));
+  return domains === undefined
+    ? registry
+    : registry.filter((rule) => domains.includes(domainOf(rule)));
 };
 
 /** Everything the enabled rules declare they could not check. */
@@ -79,8 +126,14 @@ export const collectRuleLimitations = (
 
 /** Runs every enabled rule and materialises the results. */
 export const runRules = (context: RuleContext, options: RunOptions = {}): Finding[] => {
-  const raw = selectRules(options)
-    .flatMap((rule) => rule.run(context))
+  const selected = selectRules(options);
+  const onRule = options.onRule;
+  const raw = selected
+    .flatMap((rule, index) => {
+      const findings = rule.run(context);
+      onRule?.(index + 1, selected.length);
+      return findings;
+    })
     .sort(compareFindings);
 
   // Occurrences are counted across the whole project so that a deviation repeated forty times

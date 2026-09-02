@@ -1,0 +1,128 @@
+{
+  "components": [
+    {
+      "name": "BrowserTabs",
+      "usages": 1,
+      "files": 1,
+      "findings": 1,
+      "overrides": 0,
+      "props": {}
+    },
+    {
+      "name": "Button",
+      "usages": 3,
+      "files": 1,
+      "findings": 3,
+      "overrides": 0,
+      "props": {
+        "size": {
+          "md": 1,
+          "xl": 1
+        },
+        "view": {
+          "danger": 1,
+          "secondary": 1
+        }
+      }
+    },
+    {
+      "name": "Tooltip",
+      "usages": 1,
+      "files": 1,
+      "findings": 0,
+      "overrides": 0,
+      "props": {}
+    }
+  ],
+  "unusedComponents": [
+    "Accordion",
+    "Autocomplete",
+    "Avatar",
+    "BackLink",
+    "Badge",
+    "Bar",
+    "Box",
+    "Breadcrumbs",
+    "Card",
+    "Cell",
+    "Checkbox",
+    "Chip",
+    "ComboBox",
+    "DatePicker",
+    "Divider",
+    "Drawer",
+    "DropdownMenu",
+    "EmptyState",
+    "FileUploader",
+    "Illustration",
+    "InputNumber",
+    "InputPassword",
+    "LabelControl",
+    "Link",
+    "List",
+    "Marker",
+    "MaskedInput",
+    "Mentions",
+    "Modal",
+    "Notification",
+    "Pagination",
+    "Popover",
+    "Radio",
+    "Rating",
+    "Scope",
+    "Segment",
+    "Select",
+    "Skeleton",
+    "Slider",
+    "Spinner",
+    "Splitter",
+    "StatusCard",
+    "Stepper",
+    "Switch",
+    "Table",
+    "Tabs",
+    "Tag",
+    "Text",
+    "TextField",
+    "Textarea",
+    "TimePicker",
+    "Tree",
+    "Underlay",
+    "_DNU_ST_"
+  ],
+  "foreignComponents": [],
+  "customComponents": [
+    {
+      "name": "HandRolledTabs",
+      "file": "src/Tabs.tsx",
+      "line": 1,
+      "usages": 0,
+      "files": 0,
+      "props": [
+        "items"
+      ],
+      "kitComponentsUsed": [],
+      "hasInlineSvg": false,
+      "snippet": "export const HandRolledTabs = ({ items }: { items: string[] }) => (\n  <div role=\"tablist\" aria-label=\"Sections\">\n    {items.map((item) => (\n      <div key={item} role=\"tab\" tabIndex={0}>\n        {item}\n      </div>\n    ))}\n  </div>\n);",
+      "verdict": "kit-like",
+      "nameMatch": {
+        "component": "Tabs",
+        "kind": "contains"
+      },
+      "tokenRefs": 0,
+      "hardcodedValues": 0,
+      "tokenVerdict": "no-styles"
+    }
+  ],
+  "elementBreakdown": {
+    "total": 5,
+    "kit": 5,
+    "kitClean": 1,
+    "customTokens": 0,
+    "customMixed": 0,
+    "customHardcode": 0,
+    "customUnstyled": 0,
+    "foreign": 0
+  },
+  "tokenUsage": {}
+}

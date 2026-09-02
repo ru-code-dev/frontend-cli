@@ -1,14 +1,150 @@
 /**
  * Recognising CSS by property name. Ported from
- * `hackathon2026/ds-analyzer/src/css/properties.ts:145-306` — the style-object recogniser
- * and the camelCase→CSS spelling converter, which the TypeScript and style-object collectors
- * both need.
+ * `hackathon2026/ds-analyzer/src/css/properties.ts:1-306` — the style-object recogniser and
+ * the camelCase→CSS spelling converter, which the TypeScript and style-object collectors both
+ * need, plus the three classifiers below.
  *
- * The three classifiers that file also holds — `colorRoleOf`, `dimensionScaleOf`,
- * `styleCategoryOf` (source lines 52-143) — are NOT ported: each answers a question only a
- * token or override rule asks ("which `sys` role does this colour play", "which kit ramp
- * governs this length", "is this override a repaint"), and no such rule is in this package.
+ * `colorRoleOf`, `dimensionScaleOf` and `styleCategoryOf` (source lines 52-143) answer
+ * questions only a token or override rule asks. No rule *in this package* asks them; a kit
+ * adapter's rules do, and they are CSS knowledge rather than design-system knowledge — the
+ * answers depend on the property name alone. Keeping one copy here is what stops the engine's
+ * spacing-frequency index (`rules/context.ts`, which needs `dimensionScaleOf`) and an
+ * adapter's dimension rule from disagreeing about which properties take part.
  */
+
+/** Semantic role a colour plays, matching a design system's `sys`-tier naming. */
+export type ColorRole = "background" | "foreground" | "border";
+
+/** Named scale in a token artifact's `scales` that governs lengths in a property. */
+export type DimensionScaleName = "borderRadiusPx" | "borderWidthPx" | "fontSizePx" | "lineHeightPx";
+
+/** Override policy bucket for a property applied to a kit component. */
+export type StyleCategory = "layout" | "repaint" | "size";
+
+const BACKGROUND_PROPERTIES: ReadonlySet<string> = new Set([
+  "background",
+  "background-color",
+  "background-image",
+]);
+
+const FOREGROUND_PROPERTIES: ReadonlySet<string> = new Set([
+  "color",
+  "fill",
+  "stroke",
+  "caret-color",
+  "text-decoration-color",
+  "text-emphasis-color",
+  "-webkit-text-fill-color",
+]);
+
+const BORDER_PROPERTY_PATTERN =
+  /^(border|outline|column-rule)(-(top|right|bottom|left|block|inline|start|end))*(-color|-width|-style)?$/;
+
+/**
+ * Role a colour in `property` plays, or `null` when the property carries no role.
+ *
+ * `box-shadow` and `text-shadow` deliberately return `null`: a shadow colour maps to no single
+ * tier group, so the suggestion falls back to plain tier preference.
+ */
+export const colorRoleOf = (property: string): ColorRole | null => {
+  const name = property.toLowerCase();
+
+  if (BACKGROUND_PROPERTIES.has(name)) {
+    return "background";
+  }
+  if (FOREGROUND_PROPERTIES.has(name)) {
+    return "foreground";
+  }
+  if (BORDER_PROPERTY_PATTERN.test(name)) {
+    return "border";
+  }
+
+  return null;
+};
+
+/**
+ * How lengths in `property` are judged.
+ *
+ * - `{ scale }` — a design system publishes a scale, so membership is decidable.
+ * - `{ scale: null }` — the property is a design decision but no scale governs it, so the
+ *   only available check is a frequency heuristic over the project's own habits.
+ * - `null` — the property is not a design decision at all.
+ *
+ * The last case is the important one. `width`, `height`, `margin` and positional offsets are
+ * layout: there is no token that could ever replace `min-width: 480px`, so reporting it
+ * produces a finding nobody can act on.
+ */
+export const dimensionScaleOf = (property: string): { scale: DimensionScaleName | null } | null => {
+  const name = property.toLowerCase();
+
+  if (name === "border-radius" || (name.startsWith("border-") && name.endsWith("-radius"))) {
+    return { scale: "borderRadiusPx" };
+  }
+  if (name === "font-size") {
+    return { scale: "fontSizePx" };
+  }
+  if (name === "line-height") {
+    return { scale: "lineHeightPx" };
+  }
+  if (BORDER_PROPERTY_PATTERN.test(name)) {
+    // Covers both `border-width` and the `border` / `border-bottom` shorthands, which carry a
+    // width in their value.
+    return { scale: "borderWidthPx" };
+  }
+  if (name === "padding" || name.startsWith("padding-")) {
+    return { scale: null };
+  }
+  if (name === "gap" || name === "row-gap" || name === "column-gap") {
+    return { scale: null };
+  }
+
+  return null;
+};
+
+const SIZE_PROPERTIES: ReadonlySet<string> = new Set(["height", "min-height", "max-height"]);
+
+const REPAINT_PREFIXES = ["background", "border", "outline", "font", "text-"];
+
+const REPAINT_PROPERTIES: ReadonlySet<string> = new Set([
+  "color",
+  "opacity",
+  "box-shadow",
+  "fill",
+  "stroke",
+  "backdrop-filter",
+  "filter",
+  "line-height",
+  "letter-spacing",
+]);
+
+/**
+ * Override policy bucket.
+ *
+ * Defaults to `layout`, which is the non-finding: on a real project roughly four out of five
+ * `className`s on kit components only set margins and widths, and a report where most findings
+ * are noise does not get read twice.
+ */
+export const styleCategoryOf = (property: string): StyleCategory => {
+  const name = property.toLowerCase();
+
+  if (name === "padding" || name.startsWith("padding-") || SIZE_PROPERTIES.has(name)) {
+    return "size";
+  }
+  if (REPAINT_PROPERTIES.has(name) || REPAINT_PREFIXES.some((prefix) => name.startsWith(prefix))) {
+    return "repaint";
+  }
+
+  return "layout";
+};
+
+/** `true` for the typographic properties that form a five-field type tuple. */
+export const TYPOGRAPHY_PROPERTIES: ReadonlySet<string> = new Set([
+  "font-family",
+  "font-size",
+  "font-weight",
+  "line-height",
+  "letter-spacing",
+]);
 
 /**
  * CSS properties common enough to identify a style object by its keys.

@@ -9,7 +9,7 @@
 import { describe, expect, it } from "vite-plus/test";
 
 import { payloadOf, type EngineFinding } from "../src/index.ts";
-import { minimalFinding, resultOf } from "./support.ts";
+import { kitResultOf, minimalFinding, resultOf } from "./support.ts";
 
 const at = (overrides: Partial<EngineFinding>): EngineFinding => ({
   ...minimalFinding,
@@ -160,5 +160,74 @@ describe("payloadOf", () => {
     expect(payloadOf(result, { generatedAt: "2026-08-30" })).toEqual(
       payloadOf(result, { generatedAt: "2026-08-30" }),
     );
+  });
+});
+
+/**
+ * X3: the adapter stamp and the adapter-gated half of the payload.
+ *
+ * The law this suite pins is the one the CLI's tier-2 lane restates against the shipped
+ * bundle: with no adapter, the payload is what it always was PLUS `adapter: null`, and nothing
+ * else. Written here as a string comparison over the serialised object, because "nothing else"
+ * is a claim about bytes and a deep-equal over two objects built by the same code would pass
+ * whatever both of them did.
+ */
+describe("the adapter stamp", () => {
+  it("is null when the caller names no adapter", () => {
+    expect(payloadOf(resultOf([minimalFinding])).adapter).toBeNull();
+  });
+
+  it("carries the name and version the caller selected", () => {
+    const payload = payloadOf(resultOf([minimalFinding]), {
+      adapter: { name: "eds", version: "9.9.9" },
+    });
+    expect(payload.adapter).toEqual({ name: "eds", version: "9.9.9" });
+  });
+
+  it("adding the stamp is the ONLY change to an adapter-less payload", () => {
+    const result = resultOf([minimalFinding]);
+    const generatedAt = "2026-01-01T00:00:00.000Z";
+    const withStamp = JSON.stringify(payloadOf(result, { generatedAt }));
+
+    // What the payload was before X3: the same object with the one new key removed.
+    expect(withStamp).toContain('"adapter":null,');
+    const withoutStamp = withStamp.replace('"adapter":null,', "");
+
+    expect(withoutStamp).not.toContain("adapter");
+    // Nothing kit-shaped leaked into the adapter-less shape either.
+    for (const key of ["usage", "healthScore", "healthFormula", "tokenCoverage", "kitGaps"]) {
+      expect(withoutStamp).not.toContain(key);
+    }
+  });
+});
+
+describe("the adapter-gated half", () => {
+  it("passes usage and the kit summary fields straight through", () => {
+    const payload = payloadOf(kitResultOf([minimalFinding]));
+
+    expect(payload.summary.healthScore).toBe(71);
+    expect(payload.summary.adoption).toBeCloseTo(0.4);
+    expect(payload.summary.kitGaps).toHaveLength(1);
+    expect(payload.usage?.tokenUsage).toEqual({ "--x-color-fg": 7 });
+    expect(payload.usage?.components).toHaveLength(1);
+  });
+
+  it("fills in the one field the renderer owns — the custom component's snippet HTML", () => {
+    const component = payloadOf(kitResultOf([minimalFinding])).usage?.customComponents[0];
+
+    expect(component?.snippet).toBe("const Card = () => <div />;");
+    // Same treatment as `Snippet.beforeHtml`: escaped plain text in the `.shiki` element.
+    expect(component?.snippetHtml).toBe(
+      '<pre class="shiki"><code>const Card = () =&gt; &lt;div /&gt;;</code></pre>',
+    );
+  });
+
+  it("emits no kit key at all when the engine produced none", () => {
+    const payload = payloadOf(resultOf([minimalFinding]));
+
+    expect(payload.usage).toBeUndefined();
+    expect("usage" in payload).toBe(false);
+    expect("healthScore" in payload.summary).toBe(false);
+    expect("kitGaps" in payload.summary).toBe(false);
   });
 });

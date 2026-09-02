@@ -1,0 +1,16 @@
+{
+  // Modelled on `ru-code-packages/packages/pixso-cli/tsconfig.json:5-10`; `tests` rides along
+  // in the include so the suites are checked at the same strictness as the source.
+  //
+  // `tests/fixtures` is EXCLUDED on purpose: it is a miniature UI kit, input data rather than
+  // code of this package. It is authored against its own hermetic `react.d.ts` and it contains
+  // deliberately unresolvable shapes (a package with no entry file, a runtime-only JSX root) —
+  // typechecking it here would be checking the fixture, not the tool.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ESNext"]
+  },
+  "include": ["src", "tests"],
+  "exclude": ["tests/fixtures"]
+}

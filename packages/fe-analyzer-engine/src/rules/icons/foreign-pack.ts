@@ -41,7 +41,7 @@ export const foreignIconPackRule: Rule = {
   id: "icon.foreign-pack",
   category: "icon",
   description: "Импорт стороннего пакета иконок",
-  run: overImports((record) => {
+  run: overImports((record, context) => {
     const pack = ICON_PACKAGES.find(
       (candidate) => record.specifier === candidate || record.specifier.startsWith(`${candidate}/`),
     );
@@ -61,9 +61,15 @@ export const foreignIconPackRule: Rule = {
         column: record.column,
         actual: record.specifier,
         expected: null,
+        // With a design system connected the sentence is the source's, count and all
+        // (`ds-analyzer/src/rules/icons/icons.ts:249-251`); the number does not exist without
+        // one, so the kit-less wording makes the same point without inventing it.
         why:
-          `Иконки из «${pack}» — сторонний набор рядом с собственной графикой проекта: ` +
-          "он тянет свои размеры, цвета и лицензию и не перекрашивается темой.",
+          context.kit === null || context.kit.iconCount === null
+            ? `Иконки из «${pack}» — сторонний набор рядом с собственной графикой проекта: ` +
+              "он тянет свои размеры, цвета и лицензию и не перекрашивается темой."
+            : `Иконки из «${pack}» — параллельный набор рядом с дизайн-системой: ` +
+              `у кита ${String(context.kit.iconCount)} собственных иконок с токенами темы.`,
         note: null,
         rootCause: null,
         appliedTo: null,

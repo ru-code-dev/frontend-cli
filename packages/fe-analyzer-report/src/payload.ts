@@ -1,10 +1,13 @@
 import type {
+  CustomComponent,
   Finding,
   FindingCategory,
+  KitGap,
   Limitation,
   ReportPayload,
   Severity,
   Summary,
+  Usage,
 } from "./contract.ts";
 
 /**
@@ -29,9 +32,14 @@ import type {
  *  - the `summary.findings` counters. Recomputed here when the engine does not carry them,
  *    from the findings themselves — the same aggregation the source computes in
  *    `hackathon2026/ds-analyzer/src/metrics/health.ts`. The kit-adoption half of that module
- *    (health score, adoption, token coverage) is NOT reproduced: the panels that showed it
- *    are deleted, and h5 §2d is explicit that those fields must be dropped rather than
- *    shipped with garbage values.
+ *    (health score, adoption, token coverage, kit gaps) is passed THROUGH when the engine
+ *    produced it and left ABSENT when it did not — never defaulted. h5 §2d's point stands:
+ *    those numbers are meaningless without a design system behind them, and this is the shape
+ *    that says so, since the dashboard reads their absence as "hide the panels" rather than
+ *    drawing a ring around a zero.
+ *
+ * X3 additions: `adapter` (which design system the run measured against, `null` for none) and
+ * `usage`, both of which the dashboard's kit panels gate on.
  */
 
 /** The engine's snippet: the source record minus the two Shiki-rendered fields. */
@@ -98,12 +106,36 @@ export interface EngineFindingCounts {
   readonly needsAgent: number;
 }
 
-/** The engine's summary. Only `files` cannot be derived from the findings. */
+/**
+ * The engine's summary. Only `files` cannot be derived from the findings.
+ *
+ * The five kit fields are the adapter-gated half: the engine emits them only when a
+ * `KitAdapter` is connected (`packages/fe-analyzer-engine/src/domain/findings.ts:262-303`,
+ * every one `.optional()`), and they are passed through here — never defaulted to a number.
+ * A `0` health score is a claim about a project; an absent one is the truthful "nobody
+ * measured", and it is what switches the kit panels off.
+ */
 export interface EngineSummary {
+  readonly healthScore?: number | undefined;
+  readonly healthFormula?: string | undefined;
+  readonly adoption?: number | undefined;
+  readonly tokenCoverage?: number | undefined;
   readonly files: { readonly scanned: number; readonly clean: number };
   readonly findings?: EngineFindingCounts | undefined;
   readonly positives?: readonly { readonly label: string; readonly detail: string }[] | undefined;
+  readonly kitGaps?: readonly KitGap[] | undefined;
   readonly limitations?: readonly Limitation[] | undefined;
+}
+
+/**
+ * The engine's `usage` block: {@link Usage} minus `snippetHtml`, which does not exist until
+ * render time (the source pre-renders it with Shiki alongside finding snippets —
+ * `hackathon2026/ds-analyzer/src/report/render.ts:96-110`).
+ */
+export interface EngineCustomComponent extends Omit<CustomComponent, "snippetHtml"> {}
+
+export interface EngineUsage extends Omit<Usage, "customComponents"> {
+  readonly customComponents: readonly EngineCustomComponent[];
 }
 
 /**
@@ -118,6 +150,8 @@ export interface EngineSummary {
 export interface AnalyzerResult {
   readonly findings: readonly EngineFinding[];
   readonly summary: EngineSummary;
+  /** Adapter-gated; absent on an adapter-less run and then absent from the payload too. */
+  readonly usage?: EngineUsage | undefined;
   readonly project?:
     | { readonly name?: string | null | undefined; readonly root?: string | undefined }
     | undefined;
@@ -134,6 +168,17 @@ export interface AnalyzerResult {
 
 /** Caller-supplied report metadata; every field overrides its counterpart on the result. */
 export interface PayloadOptions {
+  /**
+   * The design-system adapter the run used, or `null` when none matched.
+   *
+   * Supplied by the caller rather than read off the result because the engine takes the
+   * adapter as an argument and does not put it back into what it returns — the CLI is the
+   * one place that knows which one it selected and why.
+   *
+   * Defaults to `null`, so a caller that has never heard of adapters produces a report which
+   * *says* no design system was used, rather than one that leaves the question open.
+   */
+  readonly adapter?: { readonly name: string; readonly version: string } | null | undefined;
   /**
    * Stamped into the sidebar. Passed in so `renderReport` stays deterministic — the same
    * reason the source renderer takes it as an input rather than reading the clock
@@ -248,26 +293,53 @@ const toFinding = (finding: EngineFinding): Finding => ({
   impactKey: finding.impactKey,
 });
 
+/**
+ * The engine's `usage`, with the one field the renderer owns filled in.
+ *
+ * `snippetHtml` gets the same treatment as `Snippet.beforeHtml` — escaped plain text inside
+ * the `.shiki` element the dashboard's stylesheet already styles — for the same reason: Shiki
+ * is not a dependency of this port, and the card's own fallback would otherwise drop the code
+ * out of that element's typography.
+ */
+const toUsage = (usage: EngineUsage): Usage => ({
+  ...usage,
+  customComponents: usage.customComponents.map((component) => ({
+    ...component,
+    snippetHtml: plainSnippetHtml(component.snippet),
+  })),
+});
+
 /** Engine result → the JSON the ported dashboard renders. Pure. */
 export function payloadOf(result: AnalyzerResult, options: PayloadOptions = {}): ReportPayload {
   const project = options.project ?? result.project ?? result.profile ?? {};
 
+  const { summary } = result;
+
   return {
     project: { name: project.name ?? null, root: project.root ?? "" },
     generatedAt: options.generatedAt ?? result.generatedAt ?? new Date().toISOString(),
+    adapter: options.adapter ?? null,
     // No diff mode and no kit icon geometry in this port; both slots stay at the values the
     // dashboard already treats as "nothing extra to show".
     diff: null,
     iconPreviews: {},
     summary: {
-      files: result.summary.files,
+      // Spread-if-present, never `?? 0`: see {@link EngineSummary}. The order matches the
+      // dashboard's own declaration so a reader diffing the two files can follow it.
+      ...(summary.healthScore === undefined ? {} : { healthScore: summary.healthScore }),
+      ...(summary.healthFormula === undefined ? {} : { healthFormula: summary.healthFormula }),
+      ...(summary.adoption === undefined ? {} : { adoption: summary.adoption }),
+      ...(summary.tokenCoverage === undefined ? {} : { tokenCoverage: summary.tokenCoverage }),
+      files: summary.files,
       findings:
-        result.summary.findings === undefined
+        summary.findings === undefined
           ? countFindings(result.findings)
-          : withAllCategories(result.summary.findings),
-      positives: result.summary.positives ?? [],
-      limitations: result.summary.limitations ?? result.profile?.limitations ?? [],
+          : withAllCategories(summary.findings),
+      positives: summary.positives ?? [],
+      ...(summary.kitGaps === undefined ? {} : { kitGaps: summary.kitGaps }),
+      limitations: summary.limitations ?? result.profile?.limitations ?? [],
     },
+    ...(result.usage === undefined ? {} : { usage: toUsage(result.usage) }),
     findings: result.findings.map(toFinding),
     ruleDescriptions: result.ruleDescriptions ?? {},
   };

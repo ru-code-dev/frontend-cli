@@ -1,0 +1,275 @@
+{
+  "components": [
+    {
+      "name": "Button",
+      "usages": 1,
+      "files": 1,
+      "findings": 1,
+      "overrides": 0,
+      "props": {
+        "view": {
+          "primary": 1
+        }
+      }
+    }
+  ],
+  "unusedComponents": [
+    "Accordion",
+    "Autocomplete",
+    "Avatar",
+    "BackLink",
+    "Badge",
+    "Bar",
+    "Box",
+    "Breadcrumbs",
+    "BrowserTabs",
+    "Card",
+    "Cell",
+    "Checkbox",
+    "Chip",
+    "ComboBox",
+    "DatePicker",
+    "Divider",
+    "Drawer",
+    "DropdownMenu",
+    "EmptyState",
+    "FileUploader",
+    "Illustration",
+    "InputNumber",
+    "InputPassword",
+    "LabelControl",
+    "Link",
+    "List",
+    "Marker",
+    "MaskedInput",
+    "Mentions",
+    "Modal",
+    "Notification",
+    "Pagination",
+    "Popover",
+    "Radio",
+    "Rating",
+    "Scope",
+    "Segment",
+    "Select",
+    "Skeleton",
+    "Slider",
+    "Spinner",
+    "Splitter",
+    "StatusCard",
+    "Stepper",
+    "Switch",
+    "Table",
+    "Tabs",
+    "Tag",
+    "Text",
+    "TextField",
+    "Textarea",
+    "TimePicker",
+    "Tooltip",
+    "Tree",
+    "Underlay",
+    "_DNU_ST_"
+  ],
+  "foreignComponents": [
+    {
+      "name": "StatusRibbon",
+      "usages": 3,
+      "local": true,
+      "source": null
+    },
+    {
+      "name": "TeamCard",
+      "usages": 3,
+      "local": true,
+      "source": null
+    },
+    {
+      "name": "UserCard",
+      "usages": 3,
+      "local": true,
+      "source": null
+    },
+    {
+      "name": "ToolbarShell",
+      "usages": 2,
+      "local": true,
+      "source": null
+    },
+    {
+      "name": "Card",
+      "usages": 1,
+      "local": true,
+      "source": null
+    },
+    {
+      "name": "MyButton",
+      "usages": 1,
+      "local": true,
+      "source": null
+    },
+    {
+      "name": "Spinner",
+      "usages": 1,
+      "local": true,
+      "source": null
+    }
+  ],
+  "customComponents": [
+    {
+      "name": "StatusRibbon",
+      "file": "src/StatusRibbon.tsx",
+      "line": 6,
+      "usages": 3,
+      "files": 2,
+      "props": [
+        "label",
+        "tone"
+      ],
+      "kitComponentsUsed": [],
+      "hasInlineSvg": false,
+      "snippet": "export const StatusRibbon = ({ tone, label }: StatusRibbonProps) => (\n  <p className={`ribbon ribbon--${tone}`}>\n    <b className=\"ribbon__mark\">•</b>\n    {label}\n  </p>\n);",
+      "verdict": "kit-candidate",
+      "nameMatch": null,
+      "tokenRefs": 0,
+      "hardcodedValues": 0,
+      "tokenVerdict": "no-styles"
+    },
+    {
+      "name": "TeamCard",
+      "file": "src/TeamCard.tsx",
+      "line": 8,
+      "usages": 3,
+      "files": 2,
+      "props": [
+        "avatar",
+        "name",
+        "onOpen",
+        "role"
+      ],
+      "kitComponentsUsed": [],
+      "hasInlineSvg": false,
+      "snippet": "export const TeamCard = ({ name, role, avatar, onOpen }: TeamCardProps) => (\n  <article className=\"team-card\" onClick={onOpen}>\n    <header className=\"team-card__head\">\n      <img className=\"team-card__avatar\" src={avatar} alt=\"\" />\n      <div className=\"team-card__titles\">\n        <h3 className=\"team-card__name\">{name}</h3>\n        <p className=\"team-card__role\">{role}</p>\n      </div>\n    </header>\n    <footer className=\"team-card__foot\">\n      <span className=\"team-card__badge\">active</span>\n    </footer>\n  </article>\n);",
+      "verdict": "kit-like",
+      "nameMatch": {
+        "component": "Card",
+        "kind": "contains"
+      },
+      "tokenRefs": 0,
+      "hardcodedValues": 0,
+      "tokenVerdict": "no-styles"
+    },
+    {
+      "name": "UserCard",
+      "file": "src/UserCard.tsx",
+      "line": 8,
+      "usages": 3,
+      "files": 2,
+      "props": [
+        "avatar",
+        "name",
+        "onOpen",
+        "role"
+      ],
+      "kitComponentsUsed": [],
+      "hasInlineSvg": false,
+      "snippet": "export const UserCard = ({ name, role, avatar, onOpen }: UserCardProps) => (\n  <article className=\"user-card\" onClick={onOpen}>\n    <header className=\"user-card__head\">\n      <img className=\"user-card__avatar\" src={avatar} alt=\"\" />\n      <div className=\"user-card__titles\">\n        <h3 className=\"user-card__name\">{name}</h3>\n        <p className=\"user-card__role\">{role}</p>\n      </div>\n    </header>\n    <footer className=\"user-card__foot\">\n      <span className=\"user-card__badge\">active</span>\n    </footer>\n  </article>\n);",
+      "verdict": "kit-like",
+      "nameMatch": {
+        "component": "Card",
+        "kind": "contains"
+      },
+      "tokenRefs": 0,
+      "hardcodedValues": 0,
+      "tokenVerdict": "no-styles"
+    },
+    {
+      "name": "Card",
+      "file": "src/Card.tsx",
+      "line": 9,
+      "usages": 1,
+      "files": 1,
+      "props": [
+        "accent",
+        "children",
+        "classes",
+        "draggable",
+        "elevation"
+      ],
+      "kitComponentsUsed": [],
+      "hasInlineSvg": false,
+      "snippet": "export const Card = ({ accent, classes, draggable, elevation, children }: CardProps) => (\n  <div\n    className={`card${accent ? \" card--accent\" : \"\"}`}\n    draggable={draggable}\n    data-elevation={elevation}\n  >\n    <div className={classes?.[\"body\"]}>{children}</div>\n  </div>\n);",
+      "verdict": "kit-like",
+      "nameMatch": {
+        "component": "Card",
+        "kind": "exact"
+      },
+      "tokenRefs": 0,
+      "hardcodedValues": 0,
+      "tokenVerdict": "no-styles"
+    },
+    {
+      "name": "MyButton",
+      "file": "src/MyButton.tsx",
+      "line": 11,
+      "usages": 1,
+      "files": 1,
+      "props": [
+        "children",
+        "classes",
+        "disabled",
+        "fullWidth",
+        "onClick",
+        "size",
+        "view"
+      ],
+      "kitComponentsUsed": [],
+      "hasInlineSvg": false,
+      "snippet": "export const MyButton = ({\n  view = \"primary\",\n  size = \"md\",\n  disabled,\n  fullWidth,\n  classes,\n  onClick,\n  children,\n}: MyButtonProps) => (\n  <button\n    type=\"button\"\n    className={`btn btn-${view} btn-${size}${fullWidth ? \" btn-block\" : \"\"}`}\n    disabled={disabled}\n    onClick={onClick}\n    aria-disabled={disabled}\n  >\n    <span className={classes?.[\"content\"]}>{children}</span>\n  </button>\n);",
+      "verdict": "kit-like",
+      "nameMatch": {
+        "component": "Button",
+        "kind": "contains"
+      },
+      "tokenRefs": 0,
+      "hardcodedValues": 0,
+      "tokenVerdict": "no-styles"
+    },
+    {
+      "name": "Spinner",
+      "file": "src/Spinner.tsx",
+      "line": 9,
+      "usages": 1,
+      "files": 1,
+      "props": [
+        "className",
+        "classes",
+        "color",
+        "size",
+        "view"
+      ],
+      "kitComponentsUsed": [],
+      "hasInlineSvg": true,
+      "snippet": "export const Spinner = ({\n  size = \"md\",\n  view = \"primary\",\n  classes,\n  className,\n  color,\n}: SpinnerProps) => (\n  <span\n    className={`${className ?? \"\"} spinner spinner-${size} spinner-${view}`}\n    role=\"progressbar\"\n    aria-live=\"polite\"\n    style={{ color }}\n  >\n    <svg viewBox=\"0 0 24 24\" className={classes?.[\"circle\"]}>\n      <circle cx=\"12\" cy=\"12\" r=\"10\" />\n    </svg>\n  </span>\n);",
+      "verdict": "kit-like",
+      "nameMatch": {
+        "component": "Spinner",
+        "kind": "exact"
+      },
+      "tokenRefs": 0,
+      "hardcodedValues": 0,
+      "tokenVerdict": "no-styles"
+    }
+  ],
+  "elementBreakdown": {
+    "total": 15,
+    "kit": 1,
+    "kitClean": 0,
+    "customTokens": 0,
+    "customMixed": 0,
+    "customHardcode": 0,
+    "customUnstyled": 14,
+    "foreign": 0
+  },
+  "tokenUsage": {}
+}

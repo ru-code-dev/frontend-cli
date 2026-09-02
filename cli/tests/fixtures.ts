@@ -80,3 +80,27 @@ export const FAKE_COMMANDS: readonly CliCommand[] = [
   explodingCommand,
   refusingCommand,
 ];
+
+/**
+ * The REFUSAL IDIOM both feature packages use, reproduced exactly: hand the message to the UI
+ * and then write the same message to `ctx.stderr`
+ * (`packages/fe-pixso/src/commands.ts:79-83`, `packages/fe-project-report/src/command.ts:
+ * 144-146`). Those two files are the only `ctx.stderr` call sites in the repo, so this fixture
+ * is the whole of the behaviour the one-voice rule in `cli/src/main.ts` has to get right: once
+ * for a UI that draws a card, still once for a UI that draws nothing.
+ *
+ * Deliberately NOT in {@link FAKE_COMMANDS}: the parsing and help suites assert on that list's
+ * size and spellings, and a command added for one dispatch test has no business changing them.
+ */
+export const REFUSAL_TEXT = { ru: "фикстура отказала", en: "fixture refused" } as const;
+
+export const loudlyRefusingCommand: CliCommand = {
+  flag: "--fake-loud-refuse",
+  summary: { ru: "команда, печатающая отказ", en: "command printing a refusal" },
+  args: [],
+  run: (ctx) => {
+    ctx.ui.fail(REFUSAL_TEXT);
+    ctx.stderr(`${REFUSAL_TEXT[ctx.lang]}\n`);
+    return Promise.resolve(2);
+  },
+};

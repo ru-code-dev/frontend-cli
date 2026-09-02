@@ -31,4 +31,25 @@ export {
   type PixsoRuntime,
 } from "./runtime.ts";
 
-export { ASSET_FILES } from "./strings.ts";
+export { phases, summaries, wroteFiles } from "./strings.ts";
+
+/**
+ * The output contract — where a bare run's files land and what they are called.
+ *
+ * Exported because it is the part of this package a user is told about in `--help` and in the
+ * README, so it is also the part the tests have to be able to pin without re-deriving a path
+ * by hand. A test that spelled `fe-out/pixso/11-10.svg` itself would pass while the product
+ * wrote somewhere else.
+ */
+export {
+  ASSET_FILES,
+  assetPathIn,
+  assetsTarget,
+  DEFAULT_DIR,
+  designName,
+  faceTarget,
+  FACE_EXTENSION,
+  LINK_FALLBACK,
+  PIXSO_OUT_DIR,
+  type FaceKind,
+} from "./out.ts";

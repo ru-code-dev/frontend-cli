@@ -4,12 +4,13 @@ import { z } from "zod";
  * What the engine knows about the *shape* of the scanned project. Ported from
  * `hackathon2026/ds-analyzer/src/domain/profile.ts:1-156`.
  *
- * Two fields of that contract are dropped here, and both for the same reason: they describe
- * a UI kit this engine deliberately knows nothing about — `kitSources` (with its
- * `kitSourceSchema`, source lines 99-114) and `kitVersion`/`usesKit` (lines 130-137). The
- * `wrapped-upstream` member of that enum is where the hackathon's hardcoded vendor scope
- * lived (`ds-analyzer/src/scanner/profile/kit-sources.ts:37`), which this package may not
- * carry. Everything else is verbatim.
+ * `kitSources`/`kitVersion`/`usesKit` (source lines 99-114,130-137) are back, and they are the
+ * one part of this record that needs a word. They say where design-system symbols enter *this*
+ * project; they name no design system. Which packages count, and which upstream scope the kit
+ * wraps, arrive from a {@link KitAdapter} (`scanner/profile/kit-sources.ts`), so the enum
+ * member `wrapped-upstream` is a *kind*, not the hackathon's hardcoded vendor scope. With no
+ * adapter the closure is never computed and all three stay empty/`null`/`false` — the profile
+ * is not part of `AnalyzerResult`, so nothing a caller sees changes either way.
  *
  * Two properties of what remains are load-bearing:
  *
@@ -97,6 +98,24 @@ export const tsconfigSchema = z.object({
   extendsChain: z.array(z.string()),
 });
 
+/**
+ * How a module comes to yield design-system symbols.
+ *
+ *  - `package` — the kit itself, as declared by the adapter;
+ *  - `project-barrel` — a local module re-exporting one of those, transitively;
+ *  - `wrapped-upstream` — the library the kit wraps. Reaching it directly is stepping around
+ *    the design system, which is a finding rather than adoption.
+ */
+export const kitSourceSchema = z.object({
+  /** Package name, or project-relative path for a local barrel. */
+  specifier: z.string(),
+  kind: z.enum(["package", "project-barrel", "wrapped-upstream"]),
+  /** What made this module a kit source, sorted. */
+  via: z.array(z.string()),
+  /** Names it contributes; empty when they cannot be enumerated (a star re-export). */
+  names: z.array(z.string()),
+});
+
 export const projectProfileSchema = z.object({
   $schema: z.literal("fe-analyzer-engine/project-profile@1"),
   /** Absolute path; the only absolute path in any record. */
@@ -111,6 +130,11 @@ export const projectProfileSchema = z.object({
   }),
   tsconfigs: z.array(tsconfigSchema),
   aliases: z.array(aliasSchema),
+  /** Modules that yield design-system symbols; empty when no adapter is connected. */
+  kitSources: z.array(kitSourceSchema),
+  /** Declared version of the kit package, when the manifest names one. */
+  kitVersion: z.string().nullable(),
+  usesKit: z.boolean(),
   styleSyntaxes: z.array(styleSyntaxSchema),
   files: z.object({
     scanned: z.number().int().nonnegative(),
@@ -127,5 +151,6 @@ export type StyleSyntax = z.infer<typeof styleSyntaxSchema>;
 export type LimitationReason = z.infer<typeof limitationReasonSchema>;
 export type Limitation = z.infer<typeof limitationSchema>;
 export type Alias = z.infer<typeof aliasSchema>;
+export type KitSource = z.infer<typeof kitSourceSchema>;
 export type TsconfigInfo = z.infer<typeof tsconfigSchema>;
 export type ProjectProfile = z.infer<typeof projectProfileSchema>;

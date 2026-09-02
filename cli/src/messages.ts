@@ -51,9 +51,19 @@ export const HELP_GLOBALS_HEADING: Localized = {
 };
 
 /**
- * Trailer explaining the three configurable values and the precedence chain, because the
- * precedence is the part a user cannot guess (design 2.1:105-111). The names printed are the
- * owner-fixed ones from `cli/src/constants.ts`.
+ * Trailer explaining the configurable values and the precedence chain, because the precedence
+ * is the part a user cannot guess (design 2.1:105-111). The names printed are the owner-fixed
+ * ones from `cli/src/constants.ts`, plus `FE_KITS_DIR`.
+ *
+ * `FE_KITS_DIR` IS LISTED WITHOUT A FLAG, and that is not an omission — there is no flag for
+ * it. V3 MINOR-2 found it documented nowhere user-facing (zero occurrences in `--help` in
+ * either language and in the README) despite being the shipped override for where
+ * `--parse-ui-kit` writes and where `--project-report` looks
+ * (`packages/fe-eds-adapter/src/corpus.ts:67-76`). A block that enumerates the environment
+ * variables and skips one of them is worse than no block, so it is here; the "flag >" half of
+ * the precedence line simply has no term for this row. The default is spelled `~/.fe/kits`
+ * rather than expanded, because the expansion is the running user's home directory and this
+ * string is built once, at module scope, for everyone.
  */
 export const HELP_CONFIG_NOTE: Localized = {
   ru: [
@@ -61,6 +71,8 @@ export const HELP_CONFIG_NOTE: Localized = {
     "  PIXSO_REMOTE_MCP_URL     адрес удалённого MCP   (флаг --endpoint)",
     "  PIXSO_LOCAL_MCP_URL      адрес локального MCP   (флаг --endpoint)",
     "  PIXSO_REMOTE_MCP_TOKEN   токен для удалённого MCP (флаг --token)",
+    "  FE_KITS_DIR              каталог корпусов дизайн-систем, куда пишет --parse-ui-kit",
+    "                           и откуда читает --project-report (по умолчанию ~/.fe/kits)",
     "файл ./.env в текущем каталоге загружается автоматически, если он есть.",
   ].join("\n"),
   en: [
@@ -68,6 +80,8 @@ export const HELP_CONFIG_NOTE: Localized = {
     "  PIXSO_REMOTE_MCP_URL     remote MCP endpoint   (flag --endpoint)",
     "  PIXSO_LOCAL_MCP_URL      local MCP endpoint    (flag --endpoint)",
     "  PIXSO_REMOTE_MCP_TOKEN   token for the remote MCP (flag --token)",
+    "  FE_KITS_DIR              design-system corpus directory: where --parse-ui-kit writes",
+    "                           and --project-report reads (default ~/.fe/kits)",
     "a ./.env file in the current directory is loaded automatically when present.",
   ].join("\n"),
 };
@@ -95,6 +109,22 @@ export function unknownFlag(token: string): Localized {
   return {
     ru: `неизвестный флаг: ${token}`,
     en: `unknown flag: ${token}`,
+  };
+}
+
+/**
+ * A flag this CLI knows, aimed at a command that does not take it — V3 MAJOR-1.
+ *
+ * It names BOTH halves because either one alone leaves the user guessing: "unknown flag: -o" is
+ * false (`-o` is known, and works on five other commands) and "wrong flag for this command"
+ * without the command is unactionable when the line holds several. `flag` is the spelling the
+ * user typed, `command` the flag that selected the command — both quoted verbatim, so the
+ * message can be pasted back as the line to fix.
+ */
+export function flagNotForCommand(flag: string, command: string): Localized {
+  return {
+    ru: `флаг ${flag} не поддерживается командой ${command}.`,
+    en: `flag ${flag} is not supported by ${command}.`,
   };
 }
 
@@ -154,9 +184,24 @@ export const DEBUG_HINT: Localized = {
 
 /** Descriptions of the global options, as `--help` prints them. */
 export const GLOBAL_DESCRIPTIONS: Readonly<Record<string, Localized>> = {
+  /**
+   * CHANGED IN E2b. This used to read "без него — в stdout", which stopped being true when the
+   * owner's law made `-o` optional everywhere: a command without one now WRITES, to its own
+   * documented default, and prints the absolute paths. The default itself is deliberately not
+   * named here — there are three different ones — and each command states its own in its
+   * `-o` `ArgSpec` (`packages/fe-pixso/src/strings.ts`,
+   * `packages/fe-project-report/src/strings.ts`), which is where a reader is already looking.
+   *
+   * CHANGED AGAIN IN F2. Since V3 MAJOR-1 was fixed, `-o` is no longer accepted by every
+   * command — `--parse-ui-kit` declares no output flag and now REFUSES one instead of
+   * discarding it — so the description says which commands take it. It stays in this block
+   * rather than moving under each command because five of the six do take it and each already
+   * documents its own default in its own `ArgSpec`; a global block that listed it unqualified
+   * would be the help contradicting the parser.
+   */
   out: {
-    ru: "куда записать результат (файл или каталог); без него — в stdout",
-    en: "where to write the result (file or directory); without it, stdout",
+    ru: "куда записать результат (файл или каталог); принимают его только команды, которые его объявляют; необязателен — без него команда пишет в свой каталог по умолчанию и печатает абсолютные пути",
+    en: "where to write the result (file or directory); accepted only by the commands that declare it; optional — without it a command writes to its own default location and prints the absolute paths",
   },
   token: {
     ru: "токен для удалённого MCP (переопределяет PIXSO_REMOTE_MCP_TOKEN)",

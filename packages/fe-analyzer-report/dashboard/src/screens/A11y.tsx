@@ -21,7 +21,7 @@ import {
   type Severity,
 } from "../data.js";
 import {
-  A11Y_CHECK_COUNT,
+  a11yCheckCount,
   contrastPair,
   groupA11y,
   notCheckedFor,
@@ -281,9 +281,9 @@ export const A11yScreen = ({
         <header className="space-y-1">
           <h1 className="text-[19px] font-semibold tracking-tight">Доступность</h1>
           <p className="text-[13px] leading-relaxed text-muted">
-            {A11Y_CHECK_COUNT} проверок: клавиатура и фокус разбираются по коду виджета, базовые
-            правила — эталонным eslint-plugin-jsx-a11y. Каждая находка говорит, что теряет человек и
-            что с этим сделать.
+            {a11yCheckCount(payload.ruleDescriptions)} проверок: клавиатура и фокус разбираются по
+            коду виджета, базовые правила — эталонным eslint-plugin-jsx-a11y. Каждая находка
+            говорит, что теряет человек и что с этим сделать.
           </p>
         </header>
 

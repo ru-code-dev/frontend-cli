@@ -1,0 +1,1193 @@
+[
+  {
+    "id": "f_0001",
+    "rule": "component.custom",
+    "subkind": null,
+    "category": "component",
+    "severity": "warning",
+    "confidence": 0.891,
+    "file": "src/Dialog.tsx",
+    "line": 3,
+    "column": 14,
+    "snippet": {
+      "before": "import { useState } from \"react\";\n\nexport const ConfirmDialog = ({ open }: { open: boolean }) => {\n  const [visible, setVisible] = useState(open);\n\n  return visible ? (\n    <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"confirm-title\">",
+      "after": null,
+      "highlightLine": 3,
+      "startLine": 1
+    },
+    "actual": "ConfirmDialog",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": "Modal",
+      "value": "Modal"
+    },
+    "why": "ConfirmDialog повторяет Modal из кита (совпадение 0.89): имя содержит «Dialog»; ARIA совпадает: dialog, aria-modal.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [
+      {
+        "component": "Modal",
+        "score": 0.891,
+        "reasons": [
+          "имя содержит «Dialog»",
+          "ARIA совпадает: dialog, aria-modal"
+        ]
+      },
+      {
+        "component": "DatePicker",
+        "score": 0.4,
+        "reasons": [
+          "ARIA совпадает: dialog"
+        ]
+      },
+      {
+        "component": "Drawer",
+        "score": 0.4,
+        "reasons": [
+          "ARIA совпадает: aria-modal"
+        ]
+      }
+    ],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "component.custom:ConfirmDialog"
+  },
+  {
+    "id": "f_0002",
+    "rule": "a11y.lint",
+    "subkind": "prefer-tag-over-role",
+    "category": "a11y",
+    "severity": "info",
+    "confidence": 0.75,
+    "file": "src/Dialog.tsx",
+    "line": 7,
+    "column": 5,
+    "snippet": {
+      "before": "export const ConfirmDialog = ({ open }: { open: boolean }) => {\n  const [visible, setVisible] = useState(open);\n\n  return visible ? (\n    <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"confirm-title\">\n      <h2 id=\"confirm-title\">Are you sure?</h2>\n      <button type=\"button\" onClick={() => setVisible(false)}>\n        Yes\n      </button>",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 3
+    },
+    "actual": "Use <dialog> instead of the \"dialog\" role to ensure accessibility across all devices.",
+    "expected": null,
+    "why": "Use <dialog> instead of the \"dialog\" role to ensure accessibility across all devices.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [],
+      "pattern": null,
+      "impact": "Нативный тег дал бы ту же семантику вместе с поведением.",
+      "fix": "Возьмите нативный тег вместо role: он приносит с собой ещё и клавиатуру."
+    },
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 4,
+      "files": 2
+    },
+    "impactKey": "a11y.lint:prefer-tag-over-role"
+  },
+  {
+    "id": "f_0003",
+    "rule": "a11y.pattern.focus",
+    "subkind": "noEscape",
+    "category": "a11y",
+    "severity": "error",
+    "confidence": 0.85,
+    "file": "src/Dialog.tsx",
+    "line": 7,
+    "column": 5,
+    "snippet": {
+      "before": "export const ConfirmDialog = ({ open }: { open: boolean }) => {\n  const [visible, setVisible] = useState(open);\n\n  return visible ? (\n    <div role=\"dialog\" aria-modal=\"true\" aria-labelledby=\"confirm-title\">\n      <h2 id=\"confirm-title\">Are you sure?</h2>\n      <button type=\"button\" onClick={() => setVisible(false)}>\n        Yes\n      </button>",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 3
+    },
+    "actual": "<div role=\"dialog\">",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": "Modal",
+      "value": "<Modal …>"
+    },
+    "why": "Диалог ConfirmDialog объявлен ролью, но в нём не найдено: закрытие по Escape, удержание и возврат фокуса. Пользователь клавиатуры откроет его и не сможет ни выйти, ни вернуться к тому, что открыл. Компонент кита Modal это делает.",
+    "note": "Признаки читаются синтаксически: фокус, перенесённый через внешний хук, отсюда не виден.",
+    "rootCause": {
+      "file": "src/Dialog.tsx",
+      "line": 3,
+      "name": "ConfirmDialog"
+    },
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [
+        "2.1.2",
+        "2.4.3"
+      ],
+      "pattern": "dialog-modal",
+      "impact": "Фокус остаётся заперт вне диалога или не возвращается: пользователь клавиатуры теряет управление.",
+      "fix": "Возьмите Modal из кита — он закрывается по Escape и сам управляет фокусом."
+    },
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [
+      {
+        "component": "Modal",
+        "score": 0.85,
+        "reasons": [
+          "рендерит role=\"dialog\"",
+          "закрывается по Escape"
+        ]
+      }
+    ],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "a11y.pattern.focus"
+  },
+  {
+    "id": "f_0004",
+    "rule": "component.custom",
+    "subkind": null,
+    "category": "component",
+    "severity": "warning",
+    "confidence": 0.9,
+    "file": "src/Tabs.tsx",
+    "line": 1,
+    "column": 14,
+    "snippet": {
+      "before": "export const HandRolledTabs = ({ items }: { items: string[] }) => (\n  <div role=\"tablist\" aria-label=\"Sections\">\n    {items.map((item) => (\n      <div key={item} role=\"tab\" tabIndex={0}>\n        {item}",
+      "after": null,
+      "highlightLine": 1,
+      "startLine": 1
+    },
+    "actual": "HandRolledTabs",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": "Tabs",
+      "value": "Tabs"
+    },
+    "why": "HandRolledTabs повторяет Tabs из кита (совпадение 0.91): имя содержит «Tabs»; ARIA совпадает: tab, tablist.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [
+      {
+        "component": "Tabs",
+        "score": 0.905,
+        "reasons": [
+          "имя содержит «Tabs»",
+          "ARIA совпадает: tab, tablist"
+        ]
+      },
+      {
+        "component": "BrowserTabs",
+        "score": 0.8,
+        "reasons": [
+          "ARIA совпадает: tab, tablist"
+        ]
+      }
+    ],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "component.custom:HandRolledTabs"
+  },
+  {
+    "id": "f_0005",
+    "rule": "a11y.pattern.keyboard",
+    "subkind": "noHandler",
+    "category": "a11y",
+    "severity": "error",
+    "confidence": 0.95,
+    "file": "src/Tabs.tsx",
+    "line": 2,
+    "column": 3,
+    "snippet": {
+      "before": "export const HandRolledTabs = ({ items }: { items: string[] }) => (\n  <div role=\"tablist\" aria-label=\"Sections\">\n    {items.map((item) => (\n      <div key={item} role=\"tab\" tabIndex={0}>\n        {item}\n      </div>",
+      "after": null,
+      "highlightLine": 2,
+      "startLine": 1
+    },
+    "actual": "role=\"tablist\"",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": "Tabs",
+      "value": "<Tabs …>"
+    },
+    "why": "Элемент объявляет role=\"tablist\", но не обрабатывает ни одной клавиши. Пользователь клавиатуры не сможет им управлять. Компонент кита Tabs обрабатывает: ArrowDown, ArrowLeft, ArrowRight, ArrowUp.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [
+        "2.1.1"
+      ],
+      "pattern": "tablist",
+      "impact": "Виджет tablist недоступен с клавиатуры: фокус в него попадает, но управлять им нечем.",
+      "fix": "Возьмите Tabs из кита — он уже обрабатывает ArrowDown, ArrowLeft, ArrowRight, ArrowUp."
+    },
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [
+      {
+        "component": "BrowserTabs",
+        "score": 0.9,
+        "reasons": [
+          "рендерит role=\"tablist\"",
+          "обрабатывает ArrowDown, ArrowLeft, ArrowRight, ArrowUp",
+          "управляет фокусом"
+        ]
+      },
+      {
+        "component": "Tabs",
+        "score": 0.9,
+        "reasons": [
+          "рендерит role=\"tablist\"",
+          "обрабатывает ArrowDown, ArrowLeft, ArrowRight, ArrowUp",
+          "управляет фокусом"
+        ]
+      }
+    ],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "a11y.pattern.keyboard:tablist"
+  },
+  {
+    "id": "f_0006",
+    "rule": "import.internal",
+    "subkind": null,
+    "category": "api",
+    "severity": "error",
+    "confidence": 1,
+    "file": "src/Toolbar.tsx",
+    "line": 2,
+    "column": 1,
+    "snippet": {
+      "before": "import { Button, BrowserTabs } from \"@sds-eng/base\";\nimport { Tooltip } from \"@sds-eng/base/src/components/Tooltip/Tooltip\";\nimport { Button as RawButton } from \"@v-uik/button\";\nimport { legacyHelper } from \"@sds-eng/base/_DNU_ST_/helpers\";\n\nexport const Toolbar = () => (",
+      "after": "import { Button, BrowserTabs } from \"@sds-eng/base\";\nimport { Tooltip } from '@sds-eng/base';\nimport { Button as RawButton } from \"@v-uik/button\";\nimport { legacyHelper } from \"@sds-eng/base/_DNU_ST_/helpers\";\n\nexport const Toolbar = () => (",
+      "highlightLine": 2,
+      "startLine": 1
+    },
+    "actual": "@sds-eng/base/src/components/Tooltip/Tooltip",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": null,
+      "value": "import { Tooltip } from '@sds-eng/base'"
+    },
+    "why": "@sds-eng/base/src/components/Tooltip/Tooltip лезет во внутренности пакета. Публичная бочка @sds-eng/base существует ровно затем, чтобы раскладка файлов могла меняться между релизами.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "import.internal:@sds-eng/base"
+  },
+  {
+    "id": "f_0007",
+    "rule": "import.bypass",
+    "subkind": null,
+    "category": "api",
+    "severity": "error",
+    "confidence": 1,
+    "file": "src/Toolbar.tsx",
+    "line": 3,
+    "column": 1,
+    "snippet": {
+      "before": "import { Button, BrowserTabs } from \"@sds-eng/base\";\nimport { Tooltip } from \"@sds-eng/base/src/components/Tooltip/Tooltip\";\nimport { Button as RawButton } from \"@v-uik/button\";\nimport { legacyHelper } from \"@sds-eng/base/_DNU_ST_/helpers\";\n\nexport const Toolbar = () => (\n  <div className=\"toolbar\">",
+      "after": "import { Button, BrowserTabs } from \"@sds-eng/base\";\nimport { Tooltip } from \"@sds-eng/base/src/components/Tooltip/Tooltip\";\nimport { Button as RawButton } from '@sds-eng/base';\nimport { legacyHelper } from \"@sds-eng/base/_DNU_ST_/helpers\";\n\nexport const Toolbar = () => (\n  <div className=\"toolbar\">",
+      "highlightLine": 3,
+      "startLine": 1
+    },
+    "actual": "@v-uik/button",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": "Button",
+      "value": "import { Button as RawButton } from '@sds-eng/base'"
+    },
+    "why": "@v-uik/button обёрнут в ките как Button. Прямой импорт отдаёт компонент без темы кита, без маппинга вариантов и без его правок доступности.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "import.bypass:@v-uik/button"
+  },
+  {
+    "id": "f_0008",
+    "rule": "api.dnu",
+    "subkind": null,
+    "category": "api",
+    "severity": "error",
+    "confidence": 1,
+    "file": "src/Toolbar.tsx",
+    "line": 4,
+    "column": 1,
+    "snippet": {
+      "before": "import { Button, BrowserTabs } from \"@sds-eng/base\";\nimport { Tooltip } from \"@sds-eng/base/src/components/Tooltip/Tooltip\";\nimport { Button as RawButton } from \"@v-uik/button\";\nimport { legacyHelper } from \"@sds-eng/base/_DNU_ST_/helpers\";\n\nexport const Toolbar = () => (\n  <div className=\"toolbar\">\n    <Button view=\"danger\" size=\"xl\">",
+      "after": null,
+      "highlightLine": 4,
+      "startLine": 1
+    },
+    "actual": "@sds-eng/base/_DNU_ST_/helpers",
+    "expected": null,
+    "why": "_DNU_ST_ — собственная пометка кита «do not use». Содержимое модуля может исчезнуть в любом релизе без депрекации.",
+    "note": "Замены нет: нужно обсуждать с командой дизайн-системы, что именно отсюда используется и чем это заменить.",
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "api.dnu:@sds-eng/base/_DNU_ST_/helpers"
+  },
+  {
+    "id": "f_0009",
+    "rule": "prop.invalid",
+    "subkind": null,
+    "category": "api",
+    "severity": "error",
+    "confidence": 1,
+    "file": "src/Toolbar.tsx",
+    "line": 8,
+    "column": 5,
+    "snippet": {
+      "before": "import { legacyHelper } from \"@sds-eng/base/_DNU_ST_/helpers\";\n\nexport const Toolbar = () => (\n  <div className=\"toolbar\">\n    <Button view=\"danger\" size=\"xl\">\n      Delete\n    </Button>\n    <Button view=\"secondary\" size=\"md\">\n      Cancel",
+      "after": "import { legacyHelper } from \"@sds-eng/base/_DNU_ST_/helpers\";\n\nexport const Toolbar = () => (\n  <div className=\"toolbar\">\n    <Button view=\"danger\" size=\"md\">\n      Delete\n    </Button>\n    <Button view=\"secondary\" size=\"md\">\n      Cancel",
+      "highlightLine": 5,
+      "startLine": 4
+    },
+    "actual": "size=\"xl\"",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": "Button",
+      "value": "size=\"md\""
+    },
+    "why": "Button не знает size=\"xl\" — допустимы только xs, sm, md. Компонент молча отрисуется значением по умолчанию.",
+    "note": "«xl» в ките нет; ближайшее — «md», но это изменит внешний вид: проверьте глазами.",
+    "rootCause": null,
+    "appliedTo": {
+      "component": "Button",
+      "slot": null
+    },
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "prop.invalid:Button.size=xl"
+  },
+  {
+    "id": "f_0010",
+    "rule": "prop.invalid",
+    "subkind": null,
+    "category": "api",
+    "severity": "error",
+    "confidence": 1,
+    "file": "src/Toolbar.tsx",
+    "line": 8,
+    "column": 5,
+    "snippet": {
+      "before": "import { legacyHelper } from \"@sds-eng/base/_DNU_ST_/helpers\";\n\nexport const Toolbar = () => (\n  <div className=\"toolbar\">\n    <Button view=\"danger\" size=\"xl\">\n      Delete\n    </Button>\n    <Button view=\"secondary\" size=\"md\">\n      Cancel",
+      "after": "import { legacyHelper } from \"@sds-eng/base/_DNU_ST_/helpers\";\n\nexport const Toolbar = () => (\n  <div className=\"toolbar\">\n    <Button view=\"negative\" size=\"xl\">\n      Delete\n    </Button>\n    <Button view=\"secondary\" size=\"md\">\n      Cancel",
+      "highlightLine": 5,
+      "startLine": 4
+    },
+    "actual": "view=\"danger\"",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": "Button",
+      "value": "view=\"negative\""
+    },
+    "why": "Button не знает view=\"danger\" — допустимы только primary, secondary, negative. Компонент молча отрисуется значением по умолчанию.",
+    "note": "«danger» — это то же самое, что «negative», просто другим словарём.",
+    "rootCause": null,
+    "appliedTo": {
+      "component": "Button",
+      "slot": null
+    },
+    "a11y": null,
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "prop.invalid:Button.view=danger"
+  },
+  {
+    "id": "f_0011",
+    "rule": "api.deprecated",
+    "subkind": null,
+    "category": "api",
+    "severity": "warning",
+    "confidence": 1,
+    "file": "src/Toolbar.tsx",
+    "line": 14,
+    "column": 5,
+    "snippet": {
+      "before": "    </Button>\n    <Button view=\"secondary\" size=\"md\">\n      Cancel\n    </Button>\n    <BrowserTabs items={[]} />\n    <RawButton>Raw</RawButton>\n    <Tooltip title={legacyHelper()}>\n      <span>help</span>\n    </Tooltip>",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 10
+    },
+    "actual": "BrowserTabs",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": "BrowserTabs",
+      "value": "BrowserTabs"
+    },
+    "why": "BrowserTabs помечен в ките как @deprecated: Используйте BrowserTabs с отдельного пакета `@sds-eng/browser-tabs`.. Он останется рабочим ровно до того релиза, в котором его удалят.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": {
+      "component": "BrowserTabs",
+      "slot": null
+    },
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "api.deprecated:BrowserTabs"
+  },
+  {
+    "id": "f_0012",
+    "rule": "component.custom",
+    "subkind": null,
+    "category": "component",
+    "severity": "warning",
+    "confidence": 0.8,
+    "file": "src/Widgets.tsx",
+    "line": 1,
+    "column": 14,
+    "snippet": {
+      "before": "export const Widgets = () => (\n  <div>\n    <div role=\"combobox\" aria-expanded=\"false\" aria-controls=\"nowhere\" />\n    <div role=\"checkbox\" />\n    <div role=\"listbox\" aria-label=\"Options\" />",
+      "after": null,
+      "highlightLine": 1,
+      "startLine": 1
+    },
+    "actual": "Widgets",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": "Card",
+      "value": "Card"
+    },
+    "why": "Widgets повторяет Card из кита (совпадение 0.80): ARIA совпадает: button.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [
+      {
+        "component": "Card",
+        "score": 0.8,
+        "reasons": [
+          "ARIA совпадает: button"
+        ]
+      },
+      {
+        "component": "Tag",
+        "score": 0.8,
+        "reasons": [
+          "ARIA совпадает: button"
+        ]
+      },
+      {
+        "component": "Tooltip",
+        "score": 0.8,
+        "reasons": [
+          "ARIA совпадает: aria-controls, aria-expanded"
+        ]
+      }
+    ],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "component.custom:Widgets"
+  },
+  {
+    "id": "f_0013",
+    "rule": "a11y.lint",
+    "subkind": "prefer-tag-over-role",
+    "category": "a11y",
+    "severity": "info",
+    "confidence": 0.75,
+    "file": "src/Widgets.tsx",
+    "line": 3,
+    "column": 5,
+    "snippet": {
+      "before": "export const Widgets = () => (\n  <div>\n    <div role=\"combobox\" aria-expanded=\"false\" aria-controls=\"nowhere\" />\n    <div role=\"checkbox\" />\n    <div role=\"listbox\" aria-label=\"Options\" />\n    <img src=\"/logo.png\" />\n    <button type=\"button\" aria-hidden=\"true\" role=\"button\" />",
+      "after": null,
+      "highlightLine": 3,
+      "startLine": 1
+    },
+    "actual": "Use <input list=...>, <input list=...>, <input list=...>, <input list=...>, <input list=...>, <input list=...>, or <select multiple=...> instead of the \"combobox\" role to ensure accessibility across all devices.",
+    "expected": null,
+    "why": "Use <input list=...>, <input list=...>, <input list=...>, <input list=...>, <input list=...>, <input list=...>, or <select multiple=...> instead of the \"combobox\" role to ensure accessibility across all devices.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [],
+      "pattern": null,
+      "impact": "Нативный тег дал бы ту же семантику вместе с поведением.",
+      "fix": "Возьмите нативный тег вместо role: он приносит с собой ещё и клавиатуру."
+    },
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 4,
+      "files": 2
+    },
+    "impactKey": "a11y.lint:prefer-tag-over-role"
+  },
+  {
+    "id": "f_0014",
+    "rule": "a11y.name.missing",
+    "subkind": "unlabelled",
+    "category": "a11y",
+    "severity": "error",
+    "confidence": 0.9,
+    "file": "src/Widgets.tsx",
+    "line": 3,
+    "column": 5,
+    "snippet": {
+      "before": "export const Widgets = () => (\n  <div>\n    <div role=\"combobox\" aria-expanded=\"false\" aria-controls=\"nowhere\" />\n    <div role=\"checkbox\" />\n    <div role=\"listbox\" aria-label=\"Options\" />\n    <img src=\"/logo.png\" />\n    <button type=\"button\" aria-hidden=\"true\" role=\"button\" />",
+      "after": null,
+      "highlightLine": 3,
+      "startLine": 1
+    },
+    "actual": "<div role=\"combobox\">",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": null,
+      "value": "<div aria-label=\"…\">"
+    },
+    "why": "Роль combobox не берёт имя из содержимого — только из aria-label, aria-labelledby или обёртки <label>. Ни одного из них здесь нет.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [
+        "4.1.2"
+      ],
+      "pattern": null,
+      "impact": "Пользователь скринридера слышит «combobox» и не узнаёт, что это за элемент.",
+      "fix": "Свяжите элемент с его заголовком через aria-labelledby, либо задайте aria-label: роль combobox не берёт имя из содержимого."
+    },
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "a11y.name.missing:combobox"
+  },
+  {
+    "id": "f_0015",
+    "rule": "a11y.pattern.keyboard",
+    "subkind": "noHandler",
+    "category": "a11y",
+    "severity": "error",
+    "confidence": 0.95,
+    "file": "src/Widgets.tsx",
+    "line": 3,
+    "column": 5,
+    "snippet": {
+      "before": "export const Widgets = () => (\n  <div>\n    <div role=\"combobox\" aria-expanded=\"false\" aria-controls=\"nowhere\" />\n    <div role=\"checkbox\" />\n    <div role=\"listbox\" aria-label=\"Options\" />\n    <img src=\"/logo.png\" />\n    <button type=\"button\" aria-hidden=\"true\" role=\"button\" />",
+      "after": null,
+      "highlightLine": 3,
+      "startLine": 1
+    },
+    "actual": "role=\"combobox\"",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": "Select",
+      "value": "<Select …>"
+    },
+    "why": "Элемент объявляет role=\"combobox\", но не обрабатывает ни одной клавиши. Пользователь клавиатуры не сможет им управлять. Компонент кита Select обрабатывает: ArrowDown, ArrowUp, Enter, Escape, Tab.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [
+        "2.1.1"
+      ],
+      "pattern": "combobox",
+      "impact": "Виджет combobox недоступен с клавиатуры: фокус в него попадает, но управлять им нечем.",
+      "fix": "Возьмите Select из кита — он уже обрабатывает ArrowDown, ArrowUp, Enter, Escape, Tab."
+    },
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [
+      {
+        "component": "Autocomplete",
+        "score": 0.9,
+        "reasons": [
+          "рендерит role=\"combobox\"",
+          "обрабатывает ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Backspace, Delete, Enter, Escape, Tab"
+        ]
+      },
+      {
+        "component": "ComboBox",
+        "score": 0.9,
+        "reasons": [
+          "рендерит role=\"combobox\"",
+          "обрабатывает ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Backspace, Delete, Enter, Escape, Tab"
+        ]
+      },
+      {
+        "component": "DatePicker",
+        "score": 0.9,
+        "reasons": [
+          "рендерит role=\"combobox\"",
+          "обрабатывает ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Enter, Escape, Tab"
+        ]
+      },
+      {
+        "component": "Select",
+        "score": 0.9,
+        "reasons": [
+          "рендерит role=\"combobox\"",
+          "обрабатывает ArrowDown, ArrowUp, Enter, Escape, Tab"
+        ]
+      },
+      {
+        "component": "TimePicker",
+        "score": 0.9,
+        "reasons": [
+          "рендерит role=\"combobox\"",
+          "обрабатывает ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Enter, Escape, Tab"
+        ]
+      }
+    ],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "a11y.pattern.keyboard:combobox"
+  },
+  {
+    "id": "f_0016",
+    "rule": "a11y.pattern.relations",
+    "subkind": "danglingId",
+    "category": "a11y",
+    "severity": "error",
+    "confidence": 0.9,
+    "file": "src/Widgets.tsx",
+    "line": 3,
+    "column": 5,
+    "snippet": {
+      "before": "export const Widgets = () => (\n  <div>\n    <div role=\"combobox\" aria-expanded=\"false\" aria-controls=\"nowhere\" />\n    <div role=\"checkbox\" />\n    <div role=\"listbox\" aria-label=\"Options\" />\n    <img src=\"/logo.png\" />\n    <button type=\"button\" aria-hidden=\"true\" role=\"button\" />",
+      "after": null,
+      "highlightLine": 3,
+      "startLine": 1
+    },
+    "actual": "aria-controls=\"nowhere\"",
+    "expected": null,
+    "why": "aria-controls ссылается на id nowhere, которого нет ни на одном элементе этого файла. Браузер молча отбрасывает такую ссылку: разметка выглядит связанной, но связи нет.",
+    "note": "Если целевой элемент объявлен в другом файле, правило этого не видит — проверьте вручную.",
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [
+        "1.3.1",
+        "4.1.2"
+      ],
+      "pattern": null,
+      "impact": "Связь между элементами не существует: скринридер не свяжет вкладку с панелью, поле с подписью.",
+      "fix": "Поставьте id nowhere на целевой элемент — либо исправьте ссылку на существующий id."
+    },
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "a11y.pattern.relations:aria-controls"
+  },
+  {
+    "id": "f_0017",
+    "rule": "a11y.aria.required",
+    "subkind": "checkbox",
+    "category": "a11y",
+    "severity": "error",
+    "confidence": 0.95,
+    "file": "src/Widgets.tsx",
+    "line": 4,
+    "column": 5,
+    "snippet": {
+      "before": "export const Widgets = () => (\n  <div>\n    <div role=\"combobox\" aria-expanded=\"false\" aria-controls=\"nowhere\" />\n    <div role=\"checkbox\" />\n    <div role=\"listbox\" aria-label=\"Options\" />\n    <img src=\"/logo.png\" />\n    <button type=\"button\" aria-hidden=\"true\" role=\"button\" />\n  </div>",
+      "after": null,
+      "highlightLine": 4,
+      "startLine": 1
+    },
+    "actual": "role=\"checkbox\"",
+    "expected": null,
+    "why": "role=\"checkbox\" обязана нести aria-checked. Без этого состояние элемента не объявляется: он выглядит переключаемым, но всегда сообщает одно и то же.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [
+        "4.1.2"
+      ],
+      "pattern": "checkbox",
+      "impact": "Состояние checkbox не передаётся: пользователь скринридера не узнает, включён элемент или нет.",
+      "fix": "Добавьте aria-checked и обновляйте значение вместе с состоянием элемента."
+    },
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "a11y.aria.required:checkbox:aria-checked"
+  },
+  {
+    "id": "f_0018",
+    "rule": "a11y.lint",
+    "subkind": "prefer-tag-over-role",
+    "category": "a11y",
+    "severity": "info",
+    "confidence": 0.75,
+    "file": "src/Widgets.tsx",
+    "line": 4,
+    "column": 5,
+    "snippet": {
+      "before": "export const Widgets = () => (\n  <div>\n    <div role=\"combobox\" aria-expanded=\"false\" aria-controls=\"nowhere\" />\n    <div role=\"checkbox\" />\n    <div role=\"listbox\" aria-label=\"Options\" />\n    <img src=\"/logo.png\" />\n    <button type=\"button\" aria-hidden=\"true\" role=\"button\" />\n  </div>",
+      "after": null,
+      "highlightLine": 4,
+      "startLine": 1
+    },
+    "actual": "Use <input type=\"checkbox\"> instead of the \"checkbox\" role to ensure accessibility across all devices.",
+    "expected": null,
+    "why": "Use <input type=\"checkbox\"> instead of the \"checkbox\" role to ensure accessibility across all devices.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [],
+      "pattern": null,
+      "impact": "Нативный тег дал бы ту же семантику вместе с поведением.",
+      "fix": "Возьмите нативный тег вместо role: он приносит с собой ещё и клавиатуру."
+    },
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 4,
+      "files": 2
+    },
+    "impactKey": "a11y.lint:prefer-tag-over-role"
+  },
+  {
+    "id": "f_0019",
+    "rule": "a11y.name.missing",
+    "subkind": "iconOnly",
+    "category": "a11y",
+    "severity": "error",
+    "confidence": 0.9,
+    "file": "src/Widgets.tsx",
+    "line": 4,
+    "column": 5,
+    "snippet": {
+      "before": "export const Widgets = () => (\n  <div>\n    <div role=\"combobox\" aria-expanded=\"false\" aria-controls=\"nowhere\" />\n    <div role=\"checkbox\" />\n    <div role=\"listbox\" aria-label=\"Options\" />\n    <img src=\"/logo.png\" />\n    <button type=\"button\" aria-hidden=\"true\" role=\"button\" />\n  </div>",
+      "after": null,
+      "highlightLine": 4,
+      "startLine": 1
+    },
+    "actual": "<div role=\"checkbox\">",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": null,
+      "value": "<div aria-label=\"…\">"
+    },
+    "why": "У элемента роль checkbox, внутри только графика и нет ни aria-label, ни title. Скринридер объявит «checkbox» и ничего больше.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [
+        "4.1.2"
+      ],
+      "pattern": null,
+      "impact": "Пользователь скринридера слышит «checkbox» и не узнаёт, что это за элемент.",
+      "fix": "Добавьте aria-label с описанием действия — или видимый текст рядом с иконкой."
+    },
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "a11y.name.missing:checkbox"
+  },
+  {
+    "id": "f_0020",
+    "rule": "a11y.lint",
+    "subkind": "prefer-tag-over-role",
+    "category": "a11y",
+    "severity": "info",
+    "confidence": 0.75,
+    "file": "src/Widgets.tsx",
+    "line": 5,
+    "column": 5,
+    "snippet": {
+      "before": "export const Widgets = () => (\n  <div>\n    <div role=\"combobox\" aria-expanded=\"false\" aria-controls=\"nowhere\" />\n    <div role=\"checkbox\" />\n    <div role=\"listbox\" aria-label=\"Options\" />\n    <img src=\"/logo.png\" />\n    <button type=\"button\" aria-hidden=\"true\" role=\"button\" />\n  </div>\n);",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 1
+    },
+    "actual": "Use <select size=...>, <select multiple=...>, or <datalist> instead of the \"listbox\" role to ensure accessibility across all devices.",
+    "expected": null,
+    "why": "Use <select size=...>, <select multiple=...>, or <datalist> instead of the \"listbox\" role to ensure accessibility across all devices.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [],
+      "pattern": null,
+      "impact": "Нативный тег дал бы ту же семантику вместе с поведением.",
+      "fix": "Возьмите нативный тег вместо role: он приносит с собой ещё и клавиатуру."
+    },
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 4,
+      "files": 2
+    },
+    "impactKey": "a11y.lint:prefer-tag-over-role"
+  },
+  {
+    "id": "f_0021",
+    "rule": "a11y.pattern.keyboard",
+    "subkind": "noHandler",
+    "category": "a11y",
+    "severity": "error",
+    "confidence": 0.95,
+    "file": "src/Widgets.tsx",
+    "line": 5,
+    "column": 5,
+    "snippet": {
+      "before": "export const Widgets = () => (\n  <div>\n    <div role=\"combobox\" aria-expanded=\"false\" aria-controls=\"nowhere\" />\n    <div role=\"checkbox\" />\n    <div role=\"listbox\" aria-label=\"Options\" />\n    <img src=\"/logo.png\" />\n    <button type=\"button\" aria-hidden=\"true\" role=\"button\" />\n  </div>\n);",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 1
+    },
+    "actual": "role=\"listbox\"",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": "Select",
+      "value": "<Select …>"
+    },
+    "why": "Элемент объявляет role=\"listbox\", но не обрабатывает ни одной клавиши. Пользователь клавиатуры не сможет им управлять. Компонент кита Select обрабатывает: ArrowDown, ArrowUp, Enter, Escape, Tab.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [
+        "2.1.1"
+      ],
+      "pattern": "listbox",
+      "impact": "Виджет listbox недоступен с клавиатуры: фокус в него попадает, но управлять им нечем.",
+      "fix": "Возьмите Select из кита — он уже обрабатывает ArrowDown, ArrowUp, Enter, Escape, Tab."
+    },
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [
+      {
+        "component": "DatePicker",
+        "score": 0.9,
+        "reasons": [
+          "рендерит role=\"listbox\"",
+          "обрабатывает ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Enter, Escape, Tab"
+        ]
+      },
+      {
+        "component": "Select",
+        "score": 0.9,
+        "reasons": [
+          "рендерит role=\"listbox\"",
+          "обрабатывает ArrowDown, ArrowUp, Enter, Escape, Tab"
+        ]
+      },
+      {
+        "component": "TimePicker",
+        "score": 0.9,
+        "reasons": [
+          "рендерит role=\"listbox\"",
+          "обрабатывает ArrowDown, ArrowLeft, ArrowRight, ArrowUp, Enter, Escape, Tab"
+        ]
+      }
+    ],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "a11y.pattern.keyboard:listbox"
+  },
+  {
+    "id": "f_0022",
+    "rule": "a11y.lint",
+    "subkind": "alt-text",
+    "category": "a11y",
+    "severity": "error",
+    "confidence": 0.95,
+    "file": "src/Widgets.tsx",
+    "line": 6,
+    "column": 5,
+    "snippet": {
+      "before": "  <div>\n    <div role=\"combobox\" aria-expanded=\"false\" aria-controls=\"nowhere\" />\n    <div role=\"checkbox\" />\n    <div role=\"listbox\" aria-label=\"Options\" />\n    <img src=\"/logo.png\" />\n    <button type=\"button\" aria-hidden=\"true\" role=\"button\" />\n  </div>\n);",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 2
+    },
+    "actual": "img elements must have an alt prop, either with meaningful text, or an empty string for decorative images.",
+    "expected": null,
+    "why": "img elements must have an alt prop, either with meaningful text, or an empty string for decorative images.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [
+        "1.1.1"
+      ],
+      "pattern": null,
+      "impact": "Изображение не будет описано вообще — скринридер прочитает имя файла или промолчит.",
+      "fix": "Добавьте alt с описанием смысла картинки; если она чисто декоративная — пустой alt=\"\"."
+    },
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "a11y.lint:alt-text"
+  },
+  {
+    "id": "f_0023",
+    "rule": "a11y.name.missing",
+    "subkind": "unlabelled",
+    "category": "a11y",
+    "severity": "error",
+    "confidence": 0.9,
+    "file": "src/Widgets.tsx",
+    "line": 6,
+    "column": 5,
+    "snippet": {
+      "before": "  <div>\n    <div role=\"combobox\" aria-expanded=\"false\" aria-controls=\"nowhere\" />\n    <div role=\"checkbox\" />\n    <div role=\"listbox\" aria-label=\"Options\" />\n    <img src=\"/logo.png\" />\n    <button type=\"button\" aria-hidden=\"true\" role=\"button\" />\n  </div>\n);",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 2
+    },
+    "actual": "<img>",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": null,
+      "value": "<img aria-label=\"…\">"
+    },
+    "why": "Роль img не берёт имя из содержимого — только из aria-label, aria-labelledby или обёртки <label>. Ни одного из них здесь нет.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [
+        "4.1.2"
+      ],
+      "pattern": null,
+      "impact": "Пользователь скринридера слышит «img» и не узнаёт, что это за элемент.",
+      "fix": "Свяжите элемент с его заголовком через aria-labelledby, либо задайте aria-label: роль img не берёт имя из содержимого."
+    },
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "a11y.name.missing:img"
+  },
+  {
+    "id": "f_0024",
+    "rule": "a11y.aria.redundant",
+    "subkind": null,
+    "category": "a11y",
+    "severity": "info",
+    "confidence": 1,
+    "file": "src/Widgets.tsx",
+    "line": 7,
+    "column": 5,
+    "snippet": {
+      "before": "    <div role=\"combobox\" aria-expanded=\"false\" aria-controls=\"nowhere\" />\n    <div role=\"checkbox\" />\n    <div role=\"listbox\" aria-label=\"Options\" />\n    <img src=\"/logo.png\" />\n    <button type=\"button\" aria-hidden=\"true\" role=\"button\" />\n  </div>\n);",
+      "after": "    <div role=\"combobox\" aria-expanded=\"false\" aria-controls=\"nowhere\" />\n    <div role=\"checkbox\" />\n    <div role=\"listbox\" aria-label=\"Options\" />\n    <img src=\"/logo.png\" />\n    <button type=\"button\" aria-hidden=\"true\" />\n  </div>\n);",
+      "highlightLine": 5,
+      "startLine": 3
+    },
+    "actual": " role=\"button\"",
+    "expected": null,
+    "why": "<button> уже имеет роль button. Атрибут ничего не добавляет и создаёт впечатление, что семантика держится на нём, — при рефакторинге тег заменят, а роль оставят.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [],
+      "pattern": null,
+      "impact": "Вреда сейчас нет; риск в том, что явная роль переживёт замену тега.",
+      "fix": "Удалите role=\"button\": тег <button> несёт эту роль сам."
+    },
+    "autoFixable": true,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "a11y.aria.redundant:button"
+  },
+  {
+    "id": "f_0025",
+    "rule": "a11y.lint",
+    "subkind": "no-aria-hidden-on-focusable",
+    "category": "a11y",
+    "severity": "error",
+    "confidence": 0.95,
+    "file": "src/Widgets.tsx",
+    "line": 7,
+    "column": 5,
+    "snippet": {
+      "before": "    <div role=\"combobox\" aria-expanded=\"false\" aria-controls=\"nowhere\" />\n    <div role=\"checkbox\" />\n    <div role=\"listbox\" aria-label=\"Options\" />\n    <img src=\"/logo.png\" />\n    <button type=\"button\" aria-hidden=\"true\" role=\"button\" />\n  </div>\n);",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 3
+    },
+    "actual": "aria-hidden=\"true\" must not be set on focusable elements.",
+    "expected": null,
+    "why": "aria-hidden=\"true\" must not be set on focusable elements.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [
+        "4.1.2"
+      ],
+      "pattern": null,
+      "impact": "Элемент получает фокус, но скрыт от скринридера: фокус «проваливается в пустоту».",
+      "fix": "Уберите aria-hidden — либо уберите элемент из порядка обхода через tabIndex={-1}."
+    },
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "a11y.lint:no-aria-hidden-on-focusable"
+  },
+  {
+    "id": "f_0026",
+    "rule": "a11y.name.missing",
+    "subkind": "iconOnly",
+    "category": "a11y",
+    "severity": "error",
+    "confidence": 0.9,
+    "file": "src/Widgets.tsx",
+    "line": 7,
+    "column": 5,
+    "snippet": {
+      "before": "    <div role=\"combobox\" aria-expanded=\"false\" aria-controls=\"nowhere\" />\n    <div role=\"checkbox\" />\n    <div role=\"listbox\" aria-label=\"Options\" />\n    <img src=\"/logo.png\" />\n    <button type=\"button\" aria-hidden=\"true\" role=\"button\" />\n  </div>\n);",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 3
+    },
+    "actual": "<button role=\"button\">",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": null,
+      "value": "<button aria-label=\"…\">"
+    },
+    "why": "У элемента роль button, внутри только графика и нет ни aria-label, ни title. Скринридер объявит «button» и ничего больше.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": {
+      "wcag": [
+        "4.1.2"
+      ],
+      "pattern": null,
+      "impact": "Пользователь скринридера слышит «button» и не узнаёт, что это за элемент.",
+      "fix": "Добавьте aria-label с описанием действия — или видимый текст рядом с иконкой."
+    },
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "a11y.name.missing:button"
+  }
+]

@@ -17,14 +17,18 @@
  */
 import type { CliCommand } from "@smart-tools/fe-cli-kit";
 import { pixsoCommands } from "@smart-tools/fe-pixso";
-import { projectReportCommands } from "@smart-tools/fe-project-report";
+import { parseUiKitCommands, projectReportCommands } from "@smart-tools/fe-project-report";
 
 /**
  * THE REGISTRY. One flat array, concatenated from the feature packages.
  *
  * `fe-project-report` is the second feature package, and its arrival is the cost test above
  * being paid in full: ONE import line and ONE spread, with zero edits to parsing, help or
- * dispatch. `--project-report` is parseable because `optionsFor` derives the options table
+ * dispatch. `parseUiKitCommands` is that package's SECOND command and cost one more spread on
+ * the same import — it appears in `--help` in both languages, and `--parse-ui-kit`/`--pkit` are
+ * parseable, with nothing else in `cli/src` edited for it. (`--source` is declared in
+ * `parse.ts`'s options table for the mechanical reason `--ui-kit` is: `parseArgs` is strict and
+ * must be told that a flag takes a value.) `--project-report` is parseable because `optionsFor` derives the options table
  * from this array (`cli/src/parse.ts:82-99`) and it appears in `--help` in both languages
  * because `helpText` prints exactly what this array holds (`cli/src/help.ts:74-93`).
  *
@@ -32,7 +36,11 @@ import { projectReportCommands } from "@smart-tools/fe-project-report";
  * registered", and any invocation still fails on the no-command rule rather than crashing —
  * because the emptiness the scaffold had was never special-cased away.
  */
-export const COMMANDS: readonly CliCommand[] = [...pixsoCommands, ...projectReportCommands];
+export const COMMANDS: readonly CliCommand[] = [
+  ...pixsoCommands,
+  ...projectReportCommands,
+  ...parseUiKitCommands,
+];
 
 /**
  * THE RESOLVED SETTINGS A COMMAND RUNS AGAINST — `fe-pixso`'s own type, IMPORTED rather than

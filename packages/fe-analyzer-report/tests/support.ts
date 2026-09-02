@@ -10,7 +10,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import type { AnalyzerResult, EngineFinding } from "../src/index.ts";
+import type { AnalyzerResult, EngineFinding, EngineUsage } from "../src/index.ts";
 
 export const packageRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 export const templatePath = join(packageRoot, "dashboard", "dist", "index.html");
@@ -51,5 +51,66 @@ export const minimalFinding: EngineFinding = {
 export const resultOf = (findings: readonly EngineFinding[]): AnalyzerResult => ({
   findings,
   summary: { files: { scanned: 10, clean: 9 } },
+  project: { name: "demo", root: "/tmp/demo" },
+});
+
+/**
+ * One `usage` block, of the shape the engine emits when an adapter is connected.
+ *
+ * Small but not empty: every list has exactly one entry, so a mapping that dropped a field
+ * would show as a missing value rather than as an empty array that looks plausible. The
+ * numbers are arbitrary; only their arrival intact is the subject.
+ */
+export const engineUsage: EngineUsage = {
+  components: [
+    { name: "Button", usages: 4, files: 2, findings: 1, overrides: 1, props: { size: { m: 3 } } },
+  ],
+  unusedComponents: ["Drawer"],
+  foreignComponents: [{ name: "DatePicker", usages: 2, local: false, source: "some-picker" }],
+  customComponents: [
+    {
+      name: "Card",
+      file: "src/Card.tsx",
+      line: 3,
+      usages: 5,
+      files: 3,
+      props: ["title"],
+      kitComponentsUsed: ["Button"],
+      hasInlineSvg: false,
+      snippet: "const Card = () => <div />;",
+      verdict: "kit-candidate",
+      nameMatch: null,
+      tokenRefs: 2,
+      hardcodedValues: 1,
+      tokenVerdict: "mixed",
+    },
+  ],
+  elementBreakdown: {
+    total: 10,
+    kit: 4,
+    kitClean: 3,
+    customTokens: 2,
+    customMixed: 1,
+    customHardcode: 1,
+    customUnstyled: 1,
+    foreign: 1,
+  },
+  tokenUsage: { "--x-color-fg": 7 },
+};
+
+/** The adapter-gated half of a summary, as the engine emits it beside {@link engineUsage}. */
+export const engineKitSummary = {
+  healthScore: 71,
+  healthFormula: "50% чистота · 30% внедрение · 20% токены",
+  adoption: 0.4,
+  tokenCoverage: 0.62,
+  kitGaps: [{ value: "#ff0000", token: "--x-color-danger", role: "background", occurrences: 2 }],
+} as const;
+
+/** The same result {@link resultOf} builds, with everything an adapter adds. */
+export const kitResultOf = (findings: readonly EngineFinding[]): AnalyzerResult => ({
+  findings,
+  summary: { ...engineKitSummary, files: { scanned: 10, clean: 9 } },
+  usage: engineUsage,
   project: { name: "demo", root: "/tmp/demo" },
 });

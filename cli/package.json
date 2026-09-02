@@ -18,6 +18,7 @@
   },
   "devDependencies": {
     "@smart-tools/fe-cli-kit": "workspace:*",
+    "@smart-tools/fe-eds-adapter": "workspace:*",
     "@smart-tools/fe-pixso": "workspace:*",
     "@smart-tools/fe-project-report": "workspace:*",
     "@smart-tools/fe-testkit": "workspace:*",

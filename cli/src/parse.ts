@@ -17,7 +17,14 @@ import { parseArgs } from "node:util";
 
 import type { CliCommand, Lang, Localized } from "@smart-tools/fe-cli-kit";
 
-import { NO_COMMAND, TOO_MANY_COMMANDS, badFlagUsage, badLang, unknownFlag } from "./messages.ts";
+import {
+  NO_COMMAND,
+  TOO_MANY_COMMANDS,
+  badFlagUsage,
+  badLang,
+  flagNotForCommand,
+  unknownFlag,
+} from "./messages.ts";
 
 /** Success. */
 export const EXIT_OK = 0;
@@ -33,18 +40,45 @@ type ParseArgsOptions = NonNullable<Parameters<typeof parseArgs>[0]>["options"];
 type OptionConfig = NonNullable<ParseArgsOptions>[string];
 
 /**
- * The globals, spelled once (brief 3.3 deliverable 3).
+ * The options every invocation may carry, spelled once (brief 3.3 deliverable 3).
  *
- * `--debug` is here but is deliberately absent from `HELP_GLOBAL_ORDER` below: it is the hidden
- * flag that turns a one-line error into a stack trace, useful to whoever is debugging and noise
- * to everyone else ("No stack traces to users except with `--debug` (hidden flag, not in
- * help)").
+ * TWO OF THEM ARE DELIBERATELY ABSENT FROM `HELP_GLOBAL_ORDER` below, for different reasons.
+ *
+ * `--debug` is the hidden flag that turns a one-line error into a stack trace: useful to
+ * whoever is debugging and noise to everyone else ("No stack traces to users except with
+ * `--debug` (hidden flag, not in help)").
+ *
+ * `--ui-kit` is here because `parseArgs` is strict and an option nobody declared is an unknown
+ * flag — the parser has to know it takes a value. It is NOT a global in meaning: it belongs to
+ * `--project-report`, it is documented under that command as one of its own `ArgSpec`s
+ * (`packages/fe-project-report/src/command.ts`), and the list of design systems it accepts is
+ * that package's to state, not this file's. Printing it among `-o`/`--token`/`--lang` would
+ * claim it applies to every command, and duplicating its accepted values here would be a
+ * second list to drift.
+ *
+ * `--source` is here for exactly the same reason and with exactly the same caveat: it belongs to
+ * `--parse-ui-kit` (`packages/fe-project-report/src/parse-ui-kit.ts`), which documents it and
+ * owns its default. Note that it is NOT the same thing as `Invocation.source` below — that is
+ * the POSITIONAL argument, which for `--parse-ui-kit eds` is the kit name. Two different values
+ * with one word between them is a real hazard, and the reason it is named after the flag the
+ * user types rather than renamed to something tidier is that `ctx.flags` is keyed by flag name
+ * throughout.
+ *
+ * THIS TABLE IS WHAT `parseArgs` MAY TOKENIZE, NOT WHAT EVERY COMMAND ACCEPTS. Those were the
+ * same thing until V3's MAJOR-1: `--parse-ui-kit eds -o /tmp/x` exited 0 and threw the user's
+ * explicit destination away in silence, because a command that does not declare a flag used to
+ * ignore it rather than refuse it. Tokenizing still has to be permissive — `parseArgs` is strict
+ * and cannot be told "`--source` takes a value, but only for one command" — so the narrowing
+ * happens after the command is known, in {@link rejectUndeclared}, against
+ * {@link declaredOptions}. See {@link scopedOptionNames} for which of these names narrow.
  */
 const GLOBAL_OPTIONS = {
   out: { type: "string", short: "o" },
   token: { type: "string" },
   endpoint: { type: "string" },
   lang: { type: "string" },
+  "ui-kit": { type: "string" },
+  source: { type: "string" },
   help: { type: "boolean", short: "h" },
   version: { type: "boolean", short: "v" },
   debug: { type: "boolean" },
@@ -96,6 +130,150 @@ export function optionsFor(commands: readonly CliCommand[]): ParseArgsOptions {
     }
   }
   return options;
+}
+
+/**
+ * A spelling as it appears inside an `ArgSpec.name` (`-o`, `--ui-kit`) resolved to the key
+ * `parseArgs` files its value under (`out`, `ui-kit`). `undefined` when the options table has
+ * no such option, which is how a placeholder like `<url|guid>` and a typo are both ignored.
+ */
+function longNameOf(spelling: string, options: ParseArgsOptions): string | undefined {
+  const known = options ?? {};
+  if (spelling.startsWith("--")) {
+    const name = optionName(spelling);
+    return name in known ? name : undefined;
+  }
+  const short = spelling.slice(1);
+  for (const [name, config] of Object.entries(known)) {
+    if ((config as { short?: string }).short === short) return name;
+  }
+  return undefined;
+}
+
+/**
+ * The options ONE command declares — read out of its own `ArgSpec` list, which is the only
+ * place a command says what it takes.
+ *
+ * `ArgSpec.name` is the help's placeholder (`-o <path>`, `--ui-kit <name>`, `<url|guid>`), so
+ * the flags in it are exactly the flags the help promises that command accepts. Deriving from
+ * it rather than from a table in this file is the whole point: help and parser cannot disagree
+ * about a command's surface, because they read the same field. A positional placeholder
+ * contributes nothing — it does not start with `-`.
+ */
+export function declaredOptions(
+  command: CliCommand,
+  options: ParseArgsOptions,
+): ReadonlySet<string> {
+  const declared = new Set<string>();
+  for (const arg of command.args) {
+    for (const word of arg.name.split(/\s+/u)) {
+      if (!word.startsWith("-") || word === "-" || word === "--") continue;
+      const name = longNameOf(word.split("=", 1)[0] ?? word, options);
+      if (name !== undefined) declared.add(name);
+    }
+  }
+  return declared;
+}
+
+/**
+ * WHICH GLOBALS NARROW TO THE COMMANDS THAT DECLARE THEM — decided from the registry, never
+ * from a list written here.
+ *
+ * The rule is ownership by declaration: **an option some command names in its `args` belongs to
+ * the commands that name it; an option no command names is the CLI's own and applies to every
+ * invocation.** Today that sorts itself out as
+ *
+ *   scoped    `out` (five commands declare `-o`), `ui-kit` (`--project-report`),
+ *             `source` (`--parse-ui-kit`)
+ *   universal `lang`, `help`, `version`, `debug` — the meta-flags — and `token`/`endpoint`,
+ *             which `cli/src/settings.ts` resolves on EVERY invocation and hands to EVERY
+ *             command through `ctx.env`, so they are configuration the CLI owns rather than a
+ *             flag some feature declared.
+ *
+ * The moment a feature package declares `--token` in an `ArgSpec`, this function narrows it to
+ * that command without anything here being edited — which is the property that makes it a rule
+ * rather than an exception list.
+ */
+export function scopedOptionNames(
+  commands: readonly CliCommand[],
+  options: ParseArgsOptions,
+): readonly string[] {
+  const claimed = new Set<string>();
+  for (const command of commands) {
+    for (const name of declaredOptions(command, options)) claimed.add(name);
+  }
+  // Filtered through `GLOBAL_OPTIONS`'s own key order so the refusal a user sees is the same
+  // one for the same argv, rather than depending on registry iteration order.
+  return Object.keys(GLOBAL_OPTIONS).filter((name) => claimed.has(name));
+}
+
+/**
+ * The spelling the USER typed for `name`, so the refusal quotes their line rather than a
+ * canonical form they never wrote: someone who typed `-o` should not be told about `--out`.
+ * Falls back to the long spelling when argv holds only the `--name=value` form's sibling or
+ * nothing recognizable.
+ */
+function typedSpelling(
+  argv: readonly string[],
+  name: string,
+  options: ParseArgsOptions,
+): string | undefined {
+  const short = (options?.[name] as { short?: string } | undefined)?.short;
+  for (const token of argv) {
+    if (token === "--") break;
+    if (!token.startsWith("-") || token === "-") continue;
+    if (token.startsWith("--")) {
+      if (optionName(token.split("=", 1)[0] ?? token) === name) return `--${name}`;
+      continue;
+    }
+    if (short !== undefined && token.slice(1).includes(short)) return `-${short}`;
+  }
+  return undefined;
+}
+
+/**
+ * The spelling the user used for the COMMAND, for the same reason {@link typedSpelling} exists:
+ * someone who typed `--psvg` should be told about `--psvg`, not about `--get-pixso-svg`. Falls
+ * back to the registry's primary spelling when neither appears literally (it always does today,
+ * but a fallback is cheaper than a proof).
+ */
+function typedCommandSpelling(argv: readonly string[], command: CliCommand): string {
+  const alias = command.alias;
+  for (const token of argv) {
+    if (token === "--") break;
+    if (token === command.flag) return command.flag;
+    if (alias !== undefined && token === alias) return alias;
+  }
+  return command.flag;
+}
+
+/**
+ * V3 MAJOR-1, enforced: refuse a scoped option the selected command has not declared.
+ *
+ * Checked only for options that actually carry a value in the parse result, so a command is
+ * refused for what the user typed and never for what they omitted. Returns `undefined` when the
+ * invocation is clean.
+ */
+function rejectUndeclared(
+  argv: readonly string[],
+  values: Record<string, unknown>,
+  command: CliCommand,
+  commands: readonly CliCommand[],
+  options: ParseArgsOptions,
+  lang: Lang,
+): Invocation | undefined {
+  const declared = declaredOptions(command, options);
+  for (const name of scopedOptionNames(commands, options)) {
+    if (declared.has(name) || values[name] === undefined) continue;
+    const spelling = typedSpelling(argv, name, options) ?? `--${name}`;
+    return {
+      kind: "error",
+      lang,
+      message: flagNotForCommand(spelling, typedCommandSpelling(argv, command)),
+      withHelp: false,
+    };
+  }
+  return undefined;
 }
 
 /**
@@ -280,6 +458,12 @@ export function parseInvocation(
   // array index to non-undefined under `noUncheckedIndexedAccess` must not be done with `!`.
   if (command === undefined) return { kind: "error", lang, message: NO_COMMAND, withHelp: true };
 
+  // The command is known, so the permissive tokenizing above can finally be narrowed to what
+  // THIS command declares. After `--help`/`--version` and the one-command rule, because a flag
+  // that does not belong to a command is only a question once there is exactly one command.
+  const undeclared = rejectUndeclared(argv, values, command, commands, options, lang);
+  if (undeclared !== undefined) return undeclared;
+
   const asString = (v: unknown): string | undefined => (typeof v === "string" ? v : undefined);
 
   return {
@@ -299,6 +483,14 @@ export function parseInvocation(
       token: asString(values["token"]),
       endpoint: asString(values["endpoint"]),
       lang,
+      // Reaches the command through `ctx.flags`, which is the only channel a command-specific
+      // option has: `CommandContext` names `source` and `out` and nothing else
+      // (`packages/cli-kit/src/index.ts:53-63`), and that contract is frozen.
+      "ui-kit": asString(values["ui-kit"]),
+      // `--parse-ui-kit`'s optional repository. Reaches the command the same way `--ui-kit`
+      // does, and for the same reason: `CommandContext` names `source` and `out` and nothing
+      // else, and that contract is frozen (`packages/cli-kit/src/index.ts:81-104`).
+      source: asString(values["source"]),
       debug: values["debug"] === true,
     },
   };
