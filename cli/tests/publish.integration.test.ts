@@ -2,7 +2,7 @@
  * TIER 2 — THE PUBLISH SHAPE (brief 3.4 deliverable 2, design 2.1:62-69, 2.1:182-183).
  *
  * THE CLAIM UNDER TEST is the one thing about this package a user meets before running
- * anything: `npm i -g @smart-tools/frontend-cli` installs ONE file and pulls in NOTHING. The
+ * anything: `npm i -g @smart-tools/frontend-guard` installs ONE file and pulls in NOTHING. The
  * design's mechanism for it is unusual enough to be worth re-proving on every change — every
  * runtime dependency is declared a **devDependency** and inlined at build time, so the
  * published manifest has no `dependencies` field at all (2.1:59-60). That arrangement is one
@@ -27,13 +27,13 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
-import { makeTempDir, removeTempDir } from "@smart-tools/fe-testkit";
+import { makeTempDir, removeTempDir } from "@smart-tools/fg-testkit";
 import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test";
 
 const run = promisify(execFile);
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const builtBundle = join(packageRoot, "dist", "main.mjs");
+const builtBundle = join(packageRoot, "dist", "fg.mjs");
 
 interface PackedManifest {
   readonly name: string;
@@ -53,7 +53,7 @@ let packed: PackedManifest;
 let entries: readonly string[] = [];
 
 beforeAll(async () => {
-  scratch = makeTempDir("fe-pack-");
+  scratch = makeTempDir("fg-pack-");
   extracted = join(scratch, "extracted");
   mkdirSync(extracted);
 
@@ -75,7 +75,7 @@ beforeAll(async () => {
     .split("\n")
     .map((line) => line.trim())
     .filter((line) => line !== "" && !line.endsWith("/"))
-    .sort();
+    .toSorted();
 
   await run("tar", ["-xzf", tarball, "-C", extracted], { encoding: "utf8" });
   packed = JSON.parse(
@@ -103,7 +103,7 @@ describe("the packed tarball", () => {
   it("carries no devDependency into the published manifest either", () => {
     // Not required for correctness — npm ignores devDependencies on install — but it is the
     // clause the brief words as "NO `dependencies`/`devDependencies` carried into runtime
-    // deps", and a packed manifest still listing `@smart-tools/fe-pixso": "workspace:*"` would
+    // deps", and a packed manifest still listing `@smart-tools/fg-pixso": "workspace:*"` would
     // be a broken spec for anyone reading the published package.
     const dev = packed.devDependencies;
     if (dev !== undefined) {
@@ -114,8 +114,8 @@ describe("the packed tarball", () => {
     }
   });
 
-  it("`bin.fe` points at dist/main.mjs", () => {
-    expect(packed.bin?.["fe"]).toBe("./dist/main.mjs");
+  it("`bin.fg` points at dist/fg.mjs", () => {
+    expect(packed.bin?.["fg"]).toBe("./dist/fg.mjs");
   });
 
   it("`files` is dist and nothing else", () => {
@@ -125,11 +125,11 @@ describe("the packed tarball", () => {
   it("and the tarball's own contents agree — package.json plus ONE dist file", () => {
     // The `files` field is a request; this is what the request produced. A stray `src/`,
     // a sourcemap or a second chunk would show up here and nowhere else.
-    expect(entries).toEqual(["package/dist/main.mjs", "package/package.json"]);
+    expect(entries).toEqual(["package/dist/fg.mjs", "package/package.json"]);
   });
 
-  it("the packed dist/main.mjs is BYTE-IDENTICAL to the one `pnpm build` emitted", () => {
-    const fromTarball = readFileSync(join(extracted, "package", "dist", "main.mjs"));
+  it("the packed dist/fg.mjs is BYTE-IDENTICAL to the one `pnpm build` emitted", () => {
+    const fromTarball = readFileSync(join(extracted, "package", "dist", "fg.mjs"));
     const fromBuild = readFileSync(builtBundle);
     // `.equals` rather than a string compare: this is the claim that what was tested in
     // `bundle.integration.test.ts` — that exact file, run as a subprocess — is the artifact

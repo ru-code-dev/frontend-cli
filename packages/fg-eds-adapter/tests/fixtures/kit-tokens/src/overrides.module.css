@@ -1,0 +1,14 @@
+.kitButton {
+  background-color: #ff2078;
+  color: #ffffff;
+  padding: 20px;
+  margin: 4px;
+}
+
+.kitButtonSpinner {
+  border-color: #2969e3;
+}
+
+.kitButtonShout {
+  background: #2969e3 !important;
+}

@@ -13,6 +13,6 @@
   // accessibility defects, fed to the bundle as a directory to analyse. It is never imported,
   // it needs a `jsx` setting this package has no reason to carry, and its defects are the
   // point — typechecking it would be checking the fixture instead of the product.
-  // `packages/fe-analyzer-engine/tsconfig.json:9-15` excludes its copy for the same reason.
+  // `packages/fg-analyzer-engine/tsconfig.json:9-15` excludes its copy for the same reason.
   "exclude": ["tests/fixtures"]
 }

@@ -1,0 +1,15 @@
+src/components/Button.tsx
+    12:5  ✖ error      <button onClick={onClick} />  Control with no accessible name  a11y.name.missing
+   12:40  ▲ warning    <img src={icon} />  Image without alt                               a11y.lint
+    48:3  ● info       width: 42px  Kit component's inner padding overridden     style.override.size
+                       → var(--eds-size-m)
+
+src/pages/Home.tsx
+      7:1  ◇ candidate  const Card = () => …  Copy-pasted inside the project     component.duplicate
+   130:22  ✖ error      var(--eds-core-blue-500)  Ref variable instead of a sys role  token.tier.violation
+
+src/styles/theme.css
+   3:9  ▲ warning    #1a1a1a  Colour literal instead of a token — nearly a token  token.literal.color
+                     → var(--eds-color-fg)
+
+✖ 6 problems   2 errors · 2 warnings · 1 info · 1 candidate

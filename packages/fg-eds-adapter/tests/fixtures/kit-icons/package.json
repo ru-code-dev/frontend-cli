@@ -1,0 +1,10 @@
+{
+  "name": "parity-kit-icons",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@sds-eng/base": "3.4.0",
+    "lucide-react": "0.400.0",
+    "react": "18.3.1"
+  }
+}

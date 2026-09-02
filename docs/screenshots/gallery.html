@@ -1,0 +1,451 @@
+<!doctype html><meta charset="utf-8"><title>frontend guard — console matrix</title><style>body{margin:0;background:#161b22;color:#c9d1d9;font-family:system-ui,sans-serif}h1{padding:16px 20px;margin:0;font-size:15px;color:#8b949e;border-bottom:1px solid #30363d}.panel{width:max-content;border:1px solid #30363d;border-radius:8px;overflow:hidden;background:#0d1117}.tt{padding:8px 12px;font:600 12px system-ui;color:#c9d1d9;background:#161b22;border-bottom:1px solid #30363d}.tt .n{display:inline-block;min-width:22px;color:#8b949e}.tt .ok{color:#3fb950}.tt .bad{color:#f85149}.cmd{width:calc(140ch + 2px);padding:10px 16px;background:#161b22;border-bottom:1px solid #30363d;font:12.5px/1.4 "SF Mono",Menlo,Consolas,monospace;color:#c9d1d9;white-space:pre-wrap;word-break:break-all}.cmd .sh{color:#8b949e;user-select:none}pre.term{width:calc(140ch + 2px);margin:0;padding:14px 16px;background:#0d1117;color:#c9d1d9;font:12.5px/1.4 "SF Mono",Menlo,Consolas,monospace;white-space:pre-wrap;word-break:break-all;overflow-x:hidden}.wrap{display:grid;grid-template-columns:repeat(auto-fill,minmax(1120px,1fr));gap:16px;padding:16px}</style><h1>Frontend Guard — console matrix — 45 combinations, 45 PASS / 0 FAIL</h1><div class="wrap"><section class="panel"><div class="tt"><span class="n">01</span> <span class="ok">PASS</span> tty · ru · ok — fg --help — the grouped page (design §2.7)</div><div class="cmd"><span class="sh">$</span> fg --help</div><pre class="term">fg v1.0.0 — фронтенд-инструменты в командной строке
+
+Использование
+  fg &lt;команда&gt; &lt;аргумент&gt; [опции]
+
+Pixso: макет → код                                                 без -o →
+  --psvg     &lt;pixso-link|guid&gt;  SVG кадра                          ./fg-out/pixso/&lt;имя&gt;.svg
+  --phtml    &lt;pixso-link|guid&gt;  HTML кадра                         ./fg-out/pixso/&lt;имя&gt;.html
+  --pprompt  &lt;pixso-link|guid&gt;  Markdown-промпт                    ./fg-out/pixso/&lt;имя&gt;.md
+  --passets  &lt;pixso-link|guid&gt;  svg + html + md + json             ./fg-out/pixso/&lt;имя&gt;/
+
+Анализ проекта
+  --preport  &lt;путь|repo&gt;        отчёт по проекту                   ./fg-out/report.html
+      --format html|compact|json|sarif   несколько через запятую (по умолчанию html)
+      --ui-kit eds|eds2|none             дизайн-система (по умолчанию — по зависимостям)
+      --config &lt;файл&gt;                    fg.config.json (по умолчанию — корень проекта, затем cwd)
+  --iconf    [--ui-kit]         создать fg.config.json и схему     ./fg.config.json
+  --pkit     eds|eds2           пересобрать корпус дизайн-системы  ~/.fg/kits/eds|eds2/
+
+Общие опции
+  -o, --out &lt;путь&gt;     куда писать результат (файл или каталог), кроме --pkit
+  --lang ru|en         язык вывода (ru)
+  --verbose            подробные сообщения в формате compact
+  --token, --endpoint  доступ к Pixso MCP
+  -h, --help           справка;  fg --help --preport — подробно по команде
+  -v, --version        версия
+
+Окружение   PIXSO_REMOTE_MCP_URL  PIXSO_LOCAL_MCP_URL  PIXSO_REMOTE_MCP_TOKEN  FG_KITS_DIR
+            ./.env читается автоматически. Приоритет: флаг &gt; env/.env &gt; умолчание</pre></section><section class="panel"><div class="tt"><span class="n">02</span> <span class="ok">PASS</span> tty · en · ok — fg --lang en --help</div><div class="cmd"><span class="sh">$</span> fg --lang en --help</div><pre class="term">fg v1.0.0 — frontend tools on the command line
+
+Usage
+  fg &lt;command&gt; &lt;argument&gt; [options]
+
+Pixso: design → code                                                 without -o →
+  --psvg     &lt;pixso-link|guid&gt;  the frame as SVG                     ./fg-out/pixso/&lt;name&gt;.svg
+  --phtml    &lt;pixso-link|guid&gt;  the frame as HTML                    ./fg-out/pixso/&lt;name&gt;.html
+  --pprompt  &lt;pixso-link|guid&gt;  a Markdown prompt                    ./fg-out/pixso/&lt;name&gt;.md
+  --passets  &lt;pixso-link|guid&gt;  svg + html + md + json               ./fg-out/pixso/&lt;name&gt;/
+
+Project analysis
+  --preport  &lt;path|repo&gt;        project report                       ./fg-out/report.html
+      --format html|compact|json|sarif   several, comma-separated (html by default)
+      --ui-kit eds|eds2|none             design system (default: from the dependencies)
+      --config &lt;file&gt;                    fg.config.json (default: the project root, then the cwd)
+  --iconf    [--ui-kit]         write fg.config.json and its schema  ./fg.config.json
+  --pkit     eds|eds2           rebuild a design system's corpus     ~/.fg/kits/eds|eds2/
+
+Common options
+  -o, --out &lt;path&gt;     where to write the result (file or directory), except --pkit
+  --lang ru|en         output language (ru)
+  --verbose            explanations under each compact row
+  --token, --endpoint  access to the Pixso MCP
+  -h, --help           this page;  fg --help --preport — one command in detail
+  -v, --version        the version
+
+Environment   PIXSO_REMOTE_MCP_URL  PIXSO_LOCAL_MCP_URL  PIXSO_REMOTE_MCP_TOKEN  FG_KITS_DIR
+              ./.env is read automatically. Precedence: flag &gt; env/.env &gt; default</pre></section><section class="panel"><div class="tt"><span class="n">03</span> <span class="ok">PASS</span> tty · ru · ok — fg --help --psvg — one command in detail (design §2.8)</div><div class="cmd"><span class="sh">$</span> fg --help --psvg</div><pre class="term">fg --psvg &lt;pixso-link|guid&gt; [-o &lt;путь&gt;]
+  также: --get-pixso-svg
+
+  Рендер кадра Pixso в SVG. &lt;pixso-link&gt; → удалённый маршрут (нужен токен); guid узла → локальный.
+
+  &lt;pixso-link|guid&gt;  &lt;pixso-link&gt; → удалённый маршрут (нужен токен); guid узла, например 11:10 →
+                     локальный
+  -o &lt;путь&gt;          Куда записать файл. Необязателен: без него — ./fg-out/pixso/&lt;имя&gt;.&lt;расширение&gt;,
+                     где &lt;имя&gt; — item-id из &lt;pixso-link&gt; (или guid узла: 11:10 → 11-10); недостающие
+                     каталоги будут созданы
+
+  Примеры
+    fg --psvg &lt;pixso-link&gt;
+    fg --psvg 11:10</pre></section><section class="panel"><div class="tt"><span class="n">04</span> <span class="ok">PASS</span> tty · ru · ok — fg --help --phtml</div><div class="cmd"><span class="sh">$</span> fg --help --phtml</div><pre class="term">fg --phtml &lt;pixso-link|guid&gt; [-o &lt;путь&gt;]
+  также: --get-pixso-html
+
+  Рендер кадра Pixso в самодостаточный HTML. &lt;pixso-link&gt; → удалённый маршрут (нужен токен); guid
+  узла → локальный.
+
+  &lt;pixso-link|guid&gt;  &lt;pixso-link&gt; → удалённый маршрут (нужен токен); guid узла, например 11:10 →
+                     локальный
+  -o &lt;путь&gt;          Куда записать файл. Необязателен: без него — ./fg-out/pixso/&lt;имя&gt;.&lt;расширение&gt;,
+                     где &lt;имя&gt; — item-id из &lt;pixso-link&gt; (или guid узла: 11:10 → 11-10); недостающие
+                     каталоги будут созданы
+
+  Примеры
+    fg --phtml &lt;pixso-link&gt;
+    fg --phtml 11:10</pre></section><section class="panel"><div class="tt"><span class="n">05</span> <span class="ok">PASS</span> tty · ru · ok — fg --help --pprompt</div><div class="cmd"><span class="sh">$</span> fg --help --pprompt</div><pre class="term">fg --pprompt &lt;pixso-link|guid&gt; [-o &lt;путь&gt;]
+  также: --get-pixso-prompt
+
+  Markdown-промпт по кадру Pixso — описание макета, пригодное для передачи модели.
+
+  &lt;pixso-link|guid&gt;  &lt;pixso-link&gt; → удалённый маршрут (нужен токен); guid узла, например 11:10 →
+                     локальный
+  -o &lt;путь&gt;          Куда записать файл. Необязателен: без него — ./fg-out/pixso/&lt;имя&gt;.&lt;расширение&gt;,
+                     где &lt;имя&gt; — item-id из &lt;pixso-link&gt; (или guid узла: 11:10 → 11-10); недостающие
+                     каталоги будут созданы
+
+  Примеры
+    fg --pprompt &lt;pixso-link&gt;
+    fg --pprompt 11:10</pre></section><section class="panel"><div class="tt"><span class="n">06</span> <span class="ok">PASS</span> tty · ru · ok — fg --help --passets</div><div class="cmd"><span class="sh">$</span> fg --help --passets</div><pre class="term">fg --passets &lt;pixso-link|guid&gt; [-o &lt;каталог&gt;]
+  также: --get-pixso-assets
+
+  Один скан макета → четыре файла в одном каталоге: card.svg, card.html, card.md, card.json. Дизайн
+  запрашивается ровно один раз.
+
+  &lt;pixso-link|guid&gt;  &lt;pixso-link&gt; → удалённый маршрут (нужен токен); guid узла, например 11:10 →
+                     локальный
+  -o &lt;каталог&gt;       Каталог, куда лягут четыре файла. Необязателен: без него —
+                     ./fg-out/pixso/&lt;имя&gt;/; недостающие каталоги будут созданы
+
+  Примеры
+    fg --passets &lt;pixso-link&gt;
+    fg --passets &lt;pixso-link&gt; -o ./out/card
+    fg --passets 11:10</pre></section><section class="panel"><div class="tt"><span class="n">07</span> <span class="ok">PASS</span> tty · ru · ok — fg --help --preport</div><div class="cmd"><span class="sh">$</span> fg --help --preport</div><pre class="term">fg --preport &lt;путь|repo&gt; [-o &lt;путь&gt;] [--format …] [--ui-kit …] [--config …]
+  также: --project-report
+
+  Отчёт по фронтенд-проекту: доступность, компоненты, иконки, дизайн-система. Код возврата: 0 —
+  ошибок нет; 1 — есть ошибки (с учётом конфига) или сбой; 2 — неверный вызов.
+
+  &lt;путь|repo&gt;                       Каталог проекта на диске или ссылка на репозиторий (http(s)://…,
+                                    git@…, file://…) — он будет клонирован во временный каталог и
+                                    удалён после анализа
+  -o &lt;путь&gt;                         Куда записать отчёт: ФАЙЛ, когда формат-файл один, и КАТАЛОГ,
+                                    когда их несколько (внутри — report.&lt;ext&gt;). Необязателен: без
+                                    него — ./fg-out/report.&lt;ext&gt;; недостающие каталоги будут созданы
+  --format html|compact|json|sarif  Что произвести: html, compact, json, sarif — несколько через
+                                    запятую, порядок не важен, повторы игнорируются (по умолчанию
+                                    html). html — самодостаточный HTML-отчёт; compact — находки в
+                                    консоль; json — массив в формате ESLint; sarif — SARIF 2.1.0 для
+                                    IDE и CI
+  --ui-kit eds|eds2|none            Какую дизайн-систему учитывать: eds, eds2, none. Без флага она
+                                    определяется по зависимостям проекта; если ничего не подошло —
+                                    проверяются только общие правила
+  --config &lt;файл&gt;                   Путь к файлу конфигурации правил (fg.config.json). Без флага он
+                                    ищется сначала в корне анализируемого проекта, затем в текущем
+                                    каталоге; если нигде нет — работают значения по умолчанию
+
+  Примеры
+    fg --preport . --format compact
+    fg --preport ../app --format html,sarif -o ./out</pre></section><section class="panel"><div class="tt"><span class="n">08</span> <span class="ok">PASS</span> tty · en · ok — fg --lang en --help --preport</div><div class="cmd"><span class="sh">$</span> fg --lang en --help --preport</div><pre class="term">fg --preport &lt;path|repo&gt; [-o &lt;path&gt;] [--format …] [--ui-kit …] [--config …]
+  also: --project-report
+
+  A front-end project report: accessibility, components, icons, design system. Exit code: 0 — no
+  errors; 1 — errors (after the config) or a failure; 2 — a wrong invocation.
+
+  &lt;path|repo&gt;                       A project directory on disk, or a repository link (http(s)://…,
+                                    git@…, file://…) — it is cloned into a temporary directory and
+                                    removed after the analysis
+  -o &lt;path&gt;                         Where to write the report: a FILE when exactly one file format
+                                    was asked for, a DIRECTORY when several (report.&lt;ext&gt; inside
+                                    it). Optional: without it, ./fg-out/report.&lt;ext&gt;; missing
+                                    directories are created
+  --format html|compact|json|sarif  What to produce: html, compact, json, sarif — several
+                                    comma-separated, order irrelevant, duplicates ignored (default
+                                    html). html — a self-contained HTML report; compact — the
+                                    findings in the console; json — an ESLint-shaped array; sarif —
+                                    SARIF 2.1.0 for an IDE or CI
+  --ui-kit eds|eds2|none            Which design system to measure against: eds, eds2, none. Without
+                                    the flag it is detected from the project's dependencies; when
+                                    nothing matches, only the generic rules are checked
+  --config &lt;file&gt;                   Path to the rule configuration file (fg.config.json). Without
+                                    the flag it is looked for in the analysed project's root first,
+                                    then in the current directory; when neither has one, the
+                                    built-in defaults apply
+
+  Examples
+    fg --preport . --format compact
+    fg --preport ../app --format html,sarif -o ./out</pre></section><section class="panel"><div class="tt"><span class="n">09</span> <span class="ok">PASS</span> tty · ru · ok — fg --help --iconf</div><div class="cmd"><span class="sh">$</span> fg --help --iconf</div><pre class="term">fg --iconf [-o &lt;файл&gt;] [--ui-kit …]
+  также: --init-config
+
+  Создать fg.config.json и fg.config.schema.json со всеми правилами выбранной дизайн-системы —
+  каждое можно выключить или переоценить.
+
+  -o &lt;файл&gt;               Куда записать конфигурацию. Необязателен: без него — ./fg.config.json;
+                          fg.config.schema.json кладётся рядом; недостающие каталоги будут созданы
+  --ui-kit eds|eds2|none  Правила какой дизайн-системы включить в файл: eds, eds2, none. Без флага
+                          она определяется по зависимостям проекта в текущем каталоге; если ничего
+                          не подошло — в файл попадут только общие правила
+
+  Примеры
+    fg --iconf
+    fg --iconf --ui-kit eds</pre></section><section class="panel"><div class="tt"><span class="n">10</span> <span class="ok">PASS</span> tty · ru · ok — fg --help --pkit</div><div class="cmd"><span class="sh">$</span> fg --help --pkit</div><pre class="term">fg --pkit eds|eds2 [--source …]
+  также: --parse-ui-kit
+
+  Пересобрать корпус дизайн-системы из её исходников — пять JSON-файлов в ~/.fg/kits/&lt;имя&gt;/.
+
+  eds|eds2              Какую дизайн-систему пересобрать: eds (1.x) или eds2 (2.x, ветка
+                        develop-2.0)
+  --source &lt;путь|repo&gt;  Откуда взять исходники кита: каталог на диске или ссылка на репозиторий
+                        (http(s)://…, git@…, file://…). Без флага берётся официальный репозиторий
+                        этой дизайн-системы
+
+  Примеры
+    fg --pkit eds
+    fg --pkit eds2
+    fg --pkit eds --source ../ui-kit-eds-ce</pre></section><section class="panel"><div class="tt"><span class="n">11</span> <span class="ok">PASS</span> tty · ru · ok — fg --version</div><div class="cmd"><span class="sh">$</span> fg --version</div><pre class="term">1.0.0</pre></section><section class="panel"><div class="tt"><span class="n">12</span> <span class="ok">PASS</span> tty · ru · usage — fg (no command) — the help IS the answer, with exit 2</div><div class="cmd"><span class="sh">$</span> fg</div><pre class="term">fg v1.0.0 — фронтенд-инструменты в командной строке
+
+Использование
+  fg &lt;команда&gt; &lt;аргумент&gt; [опции]
+
+Pixso: макет → код                                                 без -o →
+  --psvg     &lt;pixso-link|guid&gt;  SVG кадра                          ./fg-out/pixso/&lt;имя&gt;.svg
+  --phtml    &lt;pixso-link|guid&gt;  HTML кадра                         ./fg-out/pixso/&lt;имя&gt;.html
+  --pprompt  &lt;pixso-link|guid&gt;  Markdown-промпт                    ./fg-out/pixso/&lt;имя&gt;.md
+  --passets  &lt;pixso-link|guid&gt;  svg + html + md + json             ./fg-out/pixso/&lt;имя&gt;/
+
+Анализ проекта
+  --preport  &lt;путь|repo&gt;        отчёт по проекту                   ./fg-out/report.html
+      --format html|compact|json|sarif   несколько через запятую (по умолчанию html)
+      --ui-kit eds|eds2|none             дизайн-система (по умолчанию — по зависимостям)
+      --config &lt;файл&gt;                    fg.config.json (по умолчанию — корень проекта, затем cwd)
+  --iconf    [--ui-kit]         создать fg.config.json и схему     ./fg.config.json
+  --pkit     eds|eds2           пересобрать корпус дизайн-системы  ~/.fg/kits/eds|eds2/
+
+Общие опции
+  -o, --out &lt;путь&gt;     куда писать результат (файл или каталог), кроме --pkit
+  --lang ru|en         язык вывода (ru)
+  --verbose            подробные сообщения в формате compact
+  --token, --endpoint  доступ к Pixso MCP
+  -h, --help           справка;  fg --help --preport — подробно по команде
+  -v, --version        версия
+
+Окружение   PIXSO_REMOTE_MCP_URL  PIXSO_LOCAL_MCP_URL  PIXSO_REMOTE_MCP_TOKEN  FG_KITS_DIR
+            ./.env читается автоматически. Приоритет: флаг &gt; env/.env &gt; умолчание</pre></section><section class="panel"><div class="tt"><span class="n">13</span> <span class="ok">PASS</span> tty · ru · fail — fg --preport . in an EDS 2.x app — html by default, exit 1 on visible errors (U2)</div><div class="cmd"><span class="sh">$</span> fg --preport .</div><pre class="term"><span style="opacity:.6">fg v1.0.0</span><span> · preport
+  </span><span style="opacity:.6">·</span><span> </span><span style="opacity:.6">дизайн-система: eds2 2.0.0 (встроенная) — определена по зависимостям проекта</span><span>
+</span><span style="color:rgb(205,0,0)">✖</span><span> отчёт готов, есть ошибки                         0.4s
+  </span><span style="opacity:.6">файлов</span><span>      14 просмотрено · 4 чистых
+  </span><span style="opacity:.6">находок</span><span>     65   ✖ 24 ошибки  ▲ 30 предупреждений  ● 9 инфо  ◇ 2 кандидата
+  </span><span style="opacity:.6">html</span><span>        /tmp/fg-e2e/my-app/fg-out/report.html
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">14</span> <span class="ok">PASS</span> tty · ru · fail — fg --preport . in an EDS 1.x app — the other autodetect branch</div><div class="cmd"><span class="sh">$</span> fg --preport .</div><pre class="term"><span style="opacity:.6">fg v1.0.0</span><span> · preport
+  </span><span style="opacity:.6">·</span><span> </span><span style="opacity:.6">дизайн-система: eds 1.13.0 (встроенная) — определена по зависимостям проекта</span><span>
+</span><span style="color:rgb(205,0,0)">✖</span><span> отчёт готов, есть ошибки                         0.4s
+  </span><span style="opacity:.6">файлов</span><span>      4 просмотрено · 0 чистых
+  </span><span style="opacity:.6">находок</span><span>     26   ✖ 17 ошибок  ▲ 4 предупреждения  ● 5 инфо
+  </span><span style="opacity:.6">html</span><span>        /tmp/fg-e2e/eds-app/fg-out/report.html
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">15</span> <span class="ok">PASS</span> tty · ru · fail — three formats at once — `-o` becomes a DIRECTORY (U9)</div><div class="cmd"><span class="sh">$</span> fg --preport . --format html,sarif,json -o ./report</div><pre class="term"><span style="opacity:.6">fg v1.0.0</span><span> · preport
+  </span><span style="opacity:.6">·</span><span> </span><span style="opacity:.6">дизайн-система: eds2 2.0.0 (встроенная) — определена по зависимостям проекта</span><span>
+</span><span style="color:rgb(205,0,0)">✖</span><span> отчёт готов, есть ошибки                         0.4s
+  </span><span style="opacity:.6">файлов</span><span>      14 просмотрено · 4 чистых
+  </span><span style="opacity:.6">находок</span><span>     65   ✖ 24 ошибки  ▲ 30 предупреждений  ● 9 инфо  ◇ 2 кандидата
+  </span><span style="opacity:.6">html</span><span>        /tmp/fg-e2e/checkout-web/report/report.html
+  </span><span style="opacity:.6">sarif</span><span>       /tmp/fg-e2e/checkout-web/report/report.sarif
+  </span><span style="opacity:.6">json</span><span>        /tmp/fg-e2e/checkout-web/report/report.json
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">16</span> <span class="ok">PASS</span> tty · ru · fail — --format compact — the document, and NO summary block (§2.3)</div><div class="cmd"><span class="sh">$</span> fg --preport . --format compact</div><pre class="term"><span style="opacity:.6">fg v1.0.0</span><span> · preport
+  </span><span style="color:rgb(205,205,0)">!</span><span> дизайн-система: не найдена среди зависимостей проекта — проверяются только общие правила. Указать явно: --ui-kit eds|eds2|none
+</span><span style="font-weight:700">src/App.tsx</span><span>
+   7:10  </span><span style="color:rgb(205,0,0)">✖ error</span><span>    img elements must have an alt prop, either with meaningful …  Изображение без alt                              </span><span style="opacity:.6">a11y.lint</span><span>
+   7:10  </span><span style="color:rgb(205,0,0)">✖ error</span><span>    &lt;img&gt;  Контрол без доступного имени — имя должно приходить из aria-labelledby                          </span><span style="opacity:.6">a11y.name.missing</span><span>
+                    </span><span style="opacity:.6"></span><span style="color:rgb(0,205,0)">→ &lt;img aria-label="…"&gt;</span><span>
+   14:7  </span><span style="color:rgb(205,0,0)">✖ error</span><span>    role="buton"  Несуществующая роль или ARIA-атрибут — роли нет в спецификации                           </span><span style="opacity:.6">a11y.aria.invalid</span><span>
+                    </span><span style="opacity:.6"></span><span style="color:rgb(0,205,0)">→ role="button"</span><span>
+   17:7  </span><span style="color:rgb(205,0,0)">✖ error</span><span>    &lt;button&gt;  Контрол без доступного имени — только иконка, без имени                                      </span><span style="opacity:.6">a11y.name.missing</span><span>
+                    </span><span style="opacity:.6"></span><span style="color:rgb(0,205,0)">→ &lt;button aria-label="…"&gt;</span><span>
+
+</span><span style="font-weight:700">src/app.css</span><span>
+   3:3  </span><span style="color:rgb(205,0,0)">✖ error</span><span>    outline: none  Кольцо фокуса убрано без замены — сброс без замены                                   </span><span style="opacity:.6">a11y.focus.suppressed</span><span>
+   9:3  </span><span style="color:rgb(205,205,0)">▲ warning</span><span>  #8a8a8a на #ffffff  Текст не набирает контраст — обычный текст, порог 4.5:1                            </span><span style="opacity:.6">a11y.contrast.text</span><span>
+
+</span><span style="color:rgb(205,0,0)">✖ 6 проблем</span><span>   5 ошибок · 1 предупреждение
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">17</span> <span class="ok">PASS</span> tty · en · fail — --format compact, in English</div><div class="cmd"><span class="sh">$</span> fg --lang en --preport . --format compact</div><pre class="term"><span style="opacity:.6">fg v1.0.0</span><span> · preport
+  </span><span style="color:rgb(205,205,0)">!</span><span> design system: none found among the project's dependencies — only the generic rules are checked. Name one with --ui-kit eds|eds2|none
+</span><span style="font-weight:700">src/App.tsx</span><span>
+   7:10  </span><span style="color:rgb(205,0,0)">✖ error</span><span>    img elements must have an alt prop, either with meaningful …  Image without alt                                </span><span style="opacity:.6">a11y.lint</span><span>
+   7:10  </span><span style="color:rgb(205,0,0)">✖ error</span><span>    &lt;img&gt;  Control with no accessible name — the name has to come from aria-labelledby                     </span><span style="opacity:.6">a11y.name.missing</span><span>
+                    </span><span style="opacity:.6"></span><span style="color:rgb(0,205,0)">→ &lt;img aria-label="…"&gt;</span><span>
+   14:7  </span><span style="color:rgb(205,0,0)">✖ error</span><span>    role="buton"  Unknown role or ARIA attribute — the role is not in the specification                    </span><span style="opacity:.6">a11y.aria.invalid</span><span>
+                    </span><span style="opacity:.6"></span><span style="color:rgb(0,205,0)">→ role="button"</span><span>
+   17:7  </span><span style="color:rgb(205,0,0)">✖ error</span><span>    &lt;button&gt;  Control with no accessible name — icon only, no name                                         </span><span style="opacity:.6">a11y.name.missing</span><span>
+                    </span><span style="opacity:.6"></span><span style="color:rgb(0,205,0)">→ &lt;button aria-label="…"&gt;</span><span>
+
+</span><span style="font-weight:700">src/app.css</span><span>
+   3:3  </span><span style="color:rgb(205,0,0)">✖ error</span><span>    outline: none  Focus ring removed with no replacement — reset with no replacement                   </span><span style="opacity:.6">a11y.focus.suppressed</span><span>
+   9:3  </span><span style="color:rgb(205,205,0)">▲ warning</span><span>  #8a8a8a на #ffffff  Text below the contrast threshold — normal text, 4.5:1 threshold                   </span><span style="opacity:.6">a11y.contrast.text</span><span>
+
+</span><span style="color:rgb(205,0,0)">✖ 6 problems</span><span>   5 errors · 1 warning
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">18</span> <span class="ok">PASS</span> tty · ru · ok — the project's own fg.config.json demotes everything — exit 0 (U2)</div><div class="cmd"><span class="sh">$</span> fg --preport .</div><pre class="term"><span style="opacity:.6">fg v1.0.0</span><span> · preport
+  </span><span style="color:rgb(205,205,0)">!</span><span> дизайн-система: не найдена среди зависимостей проекта — проверяются только общие правила. Указать явно: --ui-kit eds|eds2|none
+  </span><span style="opacity:.6">·</span><span> </span><span style="opacity:.6">конфиг: /tmp/fg-e2e/design-audit/fg.config.json</span><span>
+</span><span style="color:rgb(0,205,0)">✔</span><span> отчёт готов                                      0.1s
+  </span><span style="opacity:.6">файлов</span><span>      2 просмотрено · 2 чистых
+  </span><span style="opacity:.6">находок</span><span>     0
+  </span><span style="opacity:.6">скрыто</span><span>      6   конфиг: /tmp/fg-e2e/design-audit/fg.config.json
+  </span><span style="opacity:.6">html</span><span>        /tmp/fg-e2e/design-audit/fg-out/report.html
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">19</span> <span class="ok">PASS</span> tty · ru · fail — --ui-kit none — general rules only</div><div class="cmd"><span class="sh">$</span> fg --preport . --ui-kit none</div><pre class="term"><span style="opacity:.6">fg v1.0.0</span><span> · preport · без дизайн-системы
+</span><span style="color:rgb(205,0,0)">✖</span><span> отчёт готов, есть ошибки                         0.1s
+  </span><span style="opacity:.6">файлов</span><span>      2 просмотрено · 0 чистых
+  </span><span style="opacity:.6">находок</span><span>     6   ✖ 5 ошибок  ▲ 1 предупреждение
+  </span><span style="opacity:.6">html</span><span>        /tmp/fg-e2e/widgets/fg-out/report.html
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">20</span> <span class="ok">PASS</span> tty · ru · fail — NO_COLOR=1 — same text, zero colour, terminal still a terminal (U7)</div><div class="cmd"><span class="sh">$</span> NO_COLOR=1 fg --preport . --format compact</div><pre class="term">fg v1.0.0 · preport
+  ! дизайн-система: не найдена среди зависимостей проекта — проверяются только общие правила. Указать явно: --ui-kit eds|eds2|none
+src/App.tsx
+   7:10  ✖ error    img elements must have an alt prop, either with meaningful …  Изображение без alt                              a11y.lint
+   7:10  ✖ error    &lt;img&gt;  Контрол без доступного имени — имя должно приходить из aria-labelledby                          a11y.name.missing
+                    → &lt;img aria-label="…"&gt;
+   14:7  ✖ error    role="buton"  Несуществующая роль или ARIA-атрибут — роли нет в спецификации                           a11y.aria.invalid
+                    → role="button"
+   17:7  ✖ error    &lt;button&gt;  Контрол без доступного имени — только иконка, без имени                                      a11y.name.missing
+                    → &lt;button aria-label="…"&gt;
+
+src/app.css
+   3:3  ✖ error    outline: none  Кольцо фокуса убрано без замены — сброс без замены                                   a11y.focus.suppressed
+   9:3  ▲ warning  #8a8a8a на #ffffff  Текст не набирает контраст — обычный текст, порог 4.5:1                            a11y.contrast.text
+
+✖ 6 проблем   5 ошибок · 1 предупреждение</pre></section><section class="panel"><div class="tt"><span class="n">21</span> <span class="ok">PASS</span> tty · ru · usage — an unknown --format is refused before anything runs</div><div class="cmd"><span class="sh">$</span> fg --preport . --format htlm</div><pre class="term"><span style="color:rgb(205,0,0)">✖</span><span> неизвестный формат: htlm. Допустимые значения: html, compact, json, sarif
+  </span><span style="opacity:.6">использование:</span><span>  fg --preport &lt;путь|repo&gt; [-o &lt;путь&gt;] [--format …] [--ui-kit …] [--config …]
+  </span><span style="opacity:.6">подробнее:</span><span>      fg --help --preport
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">22</span> <span class="ok">PASS</span> tty · ru · usage — fg --preport with no project</div><div class="cmd"><span class="sh">$</span> fg --preport</div><pre class="term"><span style="color:rgb(205,0,0)">✖</span><span> не указан проект
+  </span><span style="opacity:.6">передайте каталог на диске либо ссылку на репозиторий (http(s)://…, git@…, file://…)</span><span>
+  </span><span style="opacity:.6">использование:</span><span>  fg --preport &lt;путь|repo&gt; [-o &lt;путь&gt;] [--format …] [--ui-kit …] [--config …]
+  </span><span style="opacity:.6">подробнее:</span><span>      fg --help --preport
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">23</span> <span class="ok">PASS</span> tty · en · usage — …in English</div><div class="cmd"><span class="sh">$</span> fg --lang en --preport</div><pre class="term"><span style="color:rgb(205,0,0)">✖</span><span> no project given
+  </span><span style="opacity:.6">pass a directory on disk, or a repository link (http(s)://…, git@…, file://…)</span><span>
+  </span><span style="opacity:.6">usage:</span><span>          fg --preport &lt;path|repo&gt; [-o &lt;path&gt;] [--format …] [--ui-kit …] [--config …]
+  </span><span style="opacity:.6">more:</span><span>           fg --help --preport
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">24</span> <span class="ok">PASS</span> tty · ru · ok — fg --iconf in a project with no design system in its dependencies</div><div class="cmd"><span class="sh">$</span> fg --iconf</div><pre class="term"><span style="opacity:.6">fg v1.0.0</span><span> · iconf
+  </span><span style="color:rgb(205,205,0)">!</span><span> дизайн-система не определена по зависимостям текущего каталога — в файл вошли только общие правила. Указать явно: --ui-kit eds|eds2|none
+</span><span style="color:rgb(0,205,0)">✔</span><span> конфигурация создана    11 правил · 30 подправил  0.0s
+  </span><span style="opacity:.6">конфиг</span><span>      /tmp/fg-e2e/new-project/fg.config.json
+  </span><span style="opacity:.6">схема</span><span>       /tmp/fg-e2e/new-project/fg.config.schema.json
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">25</span> <span class="ok">PASS</span> tty · en · ok — fg --iconf --ui-kit eds — the kit named explicitly</div><div class="cmd"><span class="sh">$</span> fg --lang en --iconf --ui-kit eds</div><pre class="term"><span style="opacity:.6">fg v1.0.0</span><span> · iconf · eds 1.13.0
+</span><span style="color:rgb(0,205,0)">✔</span><span> configuration written    32 rules · 30 sub-rules  0.0s
+  </span><span style="opacity:.6">config</span><span>      /tmp/fg-e2e/admin-panel/fg.config.json
+  </span><span style="opacity:.6">schema</span><span>      /tmp/fg-e2e/admin-panel/fg.config.schema.json
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">26</span> <span class="ok">PASS</span> tty · ru · ok — fg --pkit eds --source file://… — the corpus, rebuilt from the kit's own sources</div><div class="cmd"><span class="sh">$</span> fg --pkit eds --source file:///tmp/fg-e2e/ui-kit-eds-ce</div><pre class="term"><span style="opacity:.6">fg v1.0.0</span><span> · pkit · eds · file:///tmp/fg-e2e/ui-kit-eds-ce
+</span><span style="color:rgb(0,205,0)">✔</span><span> корпус собран, файлов: 5                         27.6s
+  </span><span style="opacity:.6">tokens</span><span>          /tmp/fg-e2e-captures/kits/eds/tokens.json
+  </span><span style="opacity:.6">components</span><span>      /tmp/fg-e2e-captures/kits/eds/components.json
+  </span><span style="opacity:.6">kit-a11y</span><span>        /tmp/fg-e2e-captures/kits/eds/kit-a11y.json
+  </span><span style="opacity:.6">kit-icons</span><span>       /tmp/fg-e2e-captures/kits/eds/kit-icons.json
+  </span><span style="opacity:.6">kit-signatures</span><span>  /tmp/fg-e2e-captures/kits/eds/kit-signatures.json
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">27</span> <span class="ok">PASS</span> tty · ru · ok — fg --psvg &lt;pixso-link&gt; — the remote route, one file</div><div class="cmd"><span class="sh">$</span> fg --psvg &lt;pixso-link&gt;</div><pre class="term"><span style="opacity:.6">fg v1.0.0</span><span> · psvg · удалённый маршрут · item 11-10
+</span><span style="color:rgb(0,205,0)">✔</span><span> готово                                           0.1s
+  </span><span style="opacity:.6">svg</span><span>         /tmp/fg-e2e/landing/fg-out/pixso/11-10.svg
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">28</span> <span class="ok">PASS</span> tty · ru · ok — fg --phtml &lt;pixso-link&gt;</div><div class="cmd"><span class="sh">$</span> fg --phtml &lt;pixso-link&gt;</div><pre class="term"><span style="opacity:.6">fg v1.0.0</span><span> · phtml · удалённый маршрут · item 11-10
+</span><span style="color:rgb(0,205,0)">✔</span><span> готово                                           0.1s
+  </span><span style="opacity:.6">html</span><span>        /tmp/fg-e2e/pricing-page/fg-out/pixso/11-10.html
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">29</span> <span class="ok">PASS</span> tty · ru · ok — fg --pprompt &lt;pixso-link&gt;</div><div class="cmd"><span class="sh">$</span> fg --pprompt &lt;pixso-link&gt;</div><pre class="term"><span style="opacity:.6">fg v1.0.0</span><span> · pprompt · удалённый маршрут · item 11-10
+</span><span style="color:rgb(0,205,0)">✔</span><span> готово                                           0.1s
+  </span><span style="opacity:.6">md</span><span>          /tmp/fg-e2e/marketing-site/fg-out/pixso/11-10.md
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">30</span> <span class="ok">PASS</span> tty · ru · ok — fg --passets &lt;pixso-link&gt; — four files, and the one counted progress phase</div><div class="cmd"><span class="sh">$</span> fg --passets &lt;pixso-link&gt;</div><pre class="term"><span style="opacity:.6">fg v1.0.0</span><span> · passets · удалённый маршрут · item 11-10
+</span><span style="color:rgb(0,205,0)">✔</span><span> готово                                           0.1s
+  </span><span style="opacity:.6">svg</span><span>         /tmp/fg-e2e/mobile-web/fg-out/pixso/11-10/card.svg
+  </span><span style="opacity:.6">html</span><span>        /tmp/fg-e2e/mobile-web/fg-out/pixso/11-10/card.html
+  </span><span style="opacity:.6">md</span><span>          /tmp/fg-e2e/mobile-web/fg-out/pixso/11-10/card.md
+  </span><span style="opacity:.6">json</span><span>        /tmp/fg-e2e/mobile-web/fg-out/pixso/11-10/card.json
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">31</span> <span class="ok">PASS</span> tty · en · ok — fg --passets &lt;pixso-link&gt; -o ./card — `-o` as a directory, in English</div><div class="cmd"><span class="sh">$</span> fg --lang en --passets &lt;pixso-link&gt; -o ./card</div><pre class="term"><span style="opacity:.6">fg v1.0.0</span><span> · passets · remote route · item 11-10
+</span><span style="color:rgb(0,205,0)">✔</span><span> done                                             0.1s
+  </span><span style="opacity:.6">svg</span><span>         /tmp/fg-e2e/promo-site/card/card.svg
+  </span><span style="opacity:.6">html</span><span>        /tmp/fg-e2e/promo-site/card/card.html
+  </span><span style="opacity:.6">md</span><span>          /tmp/fg-e2e/promo-site/card/card.md
+  </span><span style="opacity:.6">json</span><span>        /tmp/fg-e2e/promo-site/card/card.json
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">32</span> <span class="ok">PASS</span> tty · ru · usage — fg --psvg with no source</div><div class="cmd"><span class="sh">$</span> fg --psvg</div><pre class="term"><span style="color:rgb(205,0,0)">✖</span><span> не указан источник: нужна ссылка на кадр Pixso (&lt;pixso-link&gt;) либо guid узла, например 11:10
+  </span><span style="opacity:.6">использование:</span><span>  fg --psvg &lt;pixso-link|guid&gt; [-o &lt;путь&gt;]
+  </span><span style="opacity:.6">подробнее:</span><span>      fg --help --psvg
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">33</span> <span class="ok">PASS</span> tty · ru · usage — a design link with no token — exit 2, and all three fixes are named</div><div class="cmd"><span class="sh">$</span> fg --psvg &lt;pixso-link&gt;</div><pre class="term"><span style="color:rgb(205,0,0)">✖</span><span> для ссылки на кадр (&lt;pixso-link&gt;) нужен токен удалённого MCP. Задайте его любым из трёх способов: флаг --token &lt;значение&gt;; переменная окружения PIXSO_REMOTE_MCP_TOKEN; строка PIXSO_REMOTE_MCP_TOKEN=&lt;значение&gt; в файле .env рядом с местом запуска
+  </span><span style="opacity:.6">использование:</span><span>  fg --psvg &lt;pixso-link|guid&gt; [-o &lt;путь&gt;]
+  </span><span style="opacity:.6">подробнее:</span><span>      fg --help --psvg
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">34</span> <span class="ok">PASS</span> tty · ru · ok — fg --psvg 11:10 — the local route, the advanced case</div><div class="cmd"><span class="sh">$</span> fg --psvg 11:10</div><pre class="term"><span style="opacity:.6">fg v1.0.0</span><span> · psvg · локальный маршрут · 11:10
+</span><span style="color:rgb(0,205,0)">✔</span><span> готово                                           0.2s
+  </span><span style="opacity:.6">svg</span><span>         /tmp/fg-e2e/brand-site/fg-out/pixso/11-10.svg
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">35</span> <span class="ok">PASS</span> tty · ru · usage — an undeclared flag — exit 2, localized, no header</div><div class="cmd"><span class="sh">$</span> fg --nope</div><pre class="term"><span style="color:rgb(205,0,0)">✖</span><span> неизвестный флаг: --nope
+  </span><span style="opacity:.6">использование:</span><span>  fg &lt;команда&gt; &lt;аргумент&gt; [опции]
+  </span><span style="opacity:.6">подробнее:</span><span>      fg --help
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">36</span> <span class="ok">PASS</span> tty · en · usage — …answered in English although parseArgs threw before --lang was parsed</div><div class="cmd"><span class="sh">$</span> fg --lang en --nope</div><pre class="term"><span style="color:rgb(205,0,0)">✖</span><span> unknown flag: --nope
+  </span><span style="opacity:.6">usage:</span><span>          fg &lt;command&gt; &lt;argument&gt; [options]
+  </span><span style="opacity:.6">more:</span><span>           fg --help
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">37</span> <span class="ok">PASS</span> tty · ru · usage — a known flag aimed at a command that does not take it (V3 MAJOR-1)</div><div class="cmd"><span class="sh">$</span> fg --psvg &lt;pixso-link&gt; --config ./fg.config.json</div><pre class="term"><span style="color:rgb(205,0,0)">✖</span><span> флаг --config не поддерживается командой --psvg.
+  </span><span style="opacity:.6">использование:</span><span>  fg --psvg &lt;pixso-link|guid&gt; [-o &lt;путь&gt;]
+  </span><span style="opacity:.6">подробнее:</span><span>      fg --help --psvg
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">38</span> <span class="ok">PASS</span> tty · ru · usage — exactly one command per invocation</div><div class="cmd"><span class="sh">$</span> fg --psvg &lt;pixso-link&gt; --phtml &lt;pixso-link&gt;</div><pre class="term"><span style="color:rgb(205,0,0)">✖</span><span> за один запуск можно указать ровно одну команду.
+  </span><span style="opacity:.6">использование:</span><span>  fg &lt;команда&gt; &lt;аргумент&gt; [опции]
+  </span><span style="opacity:.6">подробнее:</span><span>      fg --help
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">39</span> <span class="ok">PASS</span> tty · ru · usage — the language is validated before --version is honoured</div><div class="cmd"><span class="sh">$</span> fg --lang de --version</div><pre class="term"><span style="color:rgb(205,0,0)">✖</span><span> неизвестный язык: de. Допустимые значения: ru, en.
+  </span><span style="opacity:.6">использование:</span><span>  fg &lt;команда&gt; &lt;аргумент&gt; [опции]
+  </span><span style="opacity:.6">подробнее:</span><span>      fg --help
+
+</span></pre></section><section class="panel"><div class="tt"><span class="n">40</span> <span class="ok">PASS</span> pipe · ru · fail — piped — phase ledger on stderr, the report path alone on stdout</div><div class="cmd"><span class="sh">$</span> fg --preport .</div><pre class="term">fg v1.0.0 · preport
+  · дизайн-система: eds2 2.0.0 (встроенная) — определена по зависимостям проекта
+  подготовка проекта     0.0s
+  чтение файлов          14 файлов    0.2s
+  проверки               26 правил    0.1s
+  сборка отчёта          0.0s
+  запись                 html         0.1s
+✖ отчёт готов, есть ошибки                         0.4s
+  файлов      14 просмотрено · 4 чистых
+  находок     65   ✖ 24 ошибки  ▲ 30 предупреждений  ● 9 инфо  ◇ 2 кандидата
+  html        /tmp/fg-e2e/storefront/fg-out/report.html
+/tmp/fg-e2e/storefront/fg-out/report.html</pre></section><section class="panel"><div class="tt"><span class="n">41</span> <span class="ok">PASS</span> pipe · ru · fail — piped compact — the document is the data</div><div class="cmd"><span class="sh">$</span> fg --preport . --format compact</div><pre class="term">fg v1.0.0 · preport
+  ! дизайн-система: не найдена среди зависимостей проекта — проверяются только общие правила. Указать явно: --ui-kit eds|eds2|none
+  подготовка проекта     0.0s
+  чтение файлов          2 файла      0.1s
+  проверки               11 правил    0.0s
+src/App.tsx
+   7:10  ✖ error    img elements must have an alt prop, either with meaningful …  Изображение без alt  a11y.lint
+   7:10  ✖ error    &lt;img&gt;  Контрол без доступного имени — имя должно приходить из aria-labelledby  a11y.name.missing
+                    → &lt;img aria-label="…"&gt;
+   14:7  ✖ error    role="buton"  Несуществующая роль или ARIA-атрибут — роли нет в спецификации  a11y.aria.invalid
+                    → role="button"
+   17:7  ✖ error    &lt;button&gt;  Контрол без доступного имени — только иконка, без имени  a11y.name.missing
+                    → &lt;button aria-label="…"&gt;
+
+src/app.css
+   3:3  ✖ error    outline: none  Кольцо фокуса убрано без замены — сброс без замены  a11y.focus.suppressed
+   9:3  ▲ warning  #8a8a8a на #ffffff  Текст не набирает контраст — обычный текст, порог 4.5:1  a11y.contrast.text
+
+✖ 6 проблем   5 ошибок · 1 предупреждение</pre></section><section class="panel"><div class="tt"><span class="n">42</span> <span class="ok">PASS</span> pipe · ru · ok — piped — two absolute paths on stdout, one per line</div><div class="cmd"><span class="sh">$</span> fg --iconf</div><pre class="term">fg v1.0.0 · iconf
+  ! дизайн-система не определена по зависимостям текущего каталога — в файл вошли только общие правила. Указать явно: --ui-kit eds|eds2|none
+  выбор дизайн-системы   0.0s
+  запись                 0.0s
+✔ конфигурация создана    11 правил · 30 подправил  0.0s
+  конфиг      /tmp/fg-e2e/portal/fg.config.json
+  схема       /tmp/fg-e2e/portal/fg.config.schema.json
+/tmp/fg-e2e/portal/fg.config.json
+/tmp/fg-e2e/portal/fg.config.schema.json</pre></section><section class="panel"><div class="tt"><span class="n">43</span> <span class="ok">PASS</span> pipe · ru · ok — piped, remote route — one path on stdout, the card the human sees on stderr</div><div class="cmd"><span class="sh">$</span> fg --psvg &lt;pixso-link&gt;</div><pre class="term">fg v1.0.0 · psvg · удалённый маршрут · item 11-10
+  загрузка               0.0s
+  рендер                 0.0s
+  запись                 0.0s
+✔ готово                                           0.0s
+  svg         /tmp/fg-e2e/nav-demo/fg-out/pixso/11-10.svg
+/tmp/fg-e2e/nav-demo/fg-out/pixso/11-10.svg</pre></section><section class="panel"><div class="tt"><span class="n">44</span> <span class="ok">PASS</span> pipe · ru · usage — piped — a refusal is never data</div><div class="cmd"><span class="sh">$</span> fg --nope</div><pre class="term">✖ неизвестный флаг: --nope
+  использование:  fg &lt;команда&gt; &lt;аргумент&gt; [опции]
+  подробнее:      fg --help</pre></section><section class="panel"><div class="tt"><span class="n">45</span> <span class="ok">PASS</span> pipe · en · ok — piped, in English — the 27-character phase label keeps its gap (cli-kit fix)</div><div class="cmd"><span class="sh">$</span> fg --lang en --iconf --ui-kit eds</div><pre class="term">fg v1.0.0 · iconf · eds 1.13.0
+  selecting the design system  0.0s
+  writing                0.0s
+✔ configuration written    32 rules · 30 sub-rules  0.0s
+  config      /tmp/fg-e2e/docs-site/fg.config.json
+  schema      /tmp/fg-e2e/docs-site/fg.config.schema.json
+/tmp/fg-e2e/docs-site/fg.config.json
+/tmp/fg-e2e/docs-site/fg.config.schema.json</pre></section></div>

@@ -9,4 +9,5 @@ pnpm-lock.yaml
 ru-code-packages
 .pnpmfile.cjs
 
-
+# the release artifact: `pnpm release` writes it, the owner commits it on a release thread
+/fg.mjs

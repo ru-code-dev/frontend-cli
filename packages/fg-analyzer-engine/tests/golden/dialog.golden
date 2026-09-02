@@ -1,0 +1,155 @@
+{
+  "$schema": "fg-analyzer-engine/analysis@1",
+  "domains": [
+    "a11y",
+    "components",
+    "icons"
+  ],
+  "findings": [
+    {
+      "id": "f_0001",
+      "rule": "a11y.lint",
+      "subkind": "prefer-tag-over-role",
+      "category": "a11y",
+      "severity": "info",
+      "confidence": 0.75,
+      "file": "src/Modals.tsx",
+      "line": 15,
+      "column": 5,
+      "snippet": {
+        "before": "\n/** a11y.pattern.focus / noEscape: no Escape handling and no focus management anywhere. */\nexport function BrokenDialog({ title, onClose }: BrokenDialogProps) {\n  return (\n    <div role=\"dialog\" aria-modal=\"true\" aria-label={title}>\n      <h2>{title}</h2>\n      <button type=\"button\" onClick={onClose}>\n        Закрыть\n      </button>",
+        "after": null,
+        "highlightLine": 5,
+        "startLine": 11
+      },
+      "actual": "Use <dialog> instead of the \"dialog\" role to ensure accessibility across all devices.",
+      "expected": null,
+      "why": "Use <dialog> instead of the \"dialog\" role to ensure accessibility across all devices.",
+      "note": null,
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": {
+        "wcag": [],
+        "pattern": null,
+        "impact": "Нативный тег дал бы ту же семантику вместе с поведением.",
+        "fix": "Возьмите нативный тег вместо role: он приносит с собой ещё и клавиатуру."
+      },
+      "autoFixable": false,
+      "needsAgent": false,
+      "candidates": [],
+      "impact": {
+        "occurrences": 2,
+        "files": 1
+      },
+      "impactKey": "a11y.lint:prefer-tag-over-role"
+    },
+    {
+      "id": "f_0002",
+      "rule": "a11y.pattern.focus",
+      "subkind": "noEscape",
+      "category": "a11y",
+      "severity": "error",
+      "confidence": 0.85,
+      "file": "src/Modals.tsx",
+      "line": 15,
+      "column": 5,
+      "snippet": {
+        "before": "\n/** a11y.pattern.focus / noEscape: no Escape handling and no focus management anywhere. */\nexport function BrokenDialog({ title, onClose }: BrokenDialogProps) {\n  return (\n    <div role=\"dialog\" aria-modal=\"true\" aria-label={title}>\n      <h2>{title}</h2>\n      <button type=\"button\" onClick={onClose}>\n        Закрыть\n      </button>",
+        "after": null,
+        "highlightLine": 5,
+        "startLine": 11
+      },
+      "actual": "<div role=\"dialog\">",
+      "expected": null,
+      "why": "Диалог BrokenDialog объявлен ролью, но в нём не найдено: закрытие по Escape, удержание и возврат фокуса. Пользователь клавиатуры откроет его и не сможет ни выйти, ни вернуться к тому, что открыл.",
+      "note": "Признаки читаются синтаксически: фокус, перенесённый через внешний хук, отсюда не виден.",
+      "rootCause": {
+        "file": "src/Modals.tsx",
+        "line": 13,
+        "name": "BrokenDialog"
+      },
+      "appliedTo": null,
+      "a11y": {
+        "wcag": [
+          "2.1.2",
+          "2.4.3"
+        ],
+        "pattern": "dialog-modal",
+        "impact": "Фокус остаётся заперт вне диалога или не возвращается: пользователь клавиатуры теряет управление.",
+        "fix": "Допишите недостающее: закрытие по Escape, удержание и возврат фокуса."
+      },
+      "autoFixable": false,
+      "needsAgent": true,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "a11y.pattern.focus"
+    },
+    {
+      "id": "f_0003",
+      "rule": "a11y.lint",
+      "subkind": "prefer-tag-over-role",
+      "category": "a11y",
+      "severity": "info",
+      "confidence": 0.75,
+      "file": "src/Modals.tsx",
+      "line": 49,
+      "column": 5,
+      "snippet": {
+        "before": "    return () => window.removeEventListener(\"keydown\", onKeyDown);\n  }, [initialFocusRef, onClose]);\n\n  return (\n    <div role=\"dialog\" aria-modal=\"true\" aria-label={title} ref={panel} tabIndex={-1}>\n      <h2>{title}</h2>\n      <button type=\"button\" onClick={onClose}>\n        Закрыть\n      </button>",
+        "after": null,
+        "highlightLine": 5,
+        "startLine": 45
+      },
+      "actual": "Use <dialog> instead of the \"dialog\" role to ensure accessibility across all devices.",
+      "expected": null,
+      "why": "Use <dialog> instead of the \"dialog\" role to ensure accessibility across all devices.",
+      "note": null,
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": {
+        "wcag": [],
+        "pattern": null,
+        "impact": "Нативный тег дал бы ту же семантику вместе с поведением.",
+        "fix": "Возьмите нативный тег вместо role: он приносит с собой ещё и клавиатуру."
+      },
+      "autoFixable": false,
+      "needsAgent": false,
+      "candidates": [],
+      "impact": {
+        "occurrences": 2,
+        "files": 1
+      },
+      "impactKey": "a11y.lint:prefer-tag-over-role"
+    }
+  ],
+  "summary": {
+    "files": {
+      "scanned": 1,
+      "clean": 0
+    },
+    "findings": {
+      "total": 3,
+      "bySeverity": {
+        "error": 1,
+        "warning": 0,
+        "info": 2,
+        "candidate": 0
+      },
+      "byRule": {
+        "a11y.lint": 2,
+        "a11y.pattern.focus": 1
+      },
+      "byCategory": {
+        "component": 0,
+        "icon": 0,
+        "a11y": 3
+      },
+      "autoFixable": 0,
+      "needsAgent": 1
+    },
+    "limitations": []
+  }
+}

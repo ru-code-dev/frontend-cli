@@ -1,9 +1,12 @@
 {
-  "name": "@smart-tools/frontend-cli",
-  "version": "0.1.0",
+  "name": "@smart-tools/frontend-guard",
+  "version": "1.0.0",
   "license": "UNLICENSED",
+  "engines": {
+    "node": ">=24"
+  },
   "bin": {
-    "fe": "./dist/main.mjs"
+    "fg": "./dist/fg.mjs"
   },
   "files": [
     "dist"
@@ -17,10 +20,11 @@
     "build": "tsdown"
   },
   "devDependencies": {
-    "@smart-tools/fe-cli-kit": "workspace:*",
-    "@smart-tools/fe-pixso": "workspace:*",
-    "@smart-tools/fe-project-report": "workspace:*",
-    "@smart-tools/fe-testkit": "workspace:*",
+    "@smart-tools/fg-cli-kit": "workspace:*",
+    "@smart-tools/fg-eds-adapter": "workspace:*",
+    "@smart-tools/fg-pixso": "workspace:*",
+    "@smart-tools/fg-project-report": "workspace:*",
+    "@smart-tools/fg-testkit": "workspace:*",
     "@types/node": "catalog:",
     "tsdown": "catalog:",
     "vite-plus": "catalog:"

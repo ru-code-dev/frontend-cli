@@ -7,7 +7,7 @@
  * here names a pixso command or a count, so `pnpm test` will not need editing when brief 3.2
  * fills `pixsoCommands`.
  */
-import { pick } from "@smart-tools/fe-cli-kit";
+import { pick } from "@smart-tools/fg-cli-kit";
 import { describe, expect, it } from "vite-plus/test";
 
 import { COMMANDS } from "../src/main.ts";

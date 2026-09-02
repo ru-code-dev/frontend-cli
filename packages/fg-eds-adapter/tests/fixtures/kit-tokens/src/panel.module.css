@@ -1,0 +1,63 @@
+.panel {
+  background-color: #2969e3;
+  color: #1549ac;
+  border: 1px solid #ff2078;
+  border-radius: 6px;
+  padding: 13px;
+  gap: 11px;
+}
+
+.heading {
+  font-family: Inter, sans-serif;
+  font-size: 18px;
+  line-height: 26px;
+  font-weight: 500;
+}
+
+.accent {
+  border-color: var(--sds-eng-palette-electric-electric700);
+  background: var(--sds-eng-Background-backAccent);
+}
+
+.figure {
+  border-radius: 4px;
+  padding: 8px;
+  gap: 8px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.grid {
+  padding: 8px;
+  gap: 8px;
+  border-radius: 8px;
+  border-width: 2px;
+}
+
+.dense {
+  padding: 4px;
+  gap: 4px;
+  border-radius: 2px;
+}
+
+.typo {
+  font-family:
+    SB Sans Text,
+    SBSansText,
+    system-ui,
+    Segoe UI,
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Fira Sans,
+    Droid Sans,
+    Helvetica Neue,
+    sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 26px;
+}
+
+.quiet:focus {
+  outline: none;
+}

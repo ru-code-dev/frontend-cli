@@ -1,5 +1,5 @@
 /**
- * `@smart-tools/fe-testkit` — the shared TEST machinery, and nothing else.
+ * `@smart-tools/fg-testkit` — the shared TEST machinery, and nothing else.
  *
  * Three things live here, and design 2.1:159-163 named all three: the fake MCP HTTP server
  * (`./fakeMcp.ts`), the DSL fixtures and their loaders (`./fixtures.ts`), and the scratch-space
@@ -7,7 +7,7 @@
  *
  * Two standing rules for this package (design 2.1:161-162): it is PRIVATE — never published,
  * never part of the shipped bundle, imported only from `tests/` — and it takes no runtime
- * dependency beyond node builtins, so nothing it pulls in can ever reach `dist/main.mjs`.
+ * dependency beyond node builtins, so nothing it pulls in can ever reach `dist/fg.mjs`.
  * Both still hold after 3.4: `./fakeMcp.ts` imports `node:crypto`, `node:http` and `node:net`
  * and nothing else, and `./fixtures.ts` re-exports a source-level module. The one third-party
  * name this package knows, `@smart-tools/pixso-core`, appears ONLY in `tests/` — it is the
@@ -42,7 +42,7 @@ export {
  * A fresh directory under the OS temp root.
  *
  * The tier-2 proof needs somewhere with NO `node_modules` anywhere above it to drop
- * `dist/main.mjs` into (design 2.1:176-177) — the OS temp root is that place, and every
+ * `dist/fg.mjs` into (design 2.1:176-177) — the OS temp root is that place, and every
  * suite needing scratch space should come through here rather than inventing its own path.
  */
 export function makeTempDir(prefix: string): string {

@@ -1,0 +1,300 @@
+{
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "fg",
+          "version": "1.0.0",
+          "informationUri": "https://github.com/smart-tools/frontend-guard",
+          "rules": [
+            {
+              "id": "token.literal.color",
+              "shortDescription": {
+                "text": "Цвет задан литералом вместо токена"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "token"
+              }
+            },
+            {
+              "id": "token.tier.violation",
+              "shortDescription": {
+                "text": "Прямое использование core-токена"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "category": "token"
+              }
+            },
+            {
+              "id": "style.override.size",
+              "shortDescription": {
+                "text": "Внешнее переопределение размера"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "category": "override"
+              }
+            },
+            {
+              "id": "component.duplicate",
+              "shortDescription": {
+                "text": "Дубликат компонента"
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "category": "component"
+              }
+            },
+            {
+              "id": "icon.foreign-pack",
+              "shortDescription": {
+                "text": "Иконка из чужого пакета"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "icon"
+              }
+            },
+            {
+              "id": "a11y.lint",
+              "shortDescription": {
+                "text": "Проверки eslint-plugin-jsx-a11y"
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "category": "a11y"
+              }
+            },
+            {
+              "id": "a11y.name.missing",
+              "shortDescription": {
+                "text": "Элемент без доступного имени"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "properties": {
+                "category": "a11y"
+              }
+            }
+          ]
+        }
+      },
+      "originalUriBaseIds": {
+        "%SRCROOT%": {
+          "uri": "file:///home/dev/projects/shop/"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "a11y.name.missing",
+          "ruleIndex": 6,
+          "level": "error",
+          "message": {
+            "text": "Кнопка без доступного имени: скринридер прочитает её как «кнопка»."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/components/Button.tsx",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 12,
+                  "startColumn": 5
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "impactKey": "a11y.name.missing:button"
+          },
+          "properties": {
+            "subkind": null,
+            "confidence": 0.9,
+            "category": "a11y",
+            "actual": "<button onClick={onClick} />",
+            "expected": null
+          }
+        },
+        {
+          "ruleId": "a11y.lint",
+          "ruleIndex": 5,
+          "level": "warning",
+          "message": {
+            "text": "У изображения нет атрибута alt, содержимое недоступно скринридеру."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/components/Button.tsx",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 12,
+                  "startColumn": 40
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "impactKey": "a11y.lint:alt-text"
+          },
+          "properties": {
+            "subkind": "alt-text",
+            "confidence": 1,
+            "category": "a11y",
+            "actual": "<img src={icon} />",
+            "expected": null
+          }
+        },
+        {
+          "ruleId": "style.override.size",
+          "ruleIndex": 2,
+          "level": "note",
+          "message": {
+            "text": "Размер компонента переопределён снаружи."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/components/Button.tsx",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 48,
+                  "startColumn": 3
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "impactKey": "style.override.size:width"
+          },
+          "properties": {
+            "subkind": "size",
+            "confidence": 0.75,
+            "category": "override",
+            "actual": "width: 42px",
+            "expected": "var(--eds-size-m)"
+          }
+        },
+        {
+          "ruleId": "component.duplicate",
+          "ruleIndex": 3,
+          "level": "note",
+          "message": {
+            "text": "Дубликат компонента: разметка совпадает с Card на 92%, включая литерал \"</script>\" в шаблоне."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/pages/Home.tsx",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 7,
+                  "startColumn": 1
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "impactKey": "component.duplicate:Card"
+          },
+          "properties": {
+            "subkind": null,
+            "confidence": 0.6,
+            "category": "component",
+            "actual": "const Card = () => …",
+            "expected": null
+          }
+        },
+        {
+          "ruleId": "token.tier.violation",
+          "ruleIndex": 1,
+          "level": "error",
+          "message": {
+            "text": "Токен уровня core использован напрямую в коде продукта."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/pages/Home.tsx",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 130,
+                  "startColumn": 22
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "impactKey": "token.tier.violation:--eds-core-blue-500"
+          },
+          "properties": {
+            "subkind": null,
+            "confidence": 0.9,
+            "category": "token",
+            "actual": "var(--eds-core-blue-500)",
+            "expected": null
+          }
+        },
+        {
+          "ruleId": "token.literal.color",
+          "ruleIndex": 0,
+          "level": "warning",
+          "message": {
+            "text": "Цвет задан литералом вместо токена."
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "src/styles/theme.css",
+                  "uriBaseId": "%SRCROOT%"
+                },
+                "region": {
+                  "startLine": 3,
+                  "startColumn": 9
+                }
+              }
+            }
+          ],
+          "partialFingerprints": {
+            "impactKey": "token.literal.color:#1a1a1a"
+          },
+          "properties": {
+            "subkind": "near",
+            "confidence": 0.9,
+            "category": "token",
+            "actual": "#1a1a1a",
+            "expected": "var(--eds-color-fg)"
+          }
+        }
+      ]
+    }
+  ]
+}

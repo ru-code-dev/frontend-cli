@@ -10,7 +10,7 @@
  * (report 3.2 §5). It cannot, by construction, answer three questions:
  *
  *   1. Does the SHIPPED ARTIFACT work? Tier 1 imports `src/`. What ships is one minified
- *      `dist/main.mjs` with fe-pixso, cli-kit, pixso-core, the MCP SDK and undici inlined
+ *      `dist/fg.mjs` with fg-pixso, cli-kit, pixso-core, the MCP SDK and undici inlined
  *      (`cli/tsdown.config.ts`). An import the bundler failed to inline is invisible until
  *      that file runs somewhere with nothing installed.
  *   2. Does it work over a REAL WIRE? `FetchScanOptions.client` is an in-process seam; a
@@ -19,7 +19,7 @@
  *      pattern core itself uses") and which `pixso-core` states for itself in
  *      `ru-code-packages/packages/pixso-core/tests/ioFailureKinds.test.ts:20-24`.
  *   3. Does the JOIN hold? Report 3.2 §9 flagged one seam neither package could see alone:
- *      `.env` → `process.env` → the cli's precedence chain → `CommandContext` → fe-pixso's
+ *      `.env` → `process.env` → the cli's precedence chain → `CommandContext` → fg-pixso's
  *      `pixsoRuntimeOf` → `fetchScan`. Case (f) below is that whole chain, measured at the
  *      far end by the `Token` header a socket actually received.
  *
@@ -34,12 +34,12 @@
  * timeout that reads like a network problem.
  */
 import { execFile } from "node:child_process";
-import { copyFileSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, join, resolve } from "node:path";
+import { copyFileSync, existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 
-import { pixsoCommands } from "@smart-tools/fe-pixso";
+import { pixsoCommands } from "@smart-tools/fg-pixso";
 import {
   CLEAN_DSL,
   DESIGN_URL,
@@ -53,13 +53,13 @@ import {
   ROOT_GUID,
   startFakeMcp,
   type FakeMcp,
-} from "@smart-tools/fe-testkit";
+} from "@smart-tools/fg-testkit";
 import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 
 const run = promisify(execFile);
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
-const builtBundle = join(packageRoot, "dist", "main.mjs");
+const builtBundle = join(packageRoot, "dist", "fg.mjs");
 
 /** The version the manifest declares — read independently of the code under test, so
  *  `--version` agreeing with it is evidence rather than a tautology. */
@@ -70,7 +70,7 @@ const manifest = JSON.parse(readFileSync(join(packageRoot, "package.json"), "utf
 };
 
 /** The user-visible command surface, spelled out. This list is the CONTRACT — what a person
- *  typing `fe --help` must see — so it is written literally rather than generated from the
+ *  typing `fg --help` must see — so it is written literally rather than generated from the
  *  registry the help page is itself generated from (a help test fed by the registry cannot
  *  notice the registry losing an entry). The cross-check that it has not drifted from the real
  *  registry is its own case below. */
@@ -104,25 +104,25 @@ function childEnv(extra: Readonly<Record<string, string>> = {}): NodeJS.ProcessE
 /**
  * A scratch directory holding the bundle and NOTHING else.
  *
- * Both halves are asserted, not assumed: the directory contains exactly `main.mjs` after the
+ * Both halves are asserted, not assumed: the directory contains exactly `fg.mjs` after the
  * copy, and no `node_modules` exists on the path from it to the filesystem root — so an import
  * the bundler failed to inline has nowhere to resolve from and the run dies instead of quietly
  * succeeding (design 2.1:176-177).
  */
 function scratchWithBundle(): string {
-  const dir = makeTempDir("fe-tier2-");
+  const dir = makeTempDir("fg-tier2-");
   scratches.push(dir);
-  copyFileSync(builtBundle, join(dir, "main.mjs"));
-  expect(readdirSync(dir)).toEqual(["main.mjs"]);
+  copyFileSync(builtBundle, join(dir, "fg.mjs"));
+  expect(readdirSync(dir)).toEqual(["fg.mjs"]);
   expect(nodeModulesAbove(dir)).toEqual([]);
   return dir;
 }
 
 /** Run the copied bundle. Never throws: a non-zero exit is the ANSWER in most cases here, and
  *  a helper that throws on it would force every such case into a try/catch. */
-async function fe(dir: string, args: readonly string[], env = childEnv()): Promise<RunResult> {
+async function fg(dir: string, args: readonly string[], env = childEnv()): Promise<RunResult> {
   try {
-    const { stdout, stderr } = await run(process.execPath, [join(dir, "main.mjs"), ...args], {
+    const { stdout, stderr } = await run(process.execPath, [join(dir, "fg.mjs"), ...args], {
       cwd: dir,
       env,
       encoding: "utf8",
@@ -141,13 +141,38 @@ async function fe(dir: string, args: readonly string[], env = childEnv()): Promi
   }
 }
 
+/**
+ * WHAT `stderr` CARRIES NOW: the terminal UI's new grammar, and nothing but.
+ *
+ * These runs are `execFile` children, so neither stream is a TTY — which puts the UI in its
+ * plain lane (`packages/cli-kit/src/ui.ts`): the header, one row per phase as it ends, then the
+ * summary block, with NOT ONE escape sequence and no carriage return in the whole of it.
+ *
+ * REWRITTEN FOR THE UX REDESIGN. It used to look for the installer's `  > fg` banner and a `✓`
+ * checklist; both are gone (`WORKFLOW/features/cli-ux/plans/ux-design.md` §2, U3: no banner, no
+ * box, no checklist). `✖` is asserted absent because a failure glyph on a run that exited 0
+ * would be a contradiction no other assertion here would catch.
+ */
+function expectQuietUi(stderr: string): void {
+  expect(stderr).not.toContain("\u001b");
+  expect(stderr).not.toContain("\r");
+  // The header line, first thing a command prints (§2.1).
+  expect(stderr).toContain("fg v");
+  // The summary block's headline (§2.3).
+  expect(stderr).toContain("\u2714 ");
+  expect(stderr).not.toContain("\u2716");
+  // …and nothing of the look the owner rejected.
+  expect(stderr).not.toContain("\u2713");
+  expect(stderr).not.toContain("\u2554");
+}
+
 const scratches: string[] = [];
 let fake: FakeMcp | null = null;
 
 beforeAll(() => {
   // A stale or missing build would produce failures that look like product defects. This tier
   // assumes `pnpm build` ran; say so where it is cheap to say.
-  expect(readdirSync(join(packageRoot, "dist"))).toEqual(["main.mjs"]);
+  expect(readdirSync(join(packageRoot, "dist"))).toEqual(["fg.mjs"]);
 });
 
 afterEach(async () => {
@@ -174,27 +199,32 @@ describe("(a) --help lists the whole pixso surface, in both languages", () => {
 
   it("default (ru) — every flag and every alias, in Russian", async () => {
     const dir = scratchWithBundle();
-    const result = await fe(dir, ["--help"]);
+    const result = await fg(dir, ["--help"]);
     expect(result.code).toBe(0);
+    // CHANGED BY U8: the TABLE shows the short alias only; the long spelling lives on the
+    // per-command page, which is where a reader goes for it. Both are still checked, on the
+    // page that owns each.
     for (const [flag, alias] of EXPECTED_SURFACE) {
-      expect(result.stdout).toContain(flag);
       expect(result.stdout).toContain(alias);
+      const page = await fg(dir, ["--help", alias]);
+      expect(page.code).toBe(0);
+      expect(page.stdout).toContain(flag);
+      expect(page.stdout).toContain(alias);
     }
     // The page itself is rendered in the language, not just the summaries (report 3.3 §4).
-    expect(result.stdout).toContain("команды:");
+    expect(result.stdout).toContain("Использование");
     expect(result.stdout).toMatch(/[А-Яа-яЁё]/u);
   });
 
   it("--lang en — the same surface, a different page", async () => {
     const dir = scratchWithBundle();
-    const ru = await fe(dir, ["--help"]);
-    const en = await fe(dir, ["--lang", "en", "--help"]);
+    const ru = await fg(dir, ["--help"]);
+    const en = await fg(dir, ["--lang", "en", "--help"]);
     expect(en.code).toBe(0);
-    for (const [flag, alias] of EXPECTED_SURFACE) {
-      expect(en.stdout).toContain(flag);
+    for (const [, alias] of EXPECTED_SURFACE) {
       expect(en.stdout).toContain(alias);
     }
-    expect(en.stdout).toContain("commands:");
+    expect(en.stdout).toContain("Usage");
     // Not a Russian page with English flag names, and not the same page twice.
     expect(en.stdout).not.toMatch(/[А-Яа-яЁё]/u);
     expect(en.stdout).not.toBe(ru.stdout);
@@ -206,7 +236,7 @@ describe("(a) --help lists the whole pixso surface, in both languages", () => {
 describe("(b) --version", () => {
   it("prints exactly the version in cli/package.json, and not the build-time fallback", async () => {
     const dir = scratchWithBundle();
-    const result = await fe(dir, ["--version"]);
+    const result = await fg(dir, ["--version"]);
     expect(result.code).toBe(0);
     expect(result.stdout.trim()).toBe(manifest.version);
     // The `define` really fired — `0.0.0-dev` is what `src/version.ts` degrades to when it
@@ -223,25 +253,33 @@ describe("(c) --get-pixso-svg <guid> against a fake MCP on the local endpoint", 
     const server = await serving();
     const dir = scratchWithBundle();
 
-    const result = await fe(dir, ["--get-pixso-svg", ROOT_GUID], {
+    const result = await fg(dir, ["--get-pixso-svg", ROOT_GUID], {
       ...childEnv({ PIXSO_LOCAL_MCP_URL: server.url }),
     });
 
-    expect(result.stderr).toBe("");
+    expectQuietUi(result.stderr);
     expect(result.code).toBe(0);
-    expect(result.stdout.startsWith("<svg")).toBe(true);
 
+    // CHANGED IN E2b. The bare run used to print the SVG on stdout; now it WRITES, to the
+    // documented default, and stdout carries the absolute path of what it wrote (the owner's
+    // law, `WORKFLOW/features/eds-parser/briefs/e2b-output-normalization.md:19-34`). The
+    // directory did not exist a moment ago — this is the "created on demand" half.
+    const written = join(dir, "fg-out", "pixso", "11-10.svg");
+    expect(existsSync(written)).toBe(true);
+    expect(result.stdout.trimEnd().split("\n").at(-1)).toBe(written);
+
+    const svg = readFileSync(written, "utf8");
+    expect(svg.startsWith("<svg")).toBe(true);
     // FIXTURE-DERIVED, not restated: the geometry is read out of the very envelope the fake
     // served, so this cannot pass against a cached or default render.
     const root = dslRootNode(CLEAN_DSL);
-    expect(result.stdout).toContain(`width="${String(root.width)}"`);
-    expect(result.stdout).toContain(`height="${String(root.height)}"`);
-    for (const text of dslTexts(CLEAN_DSL)) expect(result.stdout).toContain(text);
+    expect(svg).toContain(`width="${String(root.width)}"`);
+    expect(svg).toContain(`height="${String(root.height)}"`);
+    for (const text of dslTexts(CLEAN_DSL)) expect(svg).toContain(text);
     expect(dslTexts(CLEAN_DSL).length).toBeGreaterThan(0);
 
-    // Nothing is appended to a piped payload — the byte-for-byte redirect is the point
-    // (report 3.2 §1).
-    expect(result.stdout.endsWith("</svg>")).toBe(true);
+    // Nothing is appended to the file — the artifact is the artifact (report 3.2 §1).
+    expect(svg.endsWith("</svg>")).toBe(true);
 
     // The wire, seen from the far end. LOCAL route ⇒ `{ itemId }` plus the catalogue follow-up
     // (`ru-code-packages/packages/pixso-core/src/adapters/fetchPlan.ts:99-103` and
@@ -260,14 +298,14 @@ describe("(d) --get-pixso-assets <guid> -o <dir>", () => {
     const dir = scratchWithBundle();
     const out = join(dir, "assets");
 
-    const result = await fe(dir, ["--get-pixso-assets", ROOT_GUID, "-o", out], {
+    const result = await fg(dir, ["--get-pixso-assets", ROOT_GUID, "-o", out], {
       ...childEnv({ PIXSO_LOCAL_MCP_URL: server.url }),
     });
 
-    expect(result.stderr).toBe("");
+    expectQuietUi(result.stderr);
     expect(result.code).toBe(0);
     // EXACTLY these four — `toEqual` on the sorted listing, so a fifth file fails too.
-    expect(readdirSync(out).sort()).toEqual(["card.html", "card.json", "card.md", "card.svg"]);
+    expect(readdirSync(out).toSorted()).toEqual(["card.html", "card.json", "card.md", "card.svg"]);
 
     // Each file is the face it claims to be, and each carries the fixture's own content.
     const svg = readFileSync(join(out, "card.svg"), "utf8");
@@ -297,7 +335,7 @@ describe("(e) a design link with no token anywhere", () => {
 
     // Both endpoints point at the fake, so a refusal that leaked into a fetch would be VISIBLE
     // as a recorded call rather than invisible as a connection error.
-    const result = await fe(dir, ["--get-pixso-svg", DESIGN_URL], {
+    const result = await fg(dir, ["--get-pixso-svg", DESIGN_URL], {
       ...childEnv({ PIXSO_REMOTE_MCP_URL: server.url, PIXSO_LOCAL_MCP_URL: server.url }),
     });
 
@@ -317,7 +355,7 @@ describe("(e) a design link with no token anywhere", () => {
   it("--lang en says the same three things in English", async () => {
     const server = await serving();
     const dir = scratchWithBundle();
-    const result = await fe(dir, ["--lang", "en", "--get-pixso-svg", DESIGN_URL], {
+    const result = await fg(dir, ["--lang", "en", "--get-pixso-svg", DESIGN_URL], {
       ...childEnv({ PIXSO_REMOTE_MCP_URL: server.url }),
     });
     expect(result.code).toBe(2);
@@ -350,11 +388,16 @@ describe("(f) a .env file beside the bundle carries the remote token onto the wi
     const env = childEnv();
     expect(env["PIXSO_REMOTE_MCP_TOKEN"]).toBeUndefined();
 
-    const result = await fe(dir, ["--get-pixso-svg", DESIGN_URL], env);
+    const result = await fg(dir, ["--get-pixso-svg", DESIGN_URL], env);
 
-    expect(result.stderr).toBe("");
+    expectQuietUi(result.stderr);
     expect(result.code).toBe(0);
-    expect(result.stdout.startsWith("<svg")).toBe(true);
+    // CHANGED IN E2b: the payload is a FILE now, so the proof that the run succeeded is the
+    // file rather than the first bytes of stdout. Its name comes from the link's `item-id`,
+    // which is the same guid the local route names — see the default-output case in (h).
+    expect(readFileSync(join(dir, "fg-out", "pixso", "11-10.svg"), "utf8").startsWith("<svg")).toBe(
+      true,
+    );
 
     // THE POINT OF THE CASE. `.env` → `process.loadEnvFile` → `process.env` → the cli's
     // precedence chain → `settingsToEnv` → `CommandContext` → `pixsoRuntimeOf` → `fetchScan`
@@ -365,7 +408,7 @@ describe("(f) a .env file beside the bundle carries the remote token onto the wi
     // REMOTE route ⇒ `{ file_key, guid }` and no catalogue follow-up — the route decision,
     // visible on the wire rather than inferred.
     expect(server.calls[0]?.tool).toBe(GET_NODE_DSL);
-    expect(Object.keys(server.calls[0]?.args ?? {}).sort()).toEqual(["file_key", "guid"]);
+    expect(Object.keys(server.calls[0]?.args ?? {}).toSorted()).toEqual(["file_key", "guid"]);
     expect(server.calls[0]?.args["guid"]).toBe(ROOT_GUID);
   });
 
@@ -373,7 +416,7 @@ describe("(f) a .env file beside the bundle carries the remote token onto the wi
     const server = await serving();
     const dir = scratchWithBundle();
     // Same argv, same environment, same server; the only difference is the missing file.
-    const result = await fe(dir, ["--get-pixso-svg", DESIGN_URL], {
+    const result = await fg(dir, ["--get-pixso-svg", DESIGN_URL], {
       ...childEnv({ PIXSO_REMOTE_MCP_URL: server.url }),
     });
     expect(result.code).toBe(2);
@@ -386,7 +429,7 @@ describe("(f) a .env file beside the bundle carries the remote token onto the wi
 describe("(g) an unknown flag", () => {
   it("names the offending flag, exit 2, nothing on stdout", async () => {
     const dir = scratchWithBundle();
-    const result = await fe(dir, ["--not-a-real-flag"]);
+    const result = await fg(dir, ["--not-a-real-flag"]);
     expect(result.code).toBe(2);
     expect(result.stdout).toBe("");
     expect(result.stderr).toContain("--not-a-real-flag");
@@ -396,11 +439,62 @@ describe("(g) an unknown flag", () => {
     // The scaffold's placeholder passed only because the skeleton's `run` returned 0 for
     // everything (report 3.3 DEVIATIONS §2). Pinned here so that can never silently return.
     const dir = scratchWithBundle();
-    const result = await fe(dir, []);
+    const result = await fg(dir, []);
     expect(result.code).toBe(2);
-    for (const [flag] of EXPECTED_SURFACE) {
-      expect(result.stdout + result.stderr).toContain(flag);
+    for (const [, alias] of EXPECTED_SURFACE) {
+      expect(result.stdout + result.stderr).toContain(alias);
     }
+  });
+});
+
+// ── (g2) a flag the selected command has not declared ─────────────────────────────────────
+
+/**
+ * V3 MAJOR-1, through the SHIPPED bundle. The audit's repro was
+ * `node fg.mjs --parse-ui-kit eds --source <kit> -o /tmp/zzz` → EXIT 0, corpus written,
+ * `/tmp/zzz` never created, no warning anywhere. It is now a parse-time refusal, which is also
+ * why this case is cheap: nothing is cloned, nothing is installed, no network is touched,
+ * because the invocation never reaches `run`.
+ */
+describe("(g2) a flag the selected command has not declared", () => {
+  it("refuses `-o` on --parse-ui-kit, exit 2, naming the flag and the command, writing nothing", async () => {
+    const dir = scratchWithBundle();
+    const target = join(dir, "zzz.json");
+    const result = await fg(dir, ["--parse-ui-kit", "eds", "-o", target]);
+    expect(result.code).toBe(2);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toContain("-o");
+    expect(result.stderr).toContain("--parse-ui-kit");
+    // The whole point of the finding: the destination the user named is not silently dropped,
+    // and nothing else appears beside the bundle either.
+    expect(existsSync(target)).toBe(false);
+    expect(readdirSync(dir)).toEqual(["fg.mjs"]);
+  });
+
+  it("says it in English under --lang en", async () => {
+    const dir = scratchWithBundle();
+    const result = await fg(dir, ["--lang", "en", "--parse-ui-kit", "eds", "-o", "x.json"]);
+    expect(result.code).toBe(2);
+    expect(result.stderr).toContain("is not supported by --parse-ui-kit");
+  });
+
+  it("refuses `--source` on --project-report the same way", async () => {
+    const dir = scratchWithBundle();
+    const result = await fg(dir, ["--project-report", ".", "--source", "/tmp/zzz"]);
+    expect(result.code).toBe(2);
+    expect(result.stdout).toBe("");
+    expect(result.stderr).toContain("--source");
+    expect(result.stderr).toContain("--project-report");
+    expect(readdirSync(dir)).toEqual(["fg.mjs"]);
+  });
+
+  it("still accepts the flags each command DOES declare — `--source` on --parse-ui-kit", async () => {
+    // Proof the refusal is scoped and not a blanket ban: the same flag on the command that
+    // declares it gets past parsing and fails later, on the path that does not exist, which is
+    // exit 1 (a runtime failure) rather than exit 2 (a usage error).
+    const dir = scratchWithBundle();
+    const result = await fg(dir, ["--parse-ui-kit", "eds", "--source", join(dir, "no-such-kit")]);
+    expect(result.code).toBe(1);
   });
 });
 
@@ -408,13 +502,13 @@ describe("(g) an unknown flag", () => {
 
 describe("the bundle is genuinely self-contained", () => {
   it("`dist/` holds ONE file and it runs with no node_modules anywhere above it", async () => {
-    expect(readdirSync(join(packageRoot, "dist"))).toEqual(["main.mjs"]);
+    expect(readdirSync(join(packageRoot, "dist"))).toEqual(["fg.mjs"]);
     const dir = scratchWithBundle();
     // `scratchWithBundle` already asserted both halves of the isolation; running a command
     // that reaches the pixso engine is what makes it mean something — an un-inlined
     // `@modelcontextprotocol/sdk` or `undici` would throw ERR_MODULE_NOT_FOUND here.
     const server = await serving();
-    const result = await fe(dir, ["--get-pixso-prompt", ROOT_GUID], {
+    const result = await fg(dir, ["--get-pixso-prompt", ROOT_GUID], {
       ...childEnv({ PIXSO_LOCAL_MCP_URL: server.url }),
     });
     expect(result.stderr).not.toContain("ERR_MODULE_NOT_FOUND");
@@ -427,5 +521,274 @@ describe("the bundle is genuinely self-contained", () => {
     // `cli/` sits under a `node_modules`, so an empty answer there would mean the check is
     // blind and every isolation claim in this file is decoration.
     expect(nodeModulesAbove(packageRoot).length).toBeGreaterThan(0);
+  });
+});
+
+// ── the terminal UI, through the shipped bundle ───────────────────────────────────────────
+
+/**
+ * TIER 2 for the UI: the same renderer `packages/cli-kit/tests/ui.test.ts` drives with a fake
+ * stream, here reached the only way a user reaches it — the built single file, in a child
+ * process, with the environment as the only lever.
+ *
+ * A child process has no pseudo-terminal, so the full-color lane is entered with `FORCE_COLOR`
+ * rather than a pty. That is not a test-only backdoor: it is the conventional node CLI switch,
+ * it is implemented in `capabilityOf` alongside `NO_COLOR` and `FORCE_COLOR=0`, and it is what
+ * lets anyone see the real output of a piped run without `script`.
+ *
+ * THE ONE CLAIM THAT MATTERS MOST is the last case but one: whatever the UI does, `stdout` is
+ * the same bytes it has always been. Everything else on this page is decoration if that is not
+ * true.
+ */
+describe("(g) the terminal UI", () => {
+  it("piped: the header, one row per phase with its elapsed, then the block — no escapes", async () => {
+    const server = await serving();
+    const dir = scratchWithBundle();
+    const result = await fg(dir, ["--get-pixso-svg", ROOT_GUID], {
+      ...childEnv({ PIXSO_LOCAL_MCP_URL: server.url }),
+    });
+
+    expect(result.code).toBe(0);
+    expectQuietUi(result.stderr);
+    // §2.1: `fg v<version> · psvg · локальный маршрут · 11:10`.
+    const header = result.stderr.split("\n")[0] ?? "";
+    expect(header.startsWith("fg v")).toBe(true);
+    expect(header).toContain("psvg");
+    expect(header).toContain("локальный маршрут");
+    expect(header).toContain(ROOT_GUID);
+    // §2.2, the non-TTY lane: the phases a face command walks, in order, each row carrying its
+    // own elapsed. `маршрут` is NOT among them any more — routing is a pure read of the string
+    // the user typed, and announcing it put a live line ahead of the header (V5 finding #3).
+    const order = ["загрузка", "рендер", "запись"];
+    const positions = order.map((label) => result.stderr.indexOf(`  ${label}`));
+    expect(positions.every((at) => at >= 0)).toBe(true);
+    expect([...positions].toSorted((a, b) => a - b)).toEqual(positions);
+    expect(result.stderr).toMatch(/\d+\.\ds/u);
+    // §2.3: the block's last row is the written path, verbatim.
+    expect(result.stderr.trimEnd().split("\n").at(-1)).toContain(
+      join(dir, "fg-out", "pixso", "11-10.svg"),
+    );
+  });
+
+  /**
+   * V5 FINDING #1 — `FORCE_COLOR` COLOURS A PIPE; IT DOES NOT ANIMATE ONE.
+   *
+   * This case used to assert the opposite: that `FORCE_COLOR=1` into a captured pipe produced
+   * the whole live line — spinner frames, the 16-cell bar, `100%` — which is exactly the bug.
+   * Design §2.2 selects the lane by TTY-NESS and U7 governs colour alone, so a log file gets
+   * coloured phase rows and a terminal gets the live line. The live line on a REAL terminal is
+   * asserted by `packages/cli-kit/tests/ui.test.ts` and by the report's `script -qec` captures.
+   */
+  it("FORCE_COLOR: a coloured LEDGER in a pipe — no spinner animation in a log file", async () => {
+    const server = await serving();
+    const dir = scratchWithBundle();
+    const result = await fg(dir, ["--get-pixso-assets", ROOT_GUID, "-o", join(dir, "assets")], {
+      ...childEnv({ PIXSO_LOCAL_MCP_URL: server.url, FORCE_COLOR: "1", COLORTERM: "truecolor" }),
+    });
+
+    expect(result.code).toBe(0);
+    // Colour, because that is what the flag asks for: the dim `fg v1.0.0` of the header.
+    expect(result.stderr).toContain("\u001b[2m");
+    // …and NONE of the live line: no erase, no spinner frame, no bar, no percent.
+    expect(result.stderr).not.toContain("\r\u001b[K");
+    expect(result.stderr).not.toContain("⠋");
+    expect(result.stderr).not.toContain("▕");
+    expect(result.stderr).not.toContain("█");
+    expect(result.stderr).not.toContain("100%");
+    // The pipe's own lane instead: one row per phase, with its elapsed.
+    expect(result.stderr).toContain("  запись");
+    expect(result.stderr).toMatch(/\d+\.\ds/u);
+    // §2.3 — the block's green headline, and NOT the look that was rejected.
+    expect(result.stderr).toContain("\u001b[0;32m✔\u001b[0m");
+    expect(result.stderr).not.toContain("╔");
+    expect(result.stderr).not.toContain("▸");
+    expect(result.stderr).not.toContain("▓");
+  });
+
+  it("NO_COLOR beats FORCE_COLOR: the plain lane, even when both are set", async () => {
+    const server = await serving();
+    const dir = scratchWithBundle();
+    const result = await fg(dir, ["--get-pixso-svg", ROOT_GUID], {
+      ...childEnv({ PIXSO_LOCAL_MCP_URL: server.url, FORCE_COLOR: "1", NO_COLOR: "1" }),
+    });
+    expect(result.code).toBe(0);
+    expectQuietUi(result.stderr);
+  });
+
+  /**
+   * DESIGN 2.6's runtime block. The old shape was a phase LEDGER — a `✓` per phase and a `✗` on
+   * the one that died — which is the checklist U3 removes. What replaces it is one red line and
+   * one pointer row; which phase was in flight is already on the stream, as its own row.
+   */
+  it("a runtime failure is one red line plus the --debug pointer, and no block claims success", async () => {
+    const dir = scratchWithBundle();
+    // Nothing is serving on that port, so the FETCH phase is the one that dies.
+    const result = await fg(dir, ["--get-pixso-svg", ROOT_GUID], {
+      ...childEnv({ PIXSO_LOCAL_MCP_URL: "http://127.0.0.1:1/mcp" }),
+    });
+
+    expect(result.code).toBe(1);
+    expect(result.stdout).toBe("");
+    // The header was printed: the run HAD started (design 2.6's last line).
+    expect(result.stderr).toContain("fg v");
+    expect(result.stderr).toContain("✖");
+    expect(result.stderr).not.toContain("✔");
+    expect(result.stderr).not.toContain("✓");
+    expect(result.stderr).not.toContain("✗");
+  });
+
+  it("STDOUT IS BYTE-IDENTICAL whatever the UI is doing — plain, colored, or off", async () => {
+    const server = await serving();
+    // ONE directory for all four runs, because stdout now carries an absolute path and four
+    // scratch directories would differ in exactly that path — which would make this case fail
+    // for a reason that has nothing to do with the UI.
+    const dir = scratchWithBundle();
+    const bytes: string[] = [];
+    for (const extra of [
+      {},
+      { FORCE_COLOR: "1", COLORTERM: "truecolor" },
+      { NO_COLOR: "1" },
+      { FORCE_COLOR: "0" },
+    ]) {
+      const result = await fg(dir, ["--get-pixso-svg", ROOT_GUID], {
+        ...childEnv({ PIXSO_LOCAL_MCP_URL: server.url, ...extra }),
+      });
+      expect(result.code).toBe(0);
+      bytes.push(result.stdout);
+    }
+    expect(new Set(bytes).size).toBe(1);
+    // CHANGED IN E2b, narrowed by U3: stdout is the absolute path and nothing else — never the
+    // artifact, and no longer the headline. Not one escape byte and not one `\r` in it,
+    // whatever the UI drew on stderr.
+    expect(bytes[0]?.trimEnd()).toBe(join(dir, "fg-out", "pixso", "11-10.svg"));
+    // `not.toContain`, not a regex: a regex spelling a control character trips
+    // `eslint(no-control-regex)`, and the repo's lint baseline is zero warnings. It is also the
+    // spelling `expectQuietUi` above already uses for exactly this check.
+    expect(bytes[0]).not.toContain("\u001b");
+    expect(bytes[0]).not.toContain("\r");
+  });
+
+  it("--help and --version draw NOTHING: no banner, no card, an empty stderr", async () => {
+    const dir = scratchWithBundle();
+    for (const args of [["--help"], ["--version"], ["--lang", "en", "--help"]]) {
+      const result = await fg(dir, args, {
+        ...childEnv({ FORCE_COLOR: "1", COLORTERM: "truecolor" }),
+      });
+      expect(result.code).toBe(0);
+      // The UI is lazy: it is built for a command invocation and draws its banner on the first
+      // phase, so an invocation that never reaches a command leaves stderr untouched.
+      expect(result.stderr).toBe("");
+    }
+  });
+});
+
+// ── (h) the default output contract, from a bare directory ────────────────────────────────
+
+/**
+ * THE OWNER'S LAW, through the SHIPPED bundle, from a directory holding nothing but that
+ * bundle: `-o` omitted on every pixso command, files appear at the documented defaults, stdout
+ * carries their absolute paths one per line (U3 — this child's stdout is a pipe) and the summary
+ * block names them again as rows
+ * (`WORKFLOW/features/eds-parser/briefs/e2b-output-normalization.md:19-32, 40-43`).
+ *
+ * This is the tier the brief asks for because it is the only tier where "cwd-relative, created
+ * on demand" means anything: the child process really has a cwd, `fg-out/` really does not
+ * exist when it starts, and the paths on stdout are really absolute rather than resolved
+ * against a test's imagination.
+ */
+describe("(h) no -o anywhere — the defaults, in a bare temp directory", () => {
+  it("the three faces write ./fg-out/pixso/<name>.<ext> and report absolute paths", async () => {
+    const server = await serving();
+    const dir = scratchWithBundle();
+
+    for (const [flag, file] of [
+      ["--psvg", "11-10.svg"],
+      ["--phtml", "11-10.html"],
+      ["--pprompt", "11-10.md"],
+    ] as const) {
+      const result = await fg(dir, [flag, ROOT_GUID], {
+        ...childEnv({ PIXSO_LOCAL_MCP_URL: server.url }),
+      });
+      expect(result.code).toBe(0);
+      expectQuietUi(result.stderr);
+
+      const written = join(dir, "fg-out", "pixso", file);
+      expect(existsSync(written)).toBe(true);
+      // CHANGED BY U3: stdout is DATA — the absolute path, alone, so `fg --psvg 11:10 | xargs`
+      // works with no filtering. The headline moved to the block on stderr.
+      const lines = result.stdout.trimEnd().split("\n");
+      expect(lines).toHaveLength(1);
+      expect(lines[0]).toBe(written);
+      expect(isAbsolute(lines[0] ?? "")).toBe(true);
+      // …and the block on stderr carries the same absolute path VERBATIM, on one row: U6, and
+      // the single defect this redesign exists to remove — the old card hard-broke it in two.
+      expect(result.stderr.split("\n").some((row) => row.endsWith(written))).toBe(true);
+    }
+
+    // One stem, three extensions, all beside each other — and nothing else in the directory.
+    expect(readdirSync(join(dir, "fg-out", "pixso")).toSorted()).toEqual([
+      "11-10.html",
+      "11-10.md",
+      "11-10.svg",
+    ]);
+    expect(readdirSync(dir).toSorted()).toEqual(["fg-out", "fg.mjs"]);
+  });
+
+  it("--passets writes ./fg-out/pixso/<name>/ and stdout lists all FOUR paths", async () => {
+    const server = await serving();
+    const dir = scratchWithBundle();
+
+    const result = await fg(dir, ["--passets", ROOT_GUID], {
+      ...childEnv({ PIXSO_LOCAL_MCP_URL: server.url }),
+    });
+
+    expect(result.code).toBe(0);
+    expectQuietUi(result.stderr);
+
+    const out = join(dir, "fg-out", "pixso", "11-10");
+    expect(readdirSync(out).toSorted()).toEqual(["card.html", "card.json", "card.md", "card.svg"]);
+
+    // FOUR lines: one absolute path per file, in write order, and nothing else (U3).
+    const lines = result.stdout.trimEnd().split("\n");
+    expect(lines).toEqual([
+      join(out, "card.svg"),
+      join(out, "card.html"),
+      join(out, "card.md"),
+      join(out, "card.json"),
+    ]);
+    for (const path of lines) expect(isAbsolute(path)).toBe(true);
+    // The block keys them by face — `svg`, `html`, `md`, `json` (design 2.5).
+    for (const key of ["svg", "html", "md", "json"]) {
+      expect(result.stderr).toMatch(new RegExp(`^  ${key}\\s+/`, "mu"));
+    }
+  });
+
+  it("a design link with a token names the SAME file as its guid", async () => {
+    const server = await serving();
+    const dir = scratchWithBundle();
+
+    const result = await fg(dir, ["--psvg", DESIGN_URL], {
+      ...childEnv({ PIXSO_REMOTE_MCP_URL: server.url, PIXSO_REMOTE_MCP_TOKEN: "t" }),
+    });
+
+    expect(result.code).toBe(0);
+    // The name follows the DESIGN, not the spelling: the link's `item-id` is the guid.
+    expect(readdirSync(join(dir, "fg-out", "pixso"))).toEqual(["11-10.svg"]);
+  });
+
+  it("`-o` still wins, and its parent directories are created", async () => {
+    const server = await serving();
+    const dir = scratchWithBundle();
+    const target = join(dir, "deep", "er", "still", "card.svg");
+
+    const result = await fg(dir, ["--psvg", ROOT_GUID, "-o", target], {
+      ...childEnv({ PIXSO_LOCAL_MCP_URL: server.url }),
+    });
+
+    expect(result.code).toBe(0);
+    expect(existsSync(target)).toBe(true);
+    expect(result.stdout.trimEnd().split("\n").at(-1)).toBe(target);
+    // …and NO default was written beside it.
+    expect(existsSync(join(dir, "fg-out"))).toBe(false);
   });
 });

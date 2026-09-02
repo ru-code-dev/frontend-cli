@@ -1,0 +1,22 @@
+{
+  // Modelled on `ru-code-packages/packages/pixso-cli/tsconfig.json:5-10`; `tests` rides along
+  // in the include so the suites are checked at the same strictness as the source.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "lib": ["ESNext"]
+  },
+  "include": ["src", "tests"],
+  // The fixtures are INPUT, not source: mini React projects the engine reads as text, copied
+  // verbatim from `packages/fg-analyzer-engine/tests/fixtures` so the parity suite can run a
+  // real analysis. Typechecking them would be typechecking the test data — they import `react`,
+  // which this package's library half neither has nor needs. Same exclusion, same reason, as
+  // `packages/fg-analyzer-engine/tsconfig.json:11`.
+  // …with ONE file excluded on top of the fixtures: `tests/dashboard-render.test.ts` renders
+  // the dashboard's `.tsx` screens and exercises the one module that reads `document`, so it
+  // needs `jsx` and the `DOM` lib. Granting those here would grant them to `src` as well, and
+  // this half of the package is a pure string generator that must never reach for a browser
+  // global. `dashboard/tsconfig.json` includes that file instead — the project that already
+  // owns the code it exercises.
+  "exclude": ["tests/fixtures", "tests/dashboard-render.test.ts"]
+}

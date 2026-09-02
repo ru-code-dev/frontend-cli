@@ -1,6 +1,6 @@
 {
-  "name": "@smart-tools/fe-testkit",
-  "version": "0.1.0",
+  "name": "@smart-tools/fg-testkit",
+  "version": "1.0.0",
   "private": true,
   "license": "UNLICENSED",
   "files": [
@@ -16,9 +16,11 @@
   "scripts": {
     "typecheck": "tsgo -p tsconfig.json",
     "test": "vp test run --project unit",
+    "test:e2e": "vp test run --project e2e",
     "build": "tsdown"
   },
   "devDependencies": {
+    "@playwright/test": "catalog:",
     "@smart-tools/pixso-core": "catalog:",
     "@types/node": "catalog:",
     "tsdown": "catalog:",

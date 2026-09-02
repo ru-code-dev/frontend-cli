@@ -1,6 +1,6 @@
 {
-  "name": "@smart-tools/fe-cli-kit",
-  "version": "0.1.0",
+  "name": "@smart-tools/fg-cli-kit",
+  "version": "1.0.0",
   "private": true,
   "license": "UNLICENSED",
   "files": [

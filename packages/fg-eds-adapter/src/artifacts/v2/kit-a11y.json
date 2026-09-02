@@ -1,0 +1,299 @@
+{
+  "$schema": "ds-analyzer/kit-a11y@1",
+  "meta": {
+    "upstreamVersion": "none",
+    "packagesScanned": 22,
+    "upstreamAvailable": true,
+    "corpus": {
+      "kit": "eds2",
+      "version": "2.0.0",
+      "commit": "e593235e097d24ad32e8916a5c38023d51e12857",
+      "extractor": "1.0.0",
+      "source": "https://gitverse.ru/sbertech/ui-kit-eds-ce.git",
+      "ref": "develop-2.0"
+    }
+  },
+  "patterns": [
+    {
+      "component": "Button",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": ["button"],
+      "ariaAttributes": ["aria-busy", "aria-disabled"],
+      "keysHandled": ["Enter"],
+      "managesFocus": false
+    },
+    {
+      "component": "Checkbox",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": [],
+      "ariaAttributes": ["aria-label"],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "CheckboxGroup",
+      "packages": ["@sds-eng/base-exp"],
+      "matchedBy": "own-source",
+      "roles": ["presentation"],
+      "ariaAttributes": [],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "ClearButton",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": ["button"],
+      "ariaAttributes": [],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "Drawer",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": [],
+      "ariaAttributes": ["aria-describedby", "aria-labelledby"],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "Dropdown",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": [],
+      "ariaAttributes": [],
+      "keysHandled": ["Escape"],
+      "managesFocus": false
+    },
+    {
+      "component": "Field",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": [],
+      "ariaAttributes": [],
+      "keysHandled": ["Enter"],
+      "managesFocus": true
+    },
+    {
+      "component": "FieldControl",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": [],
+      "ariaAttributes": ["aria-hidden", "aria-live"],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "Link",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": [],
+      "ariaAttributes": ["aria-disabled"],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "Modal",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": ["document"],
+      "ariaAttributes": ["aria-describedby", "aria-labelledby"],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "Notification",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": ["alert"],
+      "ariaAttributes": [],
+      "keysHandled": ["Escape"],
+      "managesFocus": false
+    },
+    {
+      "component": "NumberField",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": [],
+      "ariaAttributes": [],
+      "keysHandled": ["Backspace"],
+      "managesFocus": false
+    },
+    {
+      "component": "Overlay",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": [],
+      "ariaAttributes": [],
+      "keysHandled": ["Escape"],
+      "managesFocus": true
+    },
+    {
+      "component": "SelectionGroup",
+      "packages": ["@sds-eng/base-exp"],
+      "matchedBy": "own-source",
+      "roles": ["group"],
+      "ariaAttributes": [],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "Spinner",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": ["status"],
+      "ariaAttributes": [],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "Switch",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": ["switch"],
+      "ariaAttributes": ["aria-label"],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "Tag",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": ["button"],
+      "ariaAttributes": ["aria-disabled", "aria-label"],
+      "keysHandled": ["Backspace", "Delete", "Enter"],
+      "managesFocus": false
+    },
+    {
+      "component": "TagField",
+      "packages": ["@sds-eng/base-exp"],
+      "matchedBy": "own-source",
+      "roles": [],
+      "ariaAttributes": [],
+      "keysHandled": ["Enter"],
+      "managesFocus": false
+    },
+    {
+      "component": "Text",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": ["button"],
+      "ariaAttributes": [],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "TextField",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": [],
+      "ariaAttributes": ["aria-describedby"],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "Textarea",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": [],
+      "ariaAttributes": ["aria-label"],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "Tooltip",
+      "packages": ["@sds-eng/kit-exp"],
+      "matchedBy": "own-source",
+      "roles": ["tooltip"],
+      "ariaAttributes": [],
+      "keysHandled": [],
+      "managesFocus": false
+    }
+  ],
+  "spacing": {
+    "steps": [
+      {
+        "px": 0,
+        "occurrences": 39
+      },
+      {
+        "px": 4,
+        "occurrences": 34
+      },
+      {
+        "px": 8,
+        "occurrences": 69
+      },
+      {
+        "px": 12,
+        "occurrences": 4
+      },
+      {
+        "px": 16,
+        "occurrences": 46
+      },
+      {
+        "px": 24,
+        "occurrences": 13
+      },
+      {
+        "px": 32,
+        "occurrences": 3
+      }
+    ],
+    "totalDeclarations": 257,
+    "coverage": 0.980544747081712,
+    "gridBase": 4,
+    "gridCoverage": 0.8171206225680934,
+    "offGridSteps": [
+      {
+        "px": 2,
+        "occurrences": 10
+      },
+      {
+        "px": 3,
+        "occurrences": 4
+      },
+      {
+        "px": 6,
+        "occurrences": 11
+      },
+      {
+        "px": 10,
+        "occurrences": 19
+      }
+    ]
+  },
+  "diagnostics": [
+    {
+      "code": "a11y-evidence-from-kit-sources",
+      "severity": "info",
+      "message": "EDS 2.x ничего не оборачивает: доступность прочитана из собственных исходников кита (packages/base и packages/kit), а не из upstream-библиотеки. Свидетельство означает, что поведение реализовано, а не что оно реализовано правильно.",
+      "samples": [
+        "Button",
+        "Checkbox",
+        "CheckboxGroup",
+        "ClearButton",
+        "Drawer",
+        "Dropdown",
+        "Field",
+        "FieldControl",
+        "Link",
+        "Modal",
+        "Notification",
+        "NumberField"
+      ],
+      "count": 22
+    },
+    {
+      "code": "spacing-scale-derived",
+      "severity": "info",
+      "message": "Шкала отступов выведена из реализаций кита, а не опубликована им: тира spacing в теме нет. Шкала описывает 98% объявлений, поэтому отклонение от неё — повод для заметки, а не для ошибки.",
+      "samples": ["0px ×39", "4px ×34", "8px ×69", "12px ×4", "16px ×46", "24px ×13", "32px ×3"],
+      "count": 7
+    }
+  ]
+}

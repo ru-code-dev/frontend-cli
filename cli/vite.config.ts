@@ -68,6 +68,6 @@ const integrationTestProject = {
 } satisfies TestProjectInlineConfiguration;
 
 export default defineConfig(() => ({
-  define: { __FE_VERSION__: JSON.stringify(version) },
+  define: { __FG_VERSION__: JSON.stringify(version) },
   test: { projects: [defineProject(unitTestProject), defineProject(integrationTestProject)] },
 }));

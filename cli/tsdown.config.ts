@@ -6,7 +6,7 @@ import { defineConfig } from "tsdown";
  * The version, read HERE — in the build process — and substituted into the bundle as a literal.
  *
  * This read happens while tsdown runs; it is not code that ships. That distinction is the whole
- * requirement: the published tarball is `package.json` + `dist/main.mjs`
+ * requirement: the published tarball is `package.json` + `dist/fg.mjs`
  * (`cli/package.json:8-10`), a user may copy that single file anywhere, and a bundle that reads
  * its own manifest at runtime breaks the moment it is moved away from one. `cli/src/version.ts`
  * documents the consuming half.
@@ -18,10 +18,10 @@ const { version } = JSON.parse(
 // The SINGLE-FILE bundle target, modelled on
 // `ru-code-packages/packages/pixso-cli/tsdown.config.ts:8-35` — the proven recipe for a
 // zero-dep artifact (report 1.2 Q5A). Unlike the library packages beside it, `cli` inlines
-// its dependencies so `dist/main.mjs` is one self-contained file a user can run with nothing
+// its dependencies so `dist/fg.mjs` is one self-contained file a user can run with nothing
 // installed beside it.
 export default defineConfig({
-  entry: { main: "src/main.ts" },
+  entry: { fg: "src/main.ts" },
   format: "esm",
   // ── THE TWO TRICKS THAT MAKE THE ANALYZER BUNDLABLE ──────────────────────────────────────
   //
@@ -34,7 +34,7 @@ export default defineConfig({
   //
   // (1) `jiti` STAYS EXTERNAL, AND STAYS DEAD. It is the lazy import inside eslint's
   //     config-file loader. Our runtime path is `new Linter().verify(...)` only
-  //     (`packages/fe-analyzer-engine/src/scanner/collectors/jsx-a11y-lint.ts`), which never
+  //     (`packages/fg-analyzer-engine/src/scanner/collectors/jsx-a11y-lint.ts`), which never
   //     touches the loader, so the unresolved import may sit in code that cannot execute. The
   //     alternative — inlining jiti — pulls a whole second transpiler into the bundle to
   //     support a path we do not take. `jiti/package.json` is listed too because the loader
@@ -47,15 +47,15 @@ export default defineConfig({
   //     six-line prologue. Without it the bundle dies at import with
   //     `ReferenceError: __filename is not defined` and never reaches `main`.
   banner: [
-    'import { createRequire as __feCreateRequire } from "node:module";',
-    'import { fileURLToPath as __feFileURLToPath } from "node:url";',
-    'import { dirname as __feDirname } from "node:path";',
-    "const require = __feCreateRequire(import.meta.url);",
-    "const __filename = __feFileURLToPath(import.meta.url);",
-    "const __dirname = __feDirname(__filename);",
+    'import { createRequire as __fgCreateRequire } from "node:module";',
+    'import { fileURLToPath as __fgFileURLToPath } from "node:url";',
+    'import { dirname as __fgDirname } from "node:path";',
+    "const require = __fgCreateRequire(import.meta.url);",
+    "const __filename = __fgFileURLToPath(import.meta.url);",
+    "const __dirname = __fgDirname(__filename);",
   ].join("\n"),
   // EVERY `@smart-tools/*` package, not just one: the chain is
-  // cli -> fe-pixso -> {fe-cli-kit, pixso-core}, and inlining only the first link would leave
+  // cli -> fg-pixso -> {fg-cli-kit, pixso-core}, and inlining only the first link would leave
   // a runtime import of the rest behind — which is precisely what this target exists to
   // avoid (design 2.1:66-68). pixso-core's exports map is `.` + `./node`, so the subpath must
   // be matched too.
@@ -75,7 +75,7 @@ export default defineConfig({
     // This package deliberately has NO `dependencies` key at all (design 2.1:59-60): everything
     // is a devDependency precisely so the published manifest declares zero runtime deps. That
     // closes route two, and externalizing would defeat the single-file target, so the engine is
-    // named here instead. Reached through `packages/fe-pixso`, which is the only module in the
+    // named here instead. Reached through `packages/fg-pixso`, which is the only module in the
     // repo that imports it.
     "@smart-tools/pixso-core",
     "zod",
@@ -90,11 +90,11 @@ export default defineConfig({
     "undici",
     // ── THE h4 ANALYZER CLOSURE (brief B4 deliverable 3) ──────────────────────────────────
     //
-    // Everything below entered the bundle with `packages/fe-project-report`, which reaches
-    // `fe-source` (node builtins only — it contributes NOTHING here), `fe-analyzer-report`
+    // Everything below entered the bundle with `packages/fg-project-report`, which reaches
+    // `fg-source` (node builtins only — it contributes NOTHING here), `fg-analyzer-report`
     // (a template STRING, so it has no runtime dependency of its own either) and
-    // `fe-analyzer-engine`, whose nine production dependencies
-    // (`packages/fe-analyzer-engine/package.json:21-31`) drag the rest in transitively:
+    // `fg-analyzer-engine`, whose nine production dependencies
+    // (`packages/fg-analyzer-engine/package.json:21-31`) drag the rest in transitively:
     // eslint + eslint-plugin-jsx-a11y + typescript-eslint and their closure, ts-morph +
     // typescript, postcss + postcss-scss, aria-query, ignore.
     //
@@ -107,6 +107,16 @@ export default defineConfig({
     //
     // `zod` is NOT repeated: it is already listed above, shared by pixso-core and the engine.
     // `jiti` is deliberately ABSENT — it is `external`, see the top of this file.
+    //
+    // X3 ADDED NOTHING HERE, and that is a result rather than an oversight.
+    // `packages/fg-project-report` now statically imports `@smart-tools/fg-eds-adapter`, which
+    // is matched by the `noExternal` pattern above and whose own third-party surface is `zod`
+    // (already listed) — its 5.6 MB of `dist` is artifacts and its own code, not packages. The
+    // build was re-run from clean and the bundled-dependency check emitted no
+    // `is located in node_modules but is not included in inlineOnly option` line, which is the
+    // same diagnostic that produced the 154 names below. The bundle grew 16 051 732 ->
+    // 20 044 687 bytes; the guard that watches that number is
+    // `cli/tests/project-report.integration.test.ts`, raised in the same change.
     "acorn",
     "acorn-jsx",
     "aria-query",
@@ -268,9 +278,9 @@ export default defineConfig({
    *
    * eslint reaches its filesystem abstraction through `await import("@humanfs/node")`. Rolldown
    * code-splits on a dynamic import by default, so the first successful build emitted THREE
-   * files: `main.mjs` plus `src-*.mjs` (`@humanfs/node`) and the `chunk-*.mjs` they share —
-   * with `main.mjs` importing `./src-*.mjs` by relative path. That is not a self-contained
-   * bundle: copy `main.mjs` alone into a bare directory, as `bundle.integration.test.ts` and
+   * files: `fg.mjs` plus `src-*.mjs` (`@humanfs/node`) and the `chunk-*.mjs` they share —
+   * with `fg.mjs` importing `./src-*.mjs` by relative path. That is not a self-contained
+   * bundle: copy `fg.mjs` alone into a bare directory, as `bundle.integration.test.ts` and
    * every user does, and the import has nothing to resolve against.
    *
    * esbuild never had this problem because it splits only under `splitting: true`, which
@@ -282,10 +292,10 @@ export default defineConfig({
    */
   outputOptions: { codeSplitting: false },
   // BUILD-TIME VERSION INJECTION. `define` is a textual identifier replacement performed during
-  // the build (tsdown 0.20.3 `dist/types-CNIFJKMX.d.mts:725`), so `__FE_VERSION__` in
+  // the build (tsdown 0.20.3 `dist/types-CNIFJKMX.d.mts:725`), so `__FG_VERSION__` in
   // `src/version.ts` becomes the quoted literal below and the surrounding `typeof` guard folds
-  // away under `minify`. No `package.json` read survives into `dist/main.mjs`.
-  define: { __FE_VERSION__: JSON.stringify(version) },
+  // away under `minify`. No `package.json` read survives into `dist/fg.mjs`.
+  define: { __FG_VERSION__: JSON.stringify(version) },
   minify: true,
   sourcemap: false,
   clean: true,
