@@ -1,0 +1,232 @@
+{
+  "$schema": "fg-analyzer-engine/analysis@1",
+  "domains": [
+    "a11y",
+    "components",
+    "icons"
+  ],
+  "findings": [
+    {
+      "id": "f_0001",
+      "rule": "a11y.aria.required",
+      "subkind": "checkbox",
+      "category": "a11y",
+      "severity": "error",
+      "confidence": 0.95,
+      "file": "src/Panel.tsx",
+      "line": 8,
+      "column": 7,
+      "snippet": {
+        "before": "export function Panel() {\n  return (\n    <section className={styles.root}>\n      {/* a11y.aria.required: role=\"checkbox\" must carry aria-checked. */}\n      <span role=\"checkbox\" className={styles.box} tabIndex={0}>\n        Показывать архив\n      </span>\n\n      {/* a11y.aria.redundant: <button> already has role=\"button\". */}",
+        "after": null,
+        "highlightLine": 5,
+        "startLine": 4
+      },
+      "actual": "role=\"checkbox\"",
+      "expected": null,
+      "why": "role=\"checkbox\" обязана нести aria-checked. Без этого состояние элемента не объявляется: он выглядит переключаемым, но всегда сообщает одно и то же.",
+      "note": null,
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": {
+        "wcag": [
+          "4.1.2"
+        ],
+        "pattern": "checkbox",
+        "impact": "Состояние checkbox не передаётся: пользователь скринридера не узнает, включён элемент или нет.",
+        "fix": "Добавьте aria-checked и обновляйте значение вместе с состоянием элемента."
+      },
+      "autoFixable": false,
+      "needsAgent": false,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "a11y.aria.required:checkbox:aria-checked"
+    },
+    {
+      "id": "f_0002",
+      "rule": "a11y.lint",
+      "subkind": "prefer-tag-over-role",
+      "category": "a11y",
+      "severity": "info",
+      "confidence": 0.75,
+      "file": "src/Panel.tsx",
+      "line": 8,
+      "column": 7,
+      "snippet": {
+        "before": "export function Panel() {\n  return (\n    <section className={styles.root}>\n      {/* a11y.aria.required: role=\"checkbox\" must carry aria-checked. */}\n      <span role=\"checkbox\" className={styles.box} tabIndex={0}>\n        Показывать архив\n      </span>\n\n      {/* a11y.aria.redundant: <button> already has role=\"button\". */}",
+        "after": null,
+        "highlightLine": 5,
+        "startLine": 4
+      },
+      "actual": "Use <input type=\"checkbox\"> instead of the \"checkbox\" role to ensure accessibility across all devices.",
+      "expected": null,
+      "why": "Use <input type=\"checkbox\"> instead of the \"checkbox\" role to ensure accessibility across all devices.",
+      "note": null,
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": {
+        "wcag": [],
+        "pattern": null,
+        "impact": "Нативный тег дал бы ту же семантику вместе с поведением.",
+        "fix": "Возьмите нативный тег вместо role: он приносит с собой ещё и клавиатуру."
+      },
+      "autoFixable": false,
+      "needsAgent": false,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "a11y.lint:prefer-tag-over-role"
+    },
+    {
+      "id": "f_0003",
+      "rule": "a11y.aria.redundant",
+      "subkind": null,
+      "category": "a11y",
+      "severity": "info",
+      "confidence": 1,
+      "file": "src/Panel.tsx",
+      "line": 13,
+      "column": 7,
+      "snippet": {
+        "before": "        Показывать архив\n      </span>\n\n      {/* a11y.aria.redundant: <button> already has role=\"button\". */}\n      <button role=\"button\" type=\"button\" className={styles.action}>\n        Применить\n      </button>\n\n      {/* a11y.pattern.relations / danglingId: no element in this file carries that id. */}",
+        "after": "        Показывать архив\n      </span>\n\n      {/* a11y.aria.redundant: <button> already has role=\"button\". */}\n      <button type=\"button\" className={styles.action}>\n        Применить\n      </button>\n\n      {/* a11y.pattern.relations / danglingId: no element in this file carries that id. */}",
+        "highlightLine": 5,
+        "startLine": 9
+      },
+      "actual": " role=\"button\"",
+      "expected": null,
+      "why": "<button> уже имеет роль button. Атрибут ничего не добавляет и создаёт впечатление, что семантика держится на нём, — при рефакторинге тег заменят, а роль оставят.",
+      "note": null,
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": {
+        "wcag": [],
+        "pattern": null,
+        "impact": "Вреда сейчас нет; риск в том, что явная роль переживёт замену тега.",
+        "fix": "Удалите role=\"button\": тег <button> несёт эту роль сам."
+      },
+      "autoFixable": true,
+      "needsAgent": false,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "a11y.aria.redundant:button"
+    },
+    {
+      "id": "f_0004",
+      "rule": "a11y.pattern.relations",
+      "subkind": "danglingId",
+      "category": "a11y",
+      "severity": "error",
+      "confidence": 0.9,
+      "file": "src/Panel.tsx",
+      "line": 18,
+      "column": 7,
+      "snippet": {
+        "before": "        Применить\n      </button>\n\n      {/* a11y.pattern.relations / danglingId: no element in this file carries that id. */}\n      <div aria-labelledby=\"panel-heading-missing\" className={styles.body}>\n        Содержимое\n      </div>\n    </section>\n  );",
+        "after": null,
+        "highlightLine": 5,
+        "startLine": 14
+      },
+      "actual": "aria-labelledby=\"panel-heading-missing\"",
+      "expected": null,
+      "why": "aria-labelledby ссылается на id panel-heading-missing, которого нет ни на одном элементе этого файла. Браузер молча отбрасывает такую ссылку: разметка выглядит связанной, но связи нет.",
+      "note": "Если целевой элемент объявлен в другом файле, правило этого не видит — проверьте вручную.",
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": {
+        "wcag": [
+          "1.3.1",
+          "4.1.2"
+        ],
+        "pattern": null,
+        "impact": "Связь между элементами не существует: скринридер не свяжет вкладку с панелью, поле с подписью.",
+        "fix": "Поставьте id panel-heading-missing на целевой элемент — либо исправьте ссылку на существующий id."
+      },
+      "autoFixable": false,
+      "needsAgent": false,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "a11y.pattern.relations:aria-labelledby"
+    },
+    {
+      "id": "f_0005",
+      "rule": "a11y.focus.suppressed",
+      "subkind": "onFocus",
+      "category": "a11y",
+      "severity": "error",
+      "confidence": 0.95,
+      "file": "src/panel.module.css",
+      "line": 9,
+      "column": 3,
+      "snippet": {
+        "before": "\n/* a11y.focus.suppressed / onFocus: the ring is dropped inside a focus block that draws\n   nothing back. */\n.action:focus {\n  outline: none;\n}\n\n.box {\n  border: 1px solid #d0d0d0;",
+        "after": null,
+        "highlightLine": 5,
+        "startLine": 5
+      },
+      "actual": "outline: none",
+      "expected": null,
+      "why": "Кольцо фокуса убрано прямо в блоке про фокус, и ничего видимого взамен не нарисовано. Пользователь клавиатуры перестаёт видеть, где он находится.",
+      "note": "Если фокус оформлен в другом файле или глобально, это правило об этом не знает — проверьте вручную.",
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": {
+        "wcag": [
+          "2.4.7"
+        ],
+        "pattern": null,
+        "impact": "Навигация с клавиатуры становится невидимой — непонятно, какой элемент сейчас активен.",
+        "fix": "Нарисуйте в этом же блоке видимый индикатор — outline или box-shadow контрастным цветом."
+      },
+      "autoFixable": false,
+      "needsAgent": false,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "a11y.focus.suppressed"
+    }
+  ],
+  "summary": {
+    "files": {
+      "scanned": 2,
+      "clean": 0
+    },
+    "findings": {
+      "total": 5,
+      "bySeverity": {
+        "error": 3,
+        "warning": 0,
+        "info": 2,
+        "candidate": 0
+      },
+      "byRule": {
+        "a11y.aria.required": 1,
+        "a11y.lint": 1,
+        "a11y.aria.redundant": 1,
+        "a11y.pattern.relations": 1,
+        "a11y.focus.suppressed": 1
+      },
+      "byCategory": {
+        "component": 0,
+        "icon": 0,
+        "a11y": 5
+      },
+      "autoFixable": 1,
+      "needsAgent": 0
+    },
+    "limitations": []
+  }
+}

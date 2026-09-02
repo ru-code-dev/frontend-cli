@@ -1,0 +1,34 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    // "ES2023.Array" only (not the full "ES2023" lib, and `target` stays ES2022 so nothing
+    // about emitted/down-leveled syntax changes): brings in `toSorted`/`toReversed` so the
+    // dashboard's own immutable-sort calls type-check the same way every other package's do
+    // (repo-wide lint bar, f1-fixes item 1). Widely supported (Chrome 110+, Firefox 115+,
+    // Safari 16+, all 2023) for the audience this internal report targets.
+    "lib": ["ES2022", "ES2023.Array", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noEmit": true,
+    // The sibling test file below imports `../src/index.js`, and this package's node-side
+    // sources spell their own imports with `.ts` (the house base sets this for every other
+    // project). Nothing is emitted from here, so permitting the extension only lets the two
+    // halves share a program.
+    "allowImportingTsExtensions": true,
+    // Added by the port: the typecheck gate here is `tsgo`, which (unlike the source repo's
+    // `tsc`) rejects the side-effect `import './index.css'` in `src/main.tsx` with TS2882
+    // unless Vite's own ambient module declarations are loaded.
+    "types": ["vite/client"]
+  },
+  // `../tests/dashboard-render.test.ts` rides along: it renders these screens and is excluded
+  // from the package's node-side project, which has neither `jsx` nor the `DOM` lib on purpose.
+  "include": ["src", "vite.config.ts", "../tests/dashboard-render.test.ts"]
+}

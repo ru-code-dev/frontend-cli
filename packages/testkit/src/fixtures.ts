@@ -6,9 +6,9 @@
  * fixtures are to be reused «so unit and integration tiers share ONE fixture source».
  *
  * The source already exists. Brief 3.2 wrote it at
- * `packages/fe-pixso/tests/fixtures/fakeDsl.ts`, deriving it from the engine's own builder
+ * `packages/fg-pixso/tests/fixtures/fakeDsl.ts`, deriving it from the engine's own builder
  * (`ru-code-packages/packages/pixso-core/dev/fixtures/fakeDsl.ts:1-56`) and recording at
- * `packages/fe-pixso/tests/fixtures/fakeDsl.ts:1-18` exactly why it is a derivation and not an
+ * `packages/fg-pixso/tests/fixtures/fakeDsl.ts:1-18` exactly why it is a derivation and not an
  * import — `dev/` sits outside pixso-core's `"files": ["dist"]`
  * (`ru-code-packages/packages/pixso-core/package.json:6-8`), so it does not exist in the
  * installed package and importing it would work only while the cross-repo symlink is up.
@@ -18,14 +18,14 @@
  * clause exists to prevent: tier 1 would assert against one envelope and tier 2 against
  * another, and the day they drifted, the integration suite would still be green.
  *
- * WHY A RELATIVE PATH AND NOT A PACKAGE IMPORT. `@smart-tools/fe-pixso` publishes only its
- * built entry (`packages/fe-pixso/package.json:6-15`: `"files": ["dist"]`, one `"."` export),
+ * WHY A RELATIVE PATH AND NOT A PACKAGE IMPORT. `@smart-tools/fg-pixso` publishes only its
+ * built entry (`packages/fg-pixso/package.json:6-15`: `"files": ["dist"]`, one `"."` export),
  * so `tests/fixtures/` is unreachable through the exports map by construction. A relative
  * import is the only spelling that resolves, and it costs nothing at runtime: the reference is
  * source-level, so `tsdown` inlines the module into this package's own `dist` and no
- * package-graph edge from testkit to fe-pixso is created.
+ * package-graph edge from testkit to fg-pixso is created.
  *
- * WHY THE ARROW POINTS THIS WAY. The other direction — move the fixture here and have fe-pixso
+ * WHY THE ARROW POINTS THIS WAY. The other direction — move the fixture here and have fg-pixso
  * import it — is the tidier graph, and it is what a later brief should do. It is not done here
  * because brief 3.4 confines this agent to `packages/testkit/` and
  * `cli/tests/*.integration.test.ts`; rewriting three of 3.2's green suites and adding a
@@ -34,14 +34,14 @@
  *
  * Nothing here is executable and nothing is transformed: every export below IS 3.2's binding.
  */
-import { CLEAN_DSL, EMPTY_SELECTION_DSL } from "../../fe-pixso/tests/fixtures/fakeDsl.ts";
+import { CLEAN_DSL, EMPTY_SELECTION_DSL } from "../../fg-pixso/tests/fixtures/fakeDsl.ts";
 
 export {
   CLEAN_DSL,
   DESIGN_URL,
   EMPTY_SELECTION_DSL,
   ROOT_GUID,
-} from "../../fe-pixso/tests/fixtures/fakeDsl.ts";
+} from "../../fg-pixso/tests/fixtures/fakeDsl.ts";
 
 /** The fixtures a caller can ask for by name. */
 export type DslFixtureName = "clean" | "emptySelection";

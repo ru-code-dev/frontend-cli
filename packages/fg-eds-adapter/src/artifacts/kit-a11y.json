@@ -1,0 +1,467 @@
+{
+  "$schema": "ds-analyzer/kit-a11y@1",
+  "meta": {
+    "upstreamVersion": "1.23.0",
+    "packagesScanned": 63,
+    "upstreamAvailable": true
+  },
+  "patterns": [
+    {
+      "component": "Accordion",
+      "packages": ["@v-uik/accordion"],
+      "matchedBy": "name",
+      "roles": ["region"],
+      "ariaAttributes": ["aria-controls", "aria-disabled", "aria-expanded", "aria-labelledby"],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "Autocomplete",
+      "packages": ["@v-uik/combo-box"],
+      "matchedBy": "wraps",
+      "roles": ["button", "combobox", "list", "option"],
+      "ariaAttributes": [
+        "aria-activedescendant",
+        "aria-autocomplete",
+        "aria-controls",
+        "aria-describedby",
+        "aria-disabled",
+        "aria-expanded",
+        "aria-haspopup",
+        "aria-invalid",
+        "aria-label",
+        "aria-labelledby",
+        "aria-selected"
+      ],
+      "keysHandled": [
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowUp",
+        "Backspace",
+        "Delete",
+        "Enter",
+        "Escape",
+        "Tab"
+      ],
+      "managesFocus": false
+    },
+    {
+      "component": "Bar",
+      "packages": ["@v-uik/bar"],
+      "matchedBy": "name",
+      "roles": [],
+      "ariaAttributes": ["aria-disabled"],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "Breadcrumbs",
+      "packages": ["@v-uik/breadcrumbs"],
+      "matchedBy": "name",
+      "roles": ["button"],
+      "ariaAttributes": ["aria-haspopup"],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "BrowserTabs",
+      "packages": ["@v-uik/tabs"],
+      "matchedBy": "wraps",
+      "roles": ["tab", "tablist"],
+      "ariaAttributes": ["aria-controls", "aria-disabled", "aria-orientation", "aria-selected"],
+      "keysHandled": ["ArrowDown", "ArrowLeft", "ArrowRight", "ArrowUp"],
+      "managesFocus": true
+    },
+    {
+      "component": "Card",
+      "packages": ["@v-uik/card"],
+      "matchedBy": "name",
+      "roles": ["button"],
+      "ariaAttributes": [],
+      "keysHandled": ["Enter"],
+      "managesFocus": false
+    },
+    {
+      "component": "Checkbox",
+      "packages": ["@v-uik/checkbox-group"],
+      "matchedBy": "wraps",
+      "roles": ["group"],
+      "ariaAttributes": ["aria-labelledby"],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "ComboBox",
+      "packages": ["@v-uik/combo-box"],
+      "matchedBy": "wraps",
+      "roles": ["button", "combobox", "list", "option"],
+      "ariaAttributes": [
+        "aria-activedescendant",
+        "aria-autocomplete",
+        "aria-controls",
+        "aria-describedby",
+        "aria-disabled",
+        "aria-expanded",
+        "aria-haspopup",
+        "aria-invalid",
+        "aria-label",
+        "aria-labelledby",
+        "aria-selected"
+      ],
+      "keysHandled": [
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowUp",
+        "Backspace",
+        "Delete",
+        "Enter",
+        "Escape",
+        "Tab"
+      ],
+      "managesFocus": false
+    },
+    {
+      "component": "DatePicker",
+      "packages": ["@v-uik/date-picker"],
+      "matchedBy": "wraps",
+      "roles": ["combobox", "dialog", "grid", "gridcell", "listbox", "option", "row"],
+      "ariaAttributes": [
+        "aria-disabled",
+        "aria-expanded",
+        "aria-haspopup",
+        "aria-hidden",
+        "aria-selected"
+      ],
+      "keysHandled": ["ArrowDown", "ArrowLeft", "ArrowRight", "ArrowUp", "Enter", "Escape", "Tab"],
+      "managesFocus": false
+    },
+    {
+      "component": "Divider",
+      "packages": ["@v-uik/divider"],
+      "matchedBy": "name",
+      "roles": ["separator"],
+      "ariaAttributes": ["aria-orientation"],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "Drawer",
+      "packages": ["@v-uik/drawer"],
+      "matchedBy": "wraps",
+      "roles": ["presentation"],
+      "ariaAttributes": ["aria-hidden", "aria-modal"],
+      "keysHandled": ["Escape"],
+      "managesFocus": false
+    },
+    {
+      "component": "Dropdown",
+      "packages": ["@v-uik/dropdown"],
+      "matchedBy": "name",
+      "roles": [],
+      "ariaAttributes": ["aria-controls"],
+      "keysHandled": ["Enter", "Escape"],
+      "managesFocus": false
+    },
+    {
+      "component": "DropdownMenu",
+      "packages": ["@v-uik/dropdown-menu"],
+      "matchedBy": "name",
+      "roles": ["button", "menu", "menuitem"],
+      "ariaAttributes": ["aria-expanded", "aria-haspopup"],
+      "keysHandled": ["ArrowDown", "ArrowLeft", "ArrowRight", "ArrowUp", "Escape", "Tab"],
+      "managesFocus": false
+    },
+    {
+      "component": "InputNumber",
+      "packages": ["@v-uik/input-number"],
+      "matchedBy": "name",
+      "roles": [],
+      "ariaAttributes": [],
+      "keysHandled": ["Backspace"],
+      "managesFocus": false
+    },
+    {
+      "component": "Link",
+      "packages": ["@v-uik/link"],
+      "matchedBy": "name",
+      "roles": ["link"],
+      "ariaAttributes": ["aria-disabled"],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "List",
+      "packages": ["@v-uik/list"],
+      "matchedBy": "wraps",
+      "roles": ["group", "presentation"],
+      "ariaAttributes": ["aria-disabled", "aria-labelledby", "aria-selected"],
+      "keysHandled": ["ArrowDown", "ArrowLeft", "ArrowUp", "Enter", "Escape"],
+      "managesFocus": true
+    },
+    {
+      "component": "Mentions",
+      "packages": ["@v-uik/mentions"],
+      "matchedBy": "name",
+      "roles": ["list", "option"],
+      "ariaAttributes": [],
+      "keysHandled": ["ArrowDown", "ArrowUp", "Enter", "Escape", "Tab"],
+      "managesFocus": false
+    },
+    {
+      "component": "Modal",
+      "packages": ["@v-uik/modal"],
+      "matchedBy": "name",
+      "roles": ["dialog", "presentation"],
+      "ariaAttributes": ["aria-describedby", "aria-hidden", "aria-labelledby", "aria-modal"],
+      "keysHandled": ["Escape"],
+      "managesFocus": false
+    },
+    {
+      "component": "Notification",
+      "packages": ["@v-uik/notification"],
+      "matchedBy": "name",
+      "roles": ["alert"],
+      "ariaAttributes": ["aria-hidden", "aria-label"],
+      "keysHandled": ["Escape"],
+      "managesFocus": false
+    },
+    {
+      "component": "Pagination",
+      "packages": ["@v-uik/pagination"],
+      "matchedBy": "name",
+      "roles": [],
+      "ariaAttributes": ["aria-label"],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "Radio",
+      "packages": ["@v-uik/radio", "@v-uik/radio-group"],
+      "matchedBy": "wraps",
+      "roles": ["group"],
+      "ariaAttributes": ["aria-labelledby"],
+      "keysHandled": [],
+      "managesFocus": false
+    },
+    {
+      "component": "Rating",
+      "packages": ["@v-uik/rating"],
+      "matchedBy": "wraps",
+      "roles": ["radiogroup"],
+      "ariaAttributes": ["aria-label", "aria-labelledby", "aria-live"],
+      "keysHandled": ["ArrowDown", "ArrowLeft", "ArrowRight", "ArrowUp", "Enter"],
+      "managesFocus": false
+    },
+    {
+      "component": "Select",
+      "packages": ["@v-uik/select"],
+      "matchedBy": "name",
+      "roles": ["combobox", "listbox", "option"],
+      "ariaAttributes": [
+        "aria-activedescendant",
+        "aria-describedby",
+        "aria-expanded",
+        "aria-haspopup",
+        "aria-invalid",
+        "aria-label",
+        "aria-selected"
+      ],
+      "keysHandled": ["ArrowDown", "ArrowUp", "Enter", "Escape", "Tab"],
+      "managesFocus": false
+    },
+    {
+      "component": "Slider",
+      "packages": ["@v-uik/slider"],
+      "matchedBy": "name",
+      "roles": ["slider"],
+      "ariaAttributes": ["aria-valuemax", "aria-valuemin", "aria-valuenow"],
+      "keysHandled": ["ArrowDown", "ArrowLeft", "ArrowRight", "ArrowUp", "End", "Home"],
+      "managesFocus": false
+    },
+    {
+      "component": "Spinner",
+      "packages": ["@v-uik/progress"],
+      "matchedBy": "wraps",
+      "roles": ["img", "presentation", "progressbar"],
+      "ariaAttributes": [
+        "aria-hidden",
+        "aria-label",
+        "aria-valuemax",
+        "aria-valuemin",
+        "aria-valuenow"
+      ],
+      "keysHandled": ["Escape"],
+      "managesFocus": false
+    },
+    {
+      "component": "Splitter",
+      "packages": ["@v-uik/splitter"],
+      "matchedBy": "wraps",
+      "roles": ["separator"],
+      "ariaAttributes": [
+        "aria-controls",
+        "aria-disabled",
+        "aria-orientation",
+        "aria-valuemax",
+        "aria-valuemin",
+        "aria-valuenow"
+      ],
+      "keysHandled": ["ArrowDown", "ArrowLeft", "ArrowRight", "ArrowUp", "End", "Enter", "Home"],
+      "managesFocus": false
+    },
+    {
+      "component": "Table",
+      "packages": ["@v-uik/table"],
+      "matchedBy": "wraps",
+      "roles": [],
+      "ariaAttributes": ["aria-hidden", "aria-label", "aria-sort"],
+      "keysHandled": ["ArrowDown", "ArrowUp"],
+      "managesFocus": false
+    },
+    {
+      "component": "Tabs",
+      "packages": ["@v-uik/tabs"],
+      "matchedBy": "wraps",
+      "roles": ["tab", "tablist"],
+      "ariaAttributes": ["aria-controls", "aria-disabled", "aria-orientation", "aria-selected"],
+      "keysHandled": ["ArrowDown", "ArrowLeft", "ArrowRight", "ArrowUp"],
+      "managesFocus": true
+    },
+    {
+      "component": "Tag",
+      "packages": ["@v-uik/tag"],
+      "matchedBy": "wraps",
+      "roles": ["button"],
+      "ariaAttributes": ["aria-label"],
+      "keysHandled": ["Backspace", "Delete", "Enter"],
+      "managesFocus": false
+    },
+    {
+      "component": "TimePicker",
+      "packages": ["@v-uik/date-picker"],
+      "matchedBy": "wraps",
+      "roles": ["combobox", "dialog", "grid", "gridcell", "listbox", "option", "row"],
+      "ariaAttributes": [
+        "aria-disabled",
+        "aria-expanded",
+        "aria-haspopup",
+        "aria-hidden",
+        "aria-selected"
+      ],
+      "keysHandled": ["ArrowDown", "ArrowLeft", "ArrowRight", "ArrowUp", "Enter", "Escape", "Tab"],
+      "managesFocus": false
+    },
+    {
+      "component": "Tooltip",
+      "packages": ["@v-uik/tooltip"],
+      "matchedBy": "name",
+      "roles": [],
+      "ariaAttributes": ["aria-controls", "aria-expanded"],
+      "keysHandled": ["Escape"],
+      "managesFocus": false
+    },
+    {
+      "component": "Tree",
+      "packages": ["@v-uik/tree"],
+      "matchedBy": "wraps",
+      "roles": ["group", "tree", "treeitem"],
+      "ariaAttributes": [
+        "aria-busy",
+        "aria-checked",
+        "aria-disabled",
+        "aria-expanded",
+        "aria-label",
+        "aria-multiselectable",
+        "aria-orientation",
+        "aria-selected"
+      ],
+      "keysHandled": ["ArrowDown", "ArrowLeft", "ArrowRight", "ArrowUp", "End", "Enter", "Home"],
+      "managesFocus": false
+    }
+  ],
+  "spacing": {
+    "steps": [
+      {
+        "px": 0,
+        "occurrences": 99
+      },
+      {
+        "px": 4,
+        "occurrences": 36
+      },
+      {
+        "px": 8,
+        "occurrences": 76
+      },
+      {
+        "px": 12,
+        "occurrences": 6
+      },
+      {
+        "px": 16,
+        "occurrences": 23
+      },
+      {
+        "px": 20,
+        "occurrences": 4
+      },
+      {
+        "px": 24,
+        "occurrences": 5
+      },
+      {
+        "px": 32,
+        "occurrences": 4
+      }
+    ],
+    "offGridSteps": [
+      {
+        "px": 2,
+        "occurrences": 8
+      },
+      {
+        "px": 6,
+        "occurrences": 5
+      },
+      {
+        "px": 10,
+        "occurrences": 3
+      },
+      {
+        "px": 15,
+        "occurrences": 3
+      }
+    ],
+    "totalDeclarations": 281,
+    "coverage": 0.9679715302491103,
+    "gridBase": 4,
+    "gridCoverage": 0.9074733096085409
+  },
+  "diagnostics": [
+    {
+      "code": "spacing-scale-derived",
+      "severity": "info",
+      "message": "Шкала отступов выведена из реализаций @v-uik, а не опубликована китом: тира spacing в теме нет. Шкала описывает 97% объявлений, поэтому отклонение от неё — повод для заметки, а не для ошибки.",
+      "samples": [
+        "0px ×99",
+        "4px ×36",
+        "8px ×76",
+        "12px ×6",
+        "16px ×23",
+        "20px ×4",
+        "24px ×5",
+        "32px ×4"
+      ],
+      "count": 8
+    },
+    {
+      "code": "kit-widget-without-keyboard-evidence",
+      "severity": "info",
+      "message": "Компоненты кита, у которых найдены ARIA-роли, но не найдено ни обработки клавиш, ни работы с фокусом. Это не доказательство дефекта — сборка могла спрятать признаки, — но рекомендовать их как готовое решение клавиатурной доступности без ручной проверки нельзя.",
+      "samples": ["Accordion", "Breadcrumbs", "Checkbox", "Divider", "Link", "Radio"],
+      "count": 6
+    }
+  ]
+}

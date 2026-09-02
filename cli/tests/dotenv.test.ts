@@ -12,7 +12,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { makeTempDir, removeTempDir } from "@smart-tools/fe-testkit";
+import { makeTempDir, removeTempDir } from "@smart-tools/fg-testkit";
 import { afterEach, describe, expect, it } from "vite-plus/test";
 
 import { loadDotEnv } from "../src/dotenv.ts";
@@ -23,12 +23,12 @@ import { SETTING_KEYS, resolveSettings } from "../src/settings.ts";
  * and a test that wrote a REAL setting name could leak into a sibling suite; the round-trip into
  * `resolveSettings` is done with an explicit object instead, so nothing depends on the leak.
  */
-const PROBE_KEY = "FE_CLI_DOTENV_PROBE";
+const PROBE_KEY = "FG_CLI_DOTENV_PROBE";
 
 const dirs: string[] = [];
 
 function tempDirWith(files: Readonly<Record<string, string>>): string {
-  const dir = makeTempDir("fe-dotenv-");
+  const dir = makeTempDir("fg-dotenv-");
   dirs.push(dir);
   for (const [name, content] of Object.entries(files)) writeFileSync(join(dir, name), content);
   return dir;
@@ -89,7 +89,7 @@ describe("no ./.env is not a problem", () => {
 
 describe("an unusable ./.env yields a localized error, never a stack trace", () => {
   it("a directory named .env is reported, in both languages, naming the path", () => {
-    const dir = makeTempDir("fe-dotenv-");
+    const dir = makeTempDir("fg-dotenv-");
     dirs.push(dir);
     mkdirSync(join(dir, ".env"));
     const result = loadDotEnv(dir);
@@ -104,7 +104,7 @@ describe("an unusable ./.env yields a localized error, never a stack trace", () 
   });
 
   it("never throws", () => {
-    const dir = makeTempDir("fe-dotenv-");
+    const dir = makeTempDir("fg-dotenv-");
     dirs.push(dir);
     mkdirSync(join(dir, ".env"));
     expect(() => loadDotEnv(dir)).not.toThrow();

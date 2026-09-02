@@ -12,8 +12,8 @@ import { makeTempDir, removeTempDir } from "../src/index.ts";
 
 describe("makeTempDir / removeTempDir", () => {
   it("creates a real, distinct directory under the OS temp root", () => {
-    const a = makeTempDir("fe-testkit-");
-    const b = makeTempDir("fe-testkit-");
+    const a = makeTempDir("fg-testkit-");
+    const b = makeTempDir("fg-testkit-");
     try {
       expect(existsSync(a)).toBe(true);
       expect(existsSync(b)).toBe(true);
@@ -26,7 +26,7 @@ describe("makeTempDir / removeTempDir", () => {
   });
 
   it("removes the directory, and removing a gone one is not an error", () => {
-    const dir = makeTempDir("fe-testkit-");
+    const dir = makeTempDir("fg-testkit-");
     removeTempDir(dir);
     expect(existsSync(dir)).toBe(false);
     expect(() => {

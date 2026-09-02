@@ -1,0 +1,8 @@
+{
+  "name": "@mini/base",
+  "version": "9.9.9",
+  "private": true,
+  "dependencies": {
+    "@v-uik/base": "1.23.0"
+  }
+}

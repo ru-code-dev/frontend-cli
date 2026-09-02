@@ -1,0 +1,289 @@
+{
+  "$schema": "fg-analyzer-engine/analysis@1",
+  "domains": [
+    "a11y",
+    "components",
+    "icons"
+  ],
+  "findings": [
+    {
+      "id": "f_0001",
+      "rule": "a11y.lint",
+      "subkind": "alt-text",
+      "category": "a11y",
+      "severity": "error",
+      "confidence": 0.95,
+      "file": "src/App.tsx",
+      "line": 7,
+      "column": 10,
+      "snippet": {
+        "before": "import \"./app.css\";\n\nexport function Avatar() {\n  // a11y.lint / alt-text: an image with no alt attribute.\n  return <img src=\"/avatar.png\" className=\"avatar\" />;\n}\n\nexport function Toolbar() {\n  return (",
+        "after": null,
+        "highlightLine": 5,
+        "startLine": 3
+      },
+      "actual": "img elements must have an alt prop, either with meaningful text, or an empty string for decorative images.",
+      "expected": null,
+      "why": "img elements must have an alt prop, either with meaningful text, or an empty string for decorative images.",
+      "note": null,
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": {
+        "wcag": [
+          "1.1.1"
+        ],
+        "pattern": null,
+        "impact": "Изображение не будет описано вообще — скринридер прочитает имя файла или промолчит.",
+        "fix": "Добавьте alt с описанием смысла картинки; если она чисто декоративная — пустой alt=\"\"."
+      },
+      "autoFixable": false,
+      "needsAgent": false,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "a11y.lint:alt-text"
+    },
+    {
+      "id": "f_0002",
+      "rule": "a11y.name.missing",
+      "subkind": "unlabelled",
+      "category": "a11y",
+      "severity": "error",
+      "confidence": 0.9,
+      "file": "src/App.tsx",
+      "line": 7,
+      "column": 10,
+      "snippet": {
+        "before": "import \"./app.css\";\n\nexport function Avatar() {\n  // a11y.lint / alt-text: an image with no alt attribute.\n  return <img src=\"/avatar.png\" className=\"avatar\" />;\n}\n\nexport function Toolbar() {\n  return (",
+        "after": null,
+        "highlightLine": 5,
+        "startLine": 3
+      },
+      "actual": "<img>",
+      "expected": {
+        "token": null,
+        "cssVar": null,
+        "component": null,
+        "value": "<img aria-label=\"…\">"
+      },
+      "why": "Роль img не берёт имя из содержимого — только из aria-label, aria-labelledby или обёртки <label>. Ни одного из них здесь нет.",
+      "note": null,
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": {
+        "wcag": [
+          "4.1.2"
+        ],
+        "pattern": null,
+        "impact": "Пользователь скринридера слышит «img» и не узнаёт, что это за элемент.",
+        "fix": "Свяжите элемент с его заголовком через aria-labelledby, либо задайте aria-label: роль img не берёт имя из содержимого."
+      },
+      "autoFixable": false,
+      "needsAgent": true,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "a11y.name.missing:img"
+    },
+    {
+      "id": "f_0003",
+      "rule": "a11y.aria.invalid",
+      "subkind": "unknownRole",
+      "category": "a11y",
+      "severity": "error",
+      "confidence": 1,
+      "file": "src/App.tsx",
+      "line": 14,
+      "column": 7,
+      "snippet": {
+        "before": "export function Toolbar() {\n  return (\n    <div className=\"toolbar\">\n      {/* a11y.aria.invalid / unknownRole: `buton` is one edit away from `button`. */}\n      <span role=\"buton\">Сохранить</span>\n\n      {/* a11y.name.missing / iconOnly: a button whose only child is a glyph. */}\n      <button className=\"icon-button\" type=\"button\">\n        <svg viewBox=\"0 0 16 16\" width=\"16\" height=\"16\">",
+        "after": "export function Toolbar() {\n  return (\n    <div className=\"toolbar\">\n      {/* a11y.aria.invalid / unknownRole: `buton` is one edit away from `button`. */}\n      <span role=\"button\">Сохранить</span>\n\n      {/* a11y.name.missing / iconOnly: a button whose only child is a glyph. */}\n      <button className=\"icon-button\" type=\"button\">\n        <svg viewBox=\"0 0 16 16\" width=\"16\" height=\"16\">",
+        "highlightLine": 5,
+        "startLine": 10
+      },
+      "actual": "role=\"buton\"",
+      "expected": {
+        "token": null,
+        "cssVar": null,
+        "component": null,
+        "value": "role=\"button\""
+      },
+      "why": "role=\"buton\" нет в ARIA 1.2. Атрибут будет проигнорирован, и элемент останется тем, чем был по своему тегу. Ближайшая существующая роль — button.",
+      "note": null,
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": {
+        "wcag": [
+          "4.1.2"
+        ],
+        "pattern": null,
+        "impact": "Скринридер объявит элемент не тем, чем он выглядит, либо не объявит вовсе.",
+        "fix": "Исправьте опечатку: role=\"button\"."
+      },
+      "autoFixable": true,
+      "needsAgent": false,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "a11y.aria.invalid:role:buton"
+    },
+    {
+      "id": "f_0004",
+      "rule": "a11y.name.missing",
+      "subkind": "iconOnly",
+      "category": "a11y",
+      "severity": "error",
+      "confidence": 0.9,
+      "file": "src/App.tsx",
+      "line": 17,
+      "column": 7,
+      "snippet": {
+        "before": "      {/* a11y.aria.invalid / unknownRole: `buton` is one edit away from `button`. */}\n      <span role=\"buton\">Сохранить</span>\n\n      {/* a11y.name.missing / iconOnly: a button whose only child is a glyph. */}\n      <button className=\"icon-button\" type=\"button\">\n        <svg viewBox=\"0 0 16 16\" width=\"16\" height=\"16\">\n          <path d=\"M2 2 L14 14\" />\n        </svg>\n      </button>",
+        "after": null,
+        "highlightLine": 5,
+        "startLine": 13
+      },
+      "actual": "<button>",
+      "expected": {
+        "token": null,
+        "cssVar": null,
+        "component": null,
+        "value": "<button aria-label=\"…\">"
+      },
+      "why": "У элемента роль button, внутри только графика и нет ни aria-label, ни title. Скринридер объявит «button» и ничего больше.",
+      "note": null,
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": {
+        "wcag": [
+          "4.1.2"
+        ],
+        "pattern": null,
+        "impact": "Пользователь скринридера слышит «button» и не узнаёт, что это за элемент.",
+        "fix": "Добавьте aria-label с описанием действия — или видимый текст рядом с иконкой."
+      },
+      "autoFixable": false,
+      "needsAgent": true,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "a11y.name.missing:button"
+    },
+    {
+      "id": "f_0005",
+      "rule": "a11y.focus.suppressed",
+      "subkind": "blanket",
+      "category": "a11y",
+      "severity": "error",
+      "confidence": 0.85,
+      "file": "src/app.css",
+      "line": 3,
+      "column": 3,
+      "snippet": {
+        "before": "/* a11y.focus.suppressed / blanket: the ring is removed and this file styles focus nowhere. */\n.icon-button {\n  outline: none;\n}\n\n/* a11y.contrast.text / normalText: 3.45:1 against white, below the 4.5:1 minimum — a\n   warning rather than an error, because the pair clears 3:1. */",
+        "after": null,
+        "highlightLine": 3,
+        "startLine": 1
+      },
+      "actual": "outline: none",
+      "expected": null,
+      "why": "Кольцо фокуса убрано, а оформления фокуса в этом файле нет вообще. Элемент останется рабочим, но невидимым при навигации с клавиатуры.",
+      "note": "Если фокус оформлен в другом файле или глобально, это правило об этом не знает — проверьте вручную.",
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": {
+        "wcag": [
+          "2.4.7"
+        ],
+        "pattern": null,
+        "impact": "Навигация с клавиатуры становится невидимой — непонятно, какой элемент сейчас активен.",
+        "fix": "Уберите сброс либо добавьте :focus-visible с видимым outline: он не показывается по клику мышью."
+      },
+      "autoFixable": false,
+      "needsAgent": false,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "a11y.focus.suppressed"
+    },
+    {
+      "id": "f_0006",
+      "rule": "a11y.contrast.text",
+      "subkind": "normalText",
+      "category": "a11y",
+      "severity": "warning",
+      "confidence": 0.95,
+      "file": "src/app.css",
+      "line": 9,
+      "column": 3,
+      "snippet": {
+        "before": "\n/* a11y.contrast.text / normalText: 3.45:1 against white, below the 4.5:1 minimum — a\n   warning rather than an error, because the pair clears 3:1. */\n.notice {\n  color: #8a8a8a;\n  background-color: #ffffff;\n  font-size: 14px;\n}\n",
+        "after": null,
+        "highlightLine": 5,
+        "startLine": 5
+      },
+      "actual": "#8a8a8a на #ffffff",
+      "expected": null,
+      "why": "Контраст 3.45:1 при минимуме 4.5:1. Текст этого размера на этом фоне не прочитают при слабом зрении, на солнце или на плохом экране.",
+      "note": null,
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": {
+        "wcag": [
+          "1.4.3"
+        ],
+        "pattern": null,
+        "impact": "Текст с контрастом 3.45:1 нечитаем для значительной доли пользователей.",
+        "fix": "Разведите цвет текста и фона так, чтобы пара давала минимум 4.5:1 — обычно достаточно затемнить текст на пару ступеней шкалы."
+      },
+      "autoFixable": false,
+      "needsAgent": false,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "a11y.contrast.text:#8a8a8a:#ffffff"
+    }
+  ],
+  "summary": {
+    "files": {
+      "scanned": 2,
+      "clean": 0
+    },
+    "findings": {
+      "total": 6,
+      "bySeverity": {
+        "error": 5,
+        "warning": 1,
+        "info": 0,
+        "candidate": 0
+      },
+      "byRule": {
+        "a11y.lint": 1,
+        "a11y.name.missing": 2,
+        "a11y.aria.invalid": 1,
+        "a11y.focus.suppressed": 1,
+        "a11y.contrast.text": 1
+      },
+      "byCategory": {
+        "component": 0,
+        "icon": 0,
+        "a11y": 6
+      },
+      "autoFixable": 1,
+      "needsAgent": 2
+    },
+    "limitations": []
+  }
+}

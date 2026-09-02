@@ -1,0 +1,100 @@
+{
+  "$schema": "fg-analyzer-engine/analysis@1",
+  "domains": [
+    "a11y",
+    "components",
+    "icons"
+  ],
+  "findings": [
+    {
+      "id": "f_0001",
+      "rule": "icon.foreign-pack",
+      "subkind": null,
+      "category": "icon",
+      "severity": "warning",
+      "confidence": 1,
+      "file": "src/Toolbar.tsx",
+      "line": 4,
+      "column": 1,
+      "snippet": {
+        "before": "// Fixture: two third-party icon packs and one local icon. `icon.foreign-pack` fires on the\n// import specifier alone — no icon artifact is consulted, which is exactly why the rule\n// could be ungated.\nimport { Trash2 } from \"lucide-react\";\nimport { FiEdit } from \"react-icons/fi\";\n\nimport { LocalCheckIcon } from \"./LocalCheckIcon.tsx\";\n",
+        "after": null,
+        "highlightLine": 4,
+        "startLine": 1
+      },
+      "actual": "lucide-react",
+      "expected": null,
+      "why": "Иконки из «lucide-react» — сторонний набор рядом с собственной графикой проекта: он тянет свои размеры, цвета и лицензию и не перекрашивается темой.",
+      "note": null,
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": null,
+      "autoFixable": false,
+      "needsAgent": true,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "icon.foreign-pack:lucide-react"
+    },
+    {
+      "id": "f_0002",
+      "rule": "icon.foreign-pack",
+      "subkind": null,
+      "category": "icon",
+      "severity": "warning",
+      "confidence": 1,
+      "file": "src/Toolbar.tsx",
+      "line": 5,
+      "column": 1,
+      "snippet": {
+        "before": "// Fixture: two third-party icon packs and one local icon. `icon.foreign-pack` fires on the\n// import specifier alone — no icon artifact is consulted, which is exactly why the rule\n// could be ungated.\nimport { Trash2 } from \"lucide-react\";\nimport { FiEdit } from \"react-icons/fi\";\n\nimport { LocalCheckIcon } from \"./LocalCheckIcon.tsx\";\n\nexport function Toolbar() {",
+        "after": null,
+        "highlightLine": 5,
+        "startLine": 1
+      },
+      "actual": "react-icons/fi",
+      "expected": null,
+      "why": "Иконки из «react-icons» — сторонний набор рядом с собственной графикой проекта: он тянет свои размеры, цвета и лицензию и не перекрашивается темой.",
+      "note": null,
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": null,
+      "autoFixable": false,
+      "needsAgent": true,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "icon.foreign-pack:react-icons"
+    }
+  ],
+  "summary": {
+    "files": {
+      "scanned": 2,
+      "clean": 1
+    },
+    "findings": {
+      "total": 2,
+      "bySeverity": {
+        "error": 0,
+        "warning": 2,
+        "info": 0,
+        "candidate": 0
+      },
+      "byRule": {
+        "icon.foreign-pack": 2
+      },
+      "byCategory": {
+        "component": 0,
+        "icon": 2,
+        "a11y": 0
+      },
+      "autoFixable": 0,
+      "needsAgent": 2
+    },
+    "limitations": []
+  }
+}

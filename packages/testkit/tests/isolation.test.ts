@@ -17,7 +17,7 @@ import { makeTempDir, nodeModulesAbove, removeTempDir } from "../src/index.ts";
 const made: string[] = [];
 
 function scratch(): string {
-  const dir = makeTempDir("fe-isolation-");
+  const dir = makeTempDir("fg-isolation-");
   made.push(dir);
   return dir;
 }

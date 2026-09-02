@@ -1,0 +1,115 @@
+{
+  "$schema": "fg-analyzer-engine/analysis@1",
+  "domains": [
+    "a11y",
+    "components",
+    "icons"
+  ],
+  "findings": [
+    {
+      "id": "f_0001",
+      "rule": "a11y.focus.suppressed",
+      "subkind": "blanket",
+      "category": "a11y",
+      "severity": "error",
+      "confidence": 0.85,
+      "file": "src/Card.tsx",
+      "line": 9,
+      "column": 3,
+      "snippet": {
+        "before": "/* a11y.focus.suppressed / blanket: nothing in this file addresses the focused state. */\nconst Trigger = styled.button`\n  padding: 8px 12px;\n  border: none;\n  outline: none;\n`;\n\n/* a11y.contrast.text / normalText: 2.09:1 — under 3:1, so an error. */\nconst Hint = styled.span`",
+        "after": null,
+        "highlightLine": 5,
+        "startLine": 5
+      },
+      "actual": "outline: none",
+      "expected": null,
+      "why": "Кольцо фокуса убрано, а оформления фокуса в этом файле нет вообще. Элемент останется рабочим, но невидимым при навигации с клавиатуры.",
+      "note": "Если фокус оформлен в другом файле или глобально, это правило об этом не знает — проверьте вручную.",
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": {
+        "wcag": [
+          "2.4.7"
+        ],
+        "pattern": null,
+        "impact": "Навигация с клавиатуры становится невидимой — непонятно, какой элемент сейчас активен.",
+        "fix": "Уберите сброс либо добавьте :focus-visible с видимым outline: он не показывается по клику мышью."
+      },
+      "autoFixable": false,
+      "needsAgent": false,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "a11y.focus.suppressed"
+    },
+    {
+      "id": "f_0002",
+      "rule": "a11y.contrast.text",
+      "subkind": "normalText",
+      "category": "a11y",
+      "severity": "error",
+      "confidence": 0.95,
+      "file": "src/Card.tsx",
+      "line": 14,
+      "column": 3,
+      "snippet": {
+        "before": "`;\n\n/* a11y.contrast.text / normalText: 2.09:1 — under 3:1, so an error. */\nconst Hint = styled.span`\n  color: #b3b3b3;\n  background-color: #ffffff;\n  font-size: 13px;\n`;\n",
+        "after": null,
+        "highlightLine": 5,
+        "startLine": 10
+      },
+      "actual": "#b3b3b3 на #ffffff",
+      "expected": null,
+      "why": "Контраст 2.09:1 при минимуме 4.5:1. Текст этого размера на этом фоне не прочитают при слабом зрении, на солнце или на плохом экране.",
+      "note": null,
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": {
+        "wcag": [
+          "1.4.3"
+        ],
+        "pattern": null,
+        "impact": "Текст с контрастом 2.09:1 нечитаем для значительной доли пользователей.",
+        "fix": "Разведите цвет текста и фона так, чтобы пара давала минимум 4.5:1 — обычно достаточно затемнить текст на пару ступеней шкалы."
+      },
+      "autoFixable": false,
+      "needsAgent": false,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "a11y.contrast.text:#b3b3b3:#ffffff"
+    }
+  ],
+  "summary": {
+    "files": {
+      "scanned": 1,
+      "clean": 0
+    },
+    "findings": {
+      "total": 2,
+      "bySeverity": {
+        "error": 2,
+        "warning": 0,
+        "info": 0,
+        "candidate": 0
+      },
+      "byRule": {
+        "a11y.focus.suppressed": 1,
+        "a11y.contrast.text": 1
+      },
+      "byCategory": {
+        "component": 0,
+        "icon": 0,
+        "a11y": 2
+      },
+      "autoFixable": 0,
+      "needsAgent": 0
+    },
+    "limitations": []
+  }
+}

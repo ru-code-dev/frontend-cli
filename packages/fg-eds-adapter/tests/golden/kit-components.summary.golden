@@ -1,0 +1,58 @@
+{
+  "healthScore": 59,
+  "healthFormula": "health = round(100 × (0.5 × (1 − min(1, Σ(вес severity) / файлы / 12)) + 0.3 × adoption + 0.2 × tokenCoverage)); веса: error 3 · warning 1 · info 0.25 · candidate 0",
+  "adoption": 0.06666666666666667,
+  "tokenCoverage": 1,
+  "files": {
+    "scanned": 9,
+    "clean": 1
+  },
+  "findings": {
+    "total": 20,
+    "bySeverity": {
+      "error": 7,
+      "warning": 7,
+      "info": 3,
+      "candidate": 3
+    },
+    "byRule": {
+      "a11y.aria.invalid": 6,
+      "component.fork": 1,
+      "component.custom": 2,
+      "a11y.lint": 5,
+      "a11y.name.missing": 1,
+      "icon.inline-svg": 1,
+      "component.novel": 1,
+      "component.ambiguous": 2,
+      "component.duplicate": 1
+    },
+    "byCategory": {
+      "token": 0,
+      "typography": 0,
+      "font": 0,
+      "api": 0,
+      "override": 0,
+      "component": 7,
+      "icon": 1,
+      "a11y": 12
+    },
+    "autoFixable": 0,
+    "needsAgent": 7
+  },
+  "positives": [
+    {
+      "label": "Чистые файлы",
+      "detail": "1 из 9 файлов без единого отклонения."
+    },
+    {
+      "label": "Нет импортов в обход кита",
+      "detail": "Ни одного прямого обращения к обёрнутой библиотеке."
+    },
+    {
+      "label": "Типографика на месте",
+      "detail": "Чужих гарнитур не найдено."
+    }
+  ],
+  "kitGaps": [],
+  "limitations": []
+}

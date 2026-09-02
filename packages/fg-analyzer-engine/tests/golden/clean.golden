@@ -1,0 +1,33 @@
+{
+  "$schema": "fg-analyzer-engine/analysis@1",
+  "domains": [
+    "a11y",
+    "components",
+    "icons"
+  ],
+  "findings": [],
+  "summary": {
+    "files": {
+      "scanned": 2,
+      "clean": 2
+    },
+    "findings": {
+      "total": 0,
+      "bySeverity": {
+        "error": 0,
+        "warning": 0,
+        "info": 0,
+        "candidate": 0
+      },
+      "byRule": {},
+      "byCategory": {
+        "component": 0,
+        "icon": 0,
+        "a11y": 0
+      },
+      "autoFixable": 0,
+      "needsAgent": 0
+    },
+    "limitations": []
+  }
+}

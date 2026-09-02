@@ -2,7 +2,7 @@
  * A FAKE PIXSO MCP SERVER — a real `node:http` listener, not a mock of the SDK.
  *
  * WHY A REAL SERVER. The thing tier 2 exists to prove is that the SHIPPED bundle talks to a
- * real endpoint over a real socket: `dist/main.mjs` is a separate process, so there is no
+ * real endpoint over a real socket: `dist/fg.mjs` is a separate process, so there is no
  * seam to inject a fake client into (`FetchScanOptions.client`, the tier-1 seam, lives
  * in-process and cannot cross `execFile`). The only substitutable thing left is the endpoint
  * itself. That is also the pattern `pixso-core` uses on itself — `ioFailureKinds.test.ts:20-24`
@@ -15,7 +15,7 @@
  * (`dev/fake-mcp/fakePixsoMcp.ts:104-105`) mounts `McpServer` + `StreamableHTTPServerTransport`.
  * This package cannot: design 2.1:161-162 fixes that testkit «takes no runtime dependency
  * beyond node builtins», which is the property that guarantees nothing importable from here
- * can ever reach `dist/main.mjs`. So the wire is written out by hand — and, because a
+ * can ever reach `dist/fg.mjs`. So the wire is written out by hand — and, because a
  * hand-written protocol is exactly the kind of thing that is subtly wrong, it is not trusted:
  * `tests/fakeMcp.test.ts` drives the REAL `@modelcontextprotocol/sdk` client at it through
  * `makePixsoClient` from `@smart-tools/pixso-core/node`, which is the only evidence that
@@ -51,7 +51,7 @@ import { randomUUID } from "node:crypto";
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
 
-// The DSL the server answers with by default is the fe-pixso fixture itself, re-exported
+// The DSL the server answers with by default is the fg-pixso fixture itself, re-exported
 // through `./fixtures.ts` so tier 1 and tier 2 read the same bytes — see that file's header.
 import { CLEAN_DSL } from "./fixtures.ts";
 
@@ -180,7 +180,7 @@ export async function startFakeMcp(options: FakeMcpOptions = {}): Promise<FakeMc
   const dsl = options.dsl ?? CLEAN_DSL;
   const components = options.components ?? EMPTY_CATALOG;
   const failing = new Set(options.failing ?? []);
-  const serverName = options.serverName ?? "fe-testkit-fake-pixso";
+  const serverName = options.serverName ?? "fg-testkit-fake-pixso";
 
   const calls: FakeMcpCall[] = [];
   const sessions: string[] = [];

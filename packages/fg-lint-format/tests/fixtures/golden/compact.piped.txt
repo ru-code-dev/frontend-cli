@@ -1,0 +1,15 @@
+src/components/Button.tsx
+    12:5  ✖ error      <button onClick={onClick} />  Контрол без доступного имени  a11y.name.missing
+   12:40  ▲ warning    <img src={icon} />  Изображение без alt  a11y.lint
+    48:3  ● info       width: 42px  Изменение внутренних отступов кита  style.override.size
+                       → var(--eds-size-m)
+
+src/pages/Home.tsx
+      7:1  ◇ candidate  const Card = () => …  Скопирован внутри проекта  component.duplicate
+   130:22  ✖ error      var(--eds-core-blue-500)  ref-переменная вместо sys-роли  token.tier.violation
+
+src/styles/theme.css
+   3:9  ▲ warning    #1a1a1a  Цвет литералом вместо токена — почти токен  token.literal.color
+                     → var(--eds-color-fg)
+
+✖ 6 проблем   2 ошибки · 2 предупреждения · 1 инфо · 1 кандидат

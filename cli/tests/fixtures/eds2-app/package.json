@@ -1,0 +1,25 @@
+{
+  "name": "eds2-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@sds-eng/base-exp": "^2.0.0",
+    "@sds-eng/kit-exp": "^2.0.0",
+    "@vanilla-extract/css": "^1.18.0",
+    "@vanilla-extract/recipes": "^0.5.7",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.400.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@sds-eng/plugin-postcss": "^2.0.0",
+    "@vanilla-extract/vite-plugin": "^5.1.4",
+    "typescript": "^5.6.0",
+    "vite": "^6.0.0"
+  }
+}

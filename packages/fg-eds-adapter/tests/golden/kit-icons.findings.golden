@@ -1,0 +1,297 @@
+[
+  {
+    "id": "f_0001",
+    "rule": "icon.foreign-pack",
+    "subkind": null,
+    "category": "icon",
+    "severity": "warning",
+    "confidence": 1,
+    "file": "src/Gallery.tsx",
+    "line": 1,
+    "column": 1,
+    "snippet": {
+      "before": "import { Home } from \"lucide-react\";\n\nimport blob from \"./assets/blob.svg\";\nimport disco from \"./assets/disco.svg\";\n",
+      "after": null,
+      "highlightLine": 1,
+      "startLine": 1
+    },
+    "actual": "lucide-react",
+    "expected": null,
+    "why": "Иконки из «lucide-react» — параллельный набор рядом с дизайн-системой: у кита 233 собственных иконок с токенами темы.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "icon.foreign-pack:lucide-react"
+  },
+  {
+    "id": "f_0002",
+    "rule": "icon.foreign-file",
+    "subkind": "no-match",
+    "category": "icon",
+    "severity": "candidate",
+    "confidence": 0.8,
+    "file": "src/Gallery.tsx",
+    "line": 3,
+    "column": 1,
+    "snippet": {
+      "before": "import { Home } from \"lucide-react\";\n\nimport blob from \"./assets/blob.svg\";\nimport disco from \"./assets/disco.svg\";\n\nexport const Gallery = () => (\n  <div className=\"gallery\">",
+      "after": null,
+      "highlightLine": 3,
+      "startLine": 1
+    },
+    "actual": "./assets/blob.svg",
+    "expected": null,
+    "why": "Иконка мимо дизайн-системы, и точного совпадения среди 233 иконок кита нет — кандидат на добавление в набор.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [],
+    "impact": {
+      "occurrences": 2,
+      "files": 2
+    },
+    "impactKey": "icon.foreign-file:c8c9ea90"
+  },
+  {
+    "id": "f_0003",
+    "rule": "icon.foreign-file",
+    "subkind": "kit-icon",
+    "category": "icon",
+    "severity": "warning",
+    "confidence": 0.95,
+    "file": "src/Gallery.tsx",
+    "line": 4,
+    "column": 1,
+    "snippet": {
+      "before": "import { Home } from \"lucide-react\";\n\nimport blob from \"./assets/blob.svg\";\nimport disco from \"./assets/disco.svg\";\n\nexport const Gallery = () => (\n  <div className=\"gallery\">\n    <Home />",
+      "after": null,
+      "highlightLine": 4,
+      "startLine": 1
+    },
+    "actual": "./assets/disco.svg",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": "Disco",
+      "value": "Disco"
+    },
+    "why": "В ките есть ровно эта иконка — Disco (20px). Собственная копия не перекрасится токенами темы и разойдётся с набором при его обновлении.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [
+      {
+        "component": "Disco",
+        "score": 1,
+        "reasons": [
+          "точное совпадение геометрии"
+        ]
+      }
+    ],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "icon.foreign-file:Disco"
+  },
+  {
+    "id": "f_0004",
+    "rule": "component.ambiguous",
+    "subkind": null,
+    "category": "component",
+    "severity": "info",
+    "confidence": 0.3,
+    "file": "src/Gallery.tsx",
+    "line": 6,
+    "column": 14,
+    "snippet": {
+      "before": "\nimport blob from \"./assets/blob.svg\";\nimport disco from \"./assets/disco.svg\";\n\nexport const Gallery = () => (\n  <div className=\"gallery\">\n    <Home />\n    <img src={blob} alt=\"blob\" />\n    <img src={disco} alt=\"disco\" />",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 2
+    },
+    "actual": "Gallery",
+    "expected": null,
+    "why": "Gallery похож на EmptyState из кита (совпадение 0.30), но не настолько, чтобы утверждать дубль — проверьте руками.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [
+      {
+        "component": "EmptyState",
+        "score": 0.3,
+        "reasons": [
+          "нативные теги пересекаются: img"
+        ]
+      }
+    ],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "component.ambiguous:Gallery"
+  },
+  {
+    "id": "f_0005",
+    "rule": "icon.inline-svg",
+    "subkind": "kit-icon",
+    "category": "icon",
+    "severity": "warning",
+    "confidence": 0.95,
+    "file": "src/Gallery.tsx",
+    "line": 11,
+    "column": 5,
+    "snippet": {
+      "before": "  <div className=\"gallery\">\n    <Home />\n    <img src={blob} alt=\"blob\" />\n    <img src={disco} alt=\"disco\" />\n    <svg width=\"20\" height=\"20\" viewBox=\"0 0 20 20\" fill=\"none\">\n      <path\n        d=\"M11 4.5L5.25 4.5L5.25 15.49L11 15.49C14.03 15.49 16.5 13.03 16.5 9.99C16.5 6.96 14.03 4.5 11 4.5ZM6.75 6L6.75 13.99L13.84 7.18C13.11 6.45 12.11 6 11 6L6.75 6Z\"\n        fill=\"currentColor\"\n      />",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 7
+    },
+    "actual": "<svg>",
+    "expected": {
+      "token": null,
+      "cssVar": null,
+      "component": "Disco",
+      "value": "Disco"
+    },
+    "why": "В ките есть ровно эта иконка — Disco (20px). Собственная копия не перекрасится токенами темы и разойдётся с набором при его обновлении.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [
+      {
+        "component": "Disco",
+        "score": 1,
+        "reasons": [
+          "точное совпадение геометрии"
+        ]
+      }
+    ],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "icon.inline-svg:Disco"
+  },
+  {
+    "id": "f_0006",
+    "rule": "icon.inline-svg",
+    "subkind": "no-match",
+    "category": "icon",
+    "severity": "candidate",
+    "confidence": 0.8,
+    "file": "src/Gallery.tsx",
+    "line": 17,
+    "column": 5,
+    "snippet": {
+      "before": "        d=\"M11 4.5L5.25 4.5L5.25 15.49L11 15.49C14.03 15.49 16.5 13.03 16.5 9.99C16.5 6.96 14.03 4.5 11 4.5ZM6.75 6L6.75 13.99L13.84 7.18C13.11 6.45 12.11 6 11 6L6.75 6Z\"\n        fill=\"currentColor\"\n      />\n    </svg>\n    <svg width=\"12\" height=\"12\" viewBox=\"0 0 12 12\">\n      <rect x=\"1\" y=\"1\" width=\"10\" height=\"10\" />\n    </svg>\n  </div>\n);",
+      "after": null,
+      "highlightLine": 5,
+      "startLine": 13
+    },
+    "actual": "<svg>",
+    "expected": null,
+    "why": "Иконка мимо дизайн-системы, и точного совпадения среди 233 иконок кита нет — кандидат на добавление в набор.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "icon.inline-svg:89aff82b"
+  },
+  {
+    "id": "f_0007",
+    "rule": "icon.foreign-file",
+    "subkind": "no-match",
+    "category": "icon",
+    "severity": "candidate",
+    "confidence": 0.8,
+    "file": "src/gallery.css",
+    "line": 2,
+    "column": 3,
+    "snippet": {
+      "before": ".gallery-marker {\n  background-image: url(\"./assets/blob.svg\");\n  color: #101828;\n}",
+      "after": null,
+      "highlightLine": 2,
+      "startLine": 1
+    },
+    "actual": "./assets/blob.svg",
+    "expected": null,
+    "why": "Иконка мимо дизайн-системы, и точного совпадения среди 233 иконок кита нет — кандидат на добавление в набор.",
+    "note": null,
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": true,
+    "candidates": [],
+    "impact": {
+      "occurrences": 2,
+      "files": 2
+    },
+    "impactKey": "icon.foreign-file:c8c9ea90"
+  },
+  {
+    "id": "f_0008",
+    "rule": "token.literal.color",
+    "subkind": "near",
+    "category": "token",
+    "severity": "warning",
+    "confidence": 0.85,
+    "file": "src/gallery.css",
+    "line": 3,
+    "column": 10,
+    "snippet": {
+      "before": ".gallery-marker {\n  background-image: url(\"./assets/blob.svg\");\n  color: #101828;\n}",
+      "after": ".gallery-marker {\n  background-image: url(\"./assets/blob.svg\");\n  color: var(--sds-eng-palette-blue-blue950);\n}",
+      "highlightLine": 3,
+      "startLine": 1
+    },
+    "actual": "#101828",
+    "expected": {
+      "token": "ref.palette.blue.blue950",
+      "cssVar": "--sds-eng-palette-blue-blue950",
+      "component": null,
+      "value": "var(--sds-eng-palette-blue-blue950)"
+    },
+    "why": "#101828 визуально неотличим от ref.palette.blue.blue950 (ΔE 0.0132), но токеном не является.",
+    "note": "Цвет похож на токен, но им не является — скорее всего, пипетка из макета вместо переменной.",
+    "rootCause": null,
+    "appliedTo": null,
+    "a11y": null,
+    "autoFixable": false,
+    "needsAgent": false,
+    "candidates": [],
+    "impact": {
+      "occurrences": 1,
+      "files": 1
+    },
+    "impactKey": "token.literal.color:#101828"
+  }
+]

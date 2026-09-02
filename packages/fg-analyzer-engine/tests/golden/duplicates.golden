@@ -1,0 +1,68 @@
+{
+  "$schema": "fg-analyzer-engine/analysis@1",
+  "domains": [
+    "a11y",
+    "components",
+    "icons"
+  ],
+  "findings": [
+    {
+      "id": "f_0001",
+      "rule": "component.duplicate",
+      "subkind": null,
+      "category": "component",
+      "severity": "candidate",
+      "confidence": 0.9,
+      "file": "src/TeamCard.tsx",
+      "line": 9,
+      "column": 1,
+      "snippet": {
+        "before": "  readonly description: string;\n  readonly onSelect: () => void;\n}\n\nexport function TeamCard({ name, description, onSelect }: TeamCardProps) {\n  const label = name.trim();\n  const summary = description.trim();\n\n  return (",
+        "after": null,
+        "highlightLine": 5,
+        "startLine": 5
+      },
+      "actual": "TeamCard",
+      "expected": null,
+      "why": "TeamCard структурно скопирован ещё в 1 место: UserCard. Команда уже дублирует — сильнейший сигнал вынести общий компонент.",
+      "note": "src/UserCard.tsx:9",
+      "rootCause": null,
+      "appliedTo": null,
+      "a11y": null,
+      "autoFixable": false,
+      "needsAgent": false,
+      "candidates": [],
+      "impact": {
+        "occurrences": 1,
+        "files": 1
+      },
+      "impactKey": "component.duplicate:TeamCard"
+    }
+  ],
+  "summary": {
+    "files": {
+      "scanned": 2,
+      "clean": 1
+    },
+    "findings": {
+      "total": 1,
+      "bySeverity": {
+        "error": 0,
+        "warning": 0,
+        "info": 0,
+        "candidate": 1
+      },
+      "byRule": {
+        "component.duplicate": 1
+      },
+      "byCategory": {
+        "component": 1,
+        "icon": 0,
+        "a11y": 0
+      },
+      "autoFixable": 0,
+      "needsAgent": 0
+    },
+    "limitations": []
+  }
+}

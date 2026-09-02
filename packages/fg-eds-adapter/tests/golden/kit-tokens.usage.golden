@@ -1,0 +1,90 @@
+{
+  "components": [
+    {
+      "name": "Button",
+      "usages": 3,
+      "files": 2,
+      "findings": 10,
+      "overrides": 4,
+      "props": {
+        "view": {
+          "primary": 1
+        }
+      }
+    }
+  ],
+  "unusedComponents": [
+    "Accordion",
+    "Autocomplete",
+    "Avatar",
+    "BackLink",
+    "Badge",
+    "Bar",
+    "Box",
+    "Breadcrumbs",
+    "BrowserTabs",
+    "Card",
+    "Cell",
+    "Checkbox",
+    "Chip",
+    "ComboBox",
+    "DatePicker",
+    "Divider",
+    "Drawer",
+    "DropdownMenu",
+    "EmptyState",
+    "FileUploader",
+    "Illustration",
+    "InputNumber",
+    "InputPassword",
+    "LabelControl",
+    "Link",
+    "List",
+    "Marker",
+    "MaskedInput",
+    "Mentions",
+    "Modal",
+    "Notification",
+    "Pagination",
+    "Popover",
+    "Radio",
+    "Rating",
+    "Scope",
+    "Segment",
+    "Select",
+    "Skeleton",
+    "Slider",
+    "Spinner",
+    "Splitter",
+    "StatusCard",
+    "Stepper",
+    "Switch",
+    "Table",
+    "Tabs",
+    "Tag",
+    "Text",
+    "TextField",
+    "Textarea",
+    "TimePicker",
+    "Tooltip",
+    "Tree",
+    "Underlay",
+    "_DNU_ST_"
+  ],
+  "foreignComponents": [],
+  "customComponents": [],
+  "elementBreakdown": {
+    "total": 3,
+    "kit": 3,
+    "kitClean": 0,
+    "customTokens": 0,
+    "customMixed": 0,
+    "customHardcode": 0,
+    "customUnstyled": 0,
+    "foreign": 0
+  },
+  "tokenUsage": {
+    "ref.palette.electric.electric700": 1,
+    "sys.Background.backAccent": 1
+  }
+}

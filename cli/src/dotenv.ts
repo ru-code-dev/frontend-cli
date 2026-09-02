@@ -26,7 +26,7 @@
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 
-import type { Localized } from "@smart-tools/fe-cli-kit";
+import type { Localized } from "@smart-tools/fg-cli-kit";
 
 import { envLoadFailed } from "./messages.ts";
 

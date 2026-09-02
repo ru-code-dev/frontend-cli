@@ -1,0 +1,10 @@
+{
+  "name": "parity-kit-api",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@sds-eng/base": "3.4.0",
+    "@v-uik/base": "1.23.0",
+    "react": "18.3.1"
+  }
+}

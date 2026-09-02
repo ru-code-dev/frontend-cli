@@ -10,7 +10,7 @@
  * MECHANISM: tsdown's `define` (`Record<string, string>`, tsdown 0.20.3
  * `dist/types-CNIFJKMX.d.mts:725`) is a textual identifier replacement performed during the
  * build. `cli/tsdown.config.ts` reads `cli/package.json` — in the BUILD process, not the
- * bundled program — and maps `__FE_VERSION__` to the JSON-quoted version. `cli/vite.config.ts`
+ * bundled program — and maps `__FG_VERSION__` to the JSON-quoted version. `cli/vite.config.ts`
  * declares the identical `define` so the unit suite sees the same literal and can assert the
  * two agree.
  *
@@ -27,8 +27,8 @@
  * the header) and the type must admit it; `declare` is type-only, so it erases cleanly under
  * `erasableSyntaxOnly` (`tsconfig.base.json`).
  */
-declare const __FE_VERSION__: string | undefined;
+declare const __FG_VERSION__: string | undefined;
 
 /** The version `--version` prints. A literal in the built bundle — never a filesystem read. */
 export const CLI_VERSION: string =
-  typeof __FE_VERSION__ === "string" ? __FE_VERSION__ : "0.0.0-dev";
+  typeof __FG_VERSION__ === "string" ? __FG_VERSION__ : "0.0.0-dev";

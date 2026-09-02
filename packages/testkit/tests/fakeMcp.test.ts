@@ -16,7 +16,7 @@
  *
  * TIER 1, deliberately, even though it opens a socket. The tier boundary the design draws is
  * about what a suite DEPENDS ON, not about whether bytes move: tier 2 is «fake MCP server +
- * the bundled `dist/main.mjs` as a subprocess + packed-manifest assertions» (design
+ * the bundled `dist/fg.mjs` as a subprocess + packed-manifest assertions» (design
  * 2.1:153-156), and this file has no build artifact, no subprocess and no packed manifest in
  * it. It is a unit test of one module, whose unit happens to be a listener on `127.0.0.1:0`.
  * Putting it in tier 2 would mean the fake server's own correctness was only checked on demand,
@@ -81,7 +81,7 @@ describe("startFakeMcp — the REAL SDK client speaks to it", () => {
     expect(fake.calls[0]?.args).toEqual({ itemId: ROOT_GUID });
     expect(fake.calls[1]?.args).toEqual({});
     // No token was configured, so none may appear — the local route sends none
-    // (`packages/fe-pixso/src/routing.ts:92`).
+    // (`packages/fg-pixso/src/routing.ts:92`).
     expect(fake.calls[0]?.token).toBeUndefined();
     expect(fake.calls[0]?.headers["content-type"]).toContain("application/json");
   });
@@ -123,7 +123,7 @@ describe("startFakeMcp — the REAL SDK client speaks to it", () => {
     const listed = await makePixsoClient(fake.url).listTools();
     expect(listed.ok).toBe(true);
     if (!listed.ok) return;
-    expect(listed.tools.map((tool) => tool.name).sort()).toEqual([
+    expect(listed.tools.map((tool) => tool.name).toSorted()).toEqual([
       GET_ALL_COMPONENTS,
       GET_NODE_DSL,
     ]);
@@ -187,12 +187,12 @@ describe("the fixtures are ONE source, shared with tier 1", () => {
     expect(root.height).toBeGreaterThan(0);
   });
 
-  it("the re-export IS fe-pixso's module — not a copy that can drift", async () => {
+  it("the re-export IS fg-pixso's module — not a copy that can drift", async () => {
     // Identity, not equality: if this file ever grew its own derivation, the two bindings
     // would be different strings the day one of them changed. `toBe` on the imported binding
     // is what makes «one fixture source» a checked fact rather than a comment.
-    const fePixso = await import("../../fe-pixso/tests/fixtures/fakeDsl.ts");
-    expect(CLEAN_DSL).toBe(fePixso.CLEAN_DSL);
-    expect(ROOT_GUID).toBe(fePixso.ROOT_GUID);
+    const fgPixso = await import("../../fg-pixso/tests/fixtures/fakeDsl.ts");
+    expect(CLEAN_DSL).toBe(fgPixso.CLEAN_DSL);
+    expect(ROOT_GUID).toBe(fgPixso.ROOT_GUID);
   });
 });
