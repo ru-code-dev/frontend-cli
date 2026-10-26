@@ -16,6 +16,7 @@
  * CLI cannot drift from what actually runs, because there is no second list to drift from.
  */
 import type { CliCommand } from "@smart-tools/fg-cli-kit";
+import { installCommands } from "@smart-tools/fg-install";
 import { pixsoCommands } from "@smart-tools/fg-pixso";
 import {
   initConfigCommands,
@@ -52,6 +53,9 @@ export const COMMANDS: readonly CliCommand[] = [
   ...projectReportCommands,
   ...initConfigCommands,
   ...parseUiKitCommands,
+  // `fg install` / `fg install --check` / `fg uninstall` (brief a1) — the cost test again: one
+  // import and one spread. The positional spelling is `parse.ts`'s `isVerb`.
+  ...installCommands,
 ];
 
 /**

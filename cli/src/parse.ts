@@ -90,6 +90,12 @@ const GLOBAL_OPTIONS = {
   source: { type: "string" },
   config: { type: "string" },
   format: { type: "string" },
+  // `fg install`'s two switches (brief a1). Scoped like `--ui-kit`: only the commands that declare
+  // them in their `ArgSpec`s accept them (`packages/fg-install/src/commands.ts`), so
+  // `fg uninstall --check` is refused as «не поддерживается командой uninstall», and everywhere a
+  // verb is not selected they are an «неизвестный флаг» (see `verbOnlyOptions`), exit 2.
+  check: { type: "boolean" },
+  "no-restart": { type: "boolean" },
   verbose: { type: "boolean" },
   help: { type: "boolean", short: "h" },
   version: { type: "boolean", short: "v" },
@@ -534,8 +540,41 @@ export function parseInvocation(
     return { kind: "error", lang, message: badLang(rawLang) };
   }
 
-  const selected = commands.find((c) => occurrences(values, c) > 0);
-  const total = commands.reduce((sum, c) => sum + occurrences(values, c), 0);
+  const flagged = commands.find((c) => occurrences(values, c) > 0);
+  const flaggedTotal = commands.reduce((sum, c) => sum + occurrences(values, c), 0);
+  // A VERB (`fg install`) is the first positional, and counts only when no flag-style command was
+  // typed — so `fg --preport install` still analyses a directory called `install`, exactly as it
+  // did before verbs existed. See {@link isVerb}.
+  const verb = flaggedTotal === 0 ? verbNamed(positionals[0], commands) : undefined;
+  const selected = flagged ?? verb;
+  const total = flaggedTotal + (verb === undefined ? 0 : 1);
+  // The verb is the command, not its argument: what follows it is.
+  const args = verb === undefined ? positionals : positionals.slice(1);
+
+  // VERB-ONLY SURFACE stays invisible outside the verbs, exactly as it was before they existed
+  // (1.0.0 answered «неизвестный флаг», exit 2): the switches only verbs declare (`--check`,
+  // `--no-restart`) are unknown for every other command and for no command at all, and a verb's
+  // flag-style spelling (`--install`) is unknown outside `--help` — `fg --uninstall` must never
+  // delete anything. Reported as the FIRST such token in argv, which is what `parseArgs` named
+  // when these options did not exist.
+  const verbSurface = verbOnlyOptions(commands, options);
+  const verbSelected = selected !== undefined && isVerb(selected);
+  const helping = values["help"] === true;
+  const unknown = new Set<string>();
+  if (!(verbSelected && (verb !== undefined || helping))) {
+    for (const name of verbSurface.switches) if (values[name] === true) unknown.add(name);
+  }
+  if (!helping) {
+    for (const name of verbSurface.spellings)
+      if (occurrencesNamed(values, name) > 0) unknown.add(name);
+  }
+  if (unknown.size > 0) {
+    const known = Object.fromEntries(
+      Object.entries(options ?? {}).filter(([name]) => !unknown.has(name)),
+    );
+    const token = offendingToken(argv, known) ?? `--${[...unknown][0]}`;
+    return { kind: "error", lang, message: unknownFlag(token) };
+  }
 
   // `--help` still beats everything, but it now ASKS WHICH command (design 2.8). All three
   // spellings resolve here: `fg --help --preport` and `fg --preport --help` name the command as
@@ -595,7 +634,7 @@ export function parseInvocation(
     kind: "command",
     lang,
     command,
-    source: positionals[0],
+    source: args[0],
     out: asString(values["out"]),
     endpoint: asString(values["endpoint"]),
     token: asString(values["token"]),
@@ -624,10 +663,63 @@ export function parseInvocation(
       // `ctx.flags` is what a refusal quotes back.
       config: asString(values["config"]),
       format: asString(values["format"]),
+      // `fg install`'s switches, through the same channel and for the same reason as `--ui-kit`.
+      check: values["check"] === true,
+      "no-restart": values["no-restart"] === true,
       debug: values["debug"] === true,
       verbose: values["verbose"] === true,
     },
   };
+}
+
+/** How many times the option `name` was typed (a command option is `multiple`, a switch is a boolean). */
+function occurrencesNamed(values: Record<string, unknown>, name: string): number {
+  const value = values[name];
+  return Array.isArray(value) ? value.length : value === true ? 1 : 0;
+}
+
+/**
+ * What belongs to the VERBS alone: `switches` — options some verb declares and no flag-style
+ * command does (`check`, `no-restart`) — and `spellings` — the verbs' own names as options
+ * (`install`), which `optionsFor` keeps so `fg --help --install` can name the command.
+ */
+function verbOnlyOptions(
+  commands: readonly CliCommand[],
+  options: ParseArgsOptions,
+): { readonly switches: readonly string[]; readonly spellings: readonly string[] } {
+  const byVerb = new Set<string>();
+  const byFlag = new Set<string>();
+  for (const command of commands) {
+    for (const name of declaredOptions(command, options))
+      (isVerb(command) ? byVerb : byFlag).add(name);
+  }
+  return {
+    switches: [...byVerb].filter((name) => !byFlag.has(name)),
+    spellings: commands.filter(isVerb).map((command) => optionName(command.flag)),
+  };
+}
+
+/**
+ * A VERB COMMAND — one whose registry `flag` is a bare word (`install`, `uninstall`) rather than a
+ * `--flag`. The user types it as the FIRST positional: `fg install --check`.
+ *
+ * It costs nothing elsewhere: `optionsFor` still files it under its own name, so the repo's
+ * per-command help forms all work (`fg --help install`, `fg install --help`,
+ * `fg --help --install`). The flag-style spelling `--install` is NOT a way to run it — outside
+ * `--help` it is an unknown flag, as in 1.0.0. The rules verbs add are in `parseInvocation`: a
+ * verb is recognised only when no flag-style command was typed, and the verb-only surface is
+ * unknown elsewhere.
+ */
+export function isVerb(command: CliCommand): boolean {
+  return !command.flag.startsWith("-");
+}
+
+/** The verb command `word` names exactly, if any. */
+function verbNamed(
+  word: string | undefined,
+  commands: readonly CliCommand[],
+): CliCommand | undefined {
+  return word === undefined ? undefined : commands.find((c) => isVerb(c) && c.flag === word);
 }
 
 /**

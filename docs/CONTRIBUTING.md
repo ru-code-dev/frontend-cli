@@ -44,7 +44,7 @@ pnpm release    # pnpm -r run build && node scripts/release.mjs
 ```
 
 `scripts/release.mjs` копирует `cli/dist/fg.mjs` в корень репозитория как `fg.mjs`: размер
-проверяется по коридору 18–25 MiB (сейчас ~21 MiB), и если файла нет или он вне коридора —
+проверяется по коридору 18–25 MiB (сейчас ~22 MiB), и если файла нет или он вне коридора —
 скрипт падает громко. Дистрибутив — именно этот файл в корне.
 
 `.gitignore` содержит `/fg.mjs`, так что обычная сборка его не коммитит: **коммитит мейнтейнер и
@@ -52,6 +52,34 @@ pnpm release    # pnpm -r run build && node scripts/release.mjs
 `git clone` + `node <repo>/fg.mjs` сработает только на релизном коммите или теге, где файл
 закоммичен вручную; на обычном чекауте нужен `pnpm install && pnpm release` (см.
 [README.md](../README.md)).
+
+## Сборка ru-code для `fg install`
+
+`fg install` вшивает в `fg.mjs` preflight-скрипт ru-code и сборку плагина pixso из каталога
+`vendor/ru-code/`. Каталог в `.gitignore`; без него `pnpm build` падает с сообщением, какого
+файла не хватает. Чтобы обновить вшитую сборку, код менять не нужно — достаточно заменить файлы
+и пересобрать:
+
+1. Соберите ru-code (`pnpm build`, затем `pnpm prepare-release` в репозитории ru-code — он кладёт
+   `preflight.mjs` в `dist-bundle/staging/package/`) и плагин
+   (`pnpm --filter @smart-tools/t3-code-pixso-mcp-assistant-plugin build` в ru-code-packages).
+2. Скопируйте:
+
+   ```bash
+   rm -rf vendor/ru-code && mkdir -p vendor/ru-code/plugins
+   cp <ru-code>/dist-bundle/staging/package/preflight.mjs vendor/ru-code/preflight.mjs
+   cp -R <ru-code-packages>/packages/t3-code-pixso-mcp-assistant-plugin/dist vendor/ru-code/plugins/pixso
+   ```
+
+   Имя папки в `vendor/ru-code/plugins/` должно совпадать с `id` в её `plugin.json`, и папка там
+   должна быть ровно одна.
+
+3. `pnpm build` (или `pnpm release`), затем `pnpm test:integration`:
+   `cli/tests/install.integration.test.ts` ставит плагин из собранного бандла в чистый HOME и
+   сверяет файлы побайтно с `vendor/ru-code/plugins/pixso`.
+
+Что должно быть в `vendor/ru-code` и как оно попадает в бандл — в
+[ARCHITECTURE.md](ARCHITECTURE.md#вшитая-сборка-ru-code-vendorru-code).
 
 ## Новое правило
 
@@ -69,7 +97,9 @@ pnpm release    # pnpm -r run build && node scripts/release.mjs
 
 Пакет в `packages/`, реализующий `CliCommand` из `cli-kit`, плюс один `import` и один спред в
 `COMMANDS` в `cli/src/registry.ts`. Справка, разбор флагов, выход с кодом 2 на необъявленный флаг
-и итоговый блок достаются из реестра даром.
+и итоговый блок достаются из реестра даром. Команда-слово (`install`) — это `CliCommand`, у
+которого `flag` без дефисов: разбор узнаёт её по первому позиционному аргументу
+(`isVerb` в `cli/src/parse.ts`).
 
 ## Новая дизайн-система
 

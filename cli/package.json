@@ -1,6 +1,6 @@
 {
   "name": "@smart-tools/frontend-guard",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "license": "UNLICENSED",
   "bin": {
     "fg": "./dist/fg.mjs"
@@ -19,6 +19,7 @@
   "devDependencies": {
     "@smart-tools/fg-cli-kit": "workspace:*",
     "@smart-tools/fg-eds-adapter": "workspace:*",
+    "@smart-tools/fg-install": "workspace:*",
     "@smart-tools/fg-pixso": "workspace:*",
     "@smart-tools/fg-project-report": "workspace:*",
     "@smart-tools/fg-testkit": "workspace:*",

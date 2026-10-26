@@ -67,6 +67,36 @@ fg --passets <pixso-link> -o ./card         # -o задаёт каталог
 
 Подробно: [docs/manual/pixso.md](docs/manual/pixso.md), переменные — [docs/manual/env.md](docs/manual/env.md).
 
+## Плагин pixso для ru-code — `install`
+
+```bash
+fg install                # поставить плагин pixso в ru-code (и перезапустить ru-code, если он запущен)
+fg install --check        # только проверить: установлен ли, совпадает ли со встроенным
+fg install --no-restart   # поставить, но не перезапускать
+fg uninstall              # удалить плагин; его данные остаются
+```
+
+Сборка плагина вшита в `fg.mjs`. Где лежит ru-code, fg узнаёт у **собственного preflight-скрипта
+ru-code** — того же, что запускает установщик ru-code, — и пишет в
+`<корень ru-code>/plugins/pixso` (рабочие файлы — в `<корень>/.fg-install/`, вне `plugins/`).
+Замена атомарная: прежняя папка остаётся целой, пока новая не записана и не сверена по sha256;
+два одновременных запуска не пересекутся (блокировка). Данные плагина (`userdata/plugins/pixso`) и переключатели
+вкл/выкл не трогаются.
+
+Перезапуск — только если ru-code запущен и файлы изменились: `ru-code restart --no-browser`
+(без новой вкладки браузера), тем же способом, что у установщика ru-code: node напрямую, на любой ОС. Не запущен — плагин загрузится при следующем старте. Если текущая
+версия ru-code сама поставляет pixso, ru-code загрузит свою копию — fg об этом предупредит.
+
+Плагину нужен ru-code **не старше 0.0.34** (`MINIMUM_APP_VERSION` в
+`packages/fg-install/src/constants.ts`): в 0.0.33 нет API хоста, без которого ru-code пометит плагин
+как сломанный. Версию fg берёт из `<корень ru-code>/bin/current.json`. Если ru-code старее или
+версию не прочитать, `fg install` ничего не пишет и выходит с кодом 1:
+`✖ установлен ru-code 0.0.33, а плагину pixso нужен 0.0.34 или новее` — обновите ru-code и повторите.
+`fg uninstall` версию не проверяет.
+
+Подробно: [docs/manual/install.md](docs/manual/install.md). Как обновить вшитую сборку —
+[CONTRIBUTING.md](docs/CONTRIBUTING.md#сборка-ru-code-для-fg-install).
+
 ## Роли
 
 - [Разработчик](docs/manual/roles/developer.md) — прогнать свой проект и починить найденное.
@@ -82,11 +112,12 @@ fg --passets <pixso-link> -o ./card         # -o задаёт каталог
 | [manual/pixso.md](docs/manual/pixso.md)                   | `--psvg/--phtml/--pprompt/--passets`, маршруты, токен                         |
 | [manual/init-config.md](docs/manual/init-config.md)       | `--iconf`: `fg.config.json`, схема, `inherit`                                 |
 | [manual/parse-ui-kit.md](docs/manual/parse-ui-kit.md)     | `--pkit`: пересборка корпуса дизайн-системы                                   |
+| [manual/install.md](docs/manual/install.md)               | `install` / `uninstall`: плагин pixso в ru-code, перезапуск, коды возврата    |
 | [manual/env.md](docs/manual/env.md)                       | все переменные окружения и приоритет                                          |
 | [manual/ci.md](docs/manual/ci.md)                         | пайп, `sarif`/`json`, коды возврата, `NO_COLOR`                               |
 | [manual/vscode.md](docs/manual/vscode.md)                 | задачи VS Code и просмотр SARIF                                               |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md)                   | пакеты, поток данных, инварианты, адаптеры                                    |
 | [CONTRIBUTING.md](docs/CONTRIBUTING.md)                   | инструменты, проверки, релиз, как добавить правило / команду / дизайн-систему |
-| [CHANGELOG.md](docs/CHANGELOG.md)                         | что вошло в 1.0.0                                                             |
+| [CHANGELOG.md](docs/CHANGELOG.md)                         | что вошло в 1.0.0 и 1.1.0                                                     |
 
 Справка в самом инструменте: `fg --help`, по команде — `fg --help --preport`.

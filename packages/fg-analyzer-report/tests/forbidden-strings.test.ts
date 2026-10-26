@@ -19,22 +19,22 @@ import { fileURLToPath } from "node:url";
 
 import { describe, expect, it } from "vite-plus/test";
 
+import {
+  FORBIDDEN_LITERALS as FG_FORBIDDEN_LITERALS,
+  FORBIDDEN_PATTERNS as FG_FORBIDDEN_PATTERNS,
+} from "../../fg-install/src/forbidden.ts";
 import { builtBundle, builtTemplate, packageRoot } from "./support.ts";
 
 /** This file names the strings it forbids, so it is the one file exempt from its own scan. */
 const guardFile = fileURLToPath(import.meta.url);
 
-/** Literal strings that may not appear anywhere in this package or its output. */
-const FORBIDDEN_LITERALS: readonly string[] = [
-  "sbt-jenkins",
-  "sigma.sbrf.ru",
-  "generic-webhook-trigger",
-  "@v-uik",
-  "@sds-eng",
-];
-
-/** Any embedded credential in a URL, whatever its value. */
-const FORBIDDEN_PATTERNS: readonly RegExp[] = [/[?&]token=[A-Za-z0-9_-]{16,}/, /_DNU_ST_/];
+/**
+ * Literals and patterns come from `fg-install`'s ONE shared list, which the vendor packer
+ * (`packVendor`) also enforces at build time. Imported by relative path: this package does not
+ * depend on `fg-install`, and a test-only import is not worth a workspace edge.
+ */
+const FORBIDDEN_LITERALS: readonly string[] = FG_FORBIDDEN_LITERALS;
+const FORBIDDEN_PATTERNS: readonly RegExp[] = FG_FORBIDDEN_PATTERNS;
 
 const SOURCE_DIRECTORIES = ["src", "tests", "scripts", join("dashboard", "src")];
 const SOURCE_EXTENSIONS = [".ts", ".tsx", ".mjs", ".css", ".html", ".json"];
@@ -60,6 +60,21 @@ const sourceFiles = [
 describe("forbidden strings — the ported sources", () => {
   it("scans a non-trivial number of files (a guard that greps nothing proves nothing)", () => {
     expect(sourceFiles.length).toBeGreaterThan(20);
+  });
+
+  it("checks for something: the shared list carries its literals and both patterns", () => {
+    expect(FORBIDDEN_LITERALS).toEqual(
+      expect.arrayContaining([
+        "sbt-jenkins",
+        "sigma.sbrf.ru",
+        "generic-webhook-trigger",
+        "@v-uik",
+        "@sds-eng",
+      ]),
+    );
+    expect(FORBIDDEN_PATTERNS.map(String)).toEqual(
+      expect.arrayContaining([String(/[?&]token=[A-Za-z0-9_-]{16,}/), String(/_DNU_ST_/)]),
+    );
   });
 
   for (const forbidden of FORBIDDEN_LITERALS) {

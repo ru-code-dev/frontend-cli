@@ -40,6 +40,13 @@ import { promisify } from "node:util";
 import { makeTempDir, nodeModulesAbove, removeTempDir } from "@smart-tools/fg-testkit";
 import { afterEach, beforeAll, describe, expect, it } from "vite-plus/test";
 
+/** `cli/package.json`'s version — what `fg v<version>` in the header must say. */
+const CLI_MANIFEST_VERSION = (
+  JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as {
+    version: string;
+  }
+).version;
+
 const run = promisify(execFile);
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -767,7 +774,9 @@ describe("(e) a project that uses a design system", () => {
     expect(ruNotice).toContain("eds 1.13.0 (встроенная)");
     expect(ruNotice).toContain("определена по зависимостям");
     expect(ruNotice).toMatch(/[А-Яа-яЁё]/u);
-    expect(ru.stderr.split("\n")[0]).toBe("fg v1.0.0 · preport");
+    // The version is the manifest's, read here rather than written down: a release bump (1.1.0,
+    // brief a1) must not turn this assertion about the HEADER'S SHAPE into a stale literal.
+    expect(ru.stderr.split("\n")[0]).toBe(`fg v${CLI_MANIFEST_VERSION} · preport`);
 
     expect(noticeOf(en.stderr)).toBe("");
     expect(en.stderr).not.toContain("design system: eds");

@@ -11,3 +11,6 @@ ru-code-packages
 
 # the release artifact: `pnpm release` writes it, the owner commits it on a release thread
 /fg.mjs
+
+# ru-code build inputs embedded by `fg install`: the owner copies preflight.mjs + plugins/pixso here
+/vendor/

@@ -11,7 +11,7 @@ import { pick } from "@smart-tools/fg-cli-kit";
 import { describe, expect, it } from "vite-plus/test";
 
 import { COMMANDS } from "../src/main.ts";
-import { optionName } from "../src/parse.ts";
+import { isVerb, optionName } from "../src/parse.ts";
 import { COMMANDS as REGISTRY } from "../src/registry.ts";
 
 describe("the registry is assembled from the feature packages", () => {
@@ -25,9 +25,13 @@ describe("the registry is assembled from the feature packages", () => {
 });
 
 describe("whatever the registry holds is well-formed", () => {
-  it("every flag is a long flag, and every alias is a distinct spelling", () => {
+  it("every flag is a long flag or a bare-word verb, and every alias is a distinct spelling", () => {
     for (const command of REGISTRY) {
-      expect(command.flag.startsWith("--")).toBe(true);
+      // A VERB (`install`) is the one other shape the parser accepts (`cli/src/parse.ts`'s
+      // `isVerb`, brief a1): a lowercase word typed first, never something that looks like a path.
+      expect(
+        command.flag.startsWith("--") || (isVerb(command) && /^[a-z][a-z-]*$/.test(command.flag)),
+      ).toBe(true);
       expect(optionName(command.flag)).not.toBe("");
       if (command.alias !== undefined) {
         expect(command.alias.startsWith("-")).toBe(true);

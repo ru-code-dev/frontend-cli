@@ -1,5 +1,7 @@
 import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 
+import { packVendor } from "@smart-tools/fg-install/pack";
 import { defineConfig } from "tsdown";
 
 /**
@@ -14,6 +16,28 @@ import { defineConfig } from "tsdown";
 const { version } = JSON.parse(
   readFileSync(new URL("./package.json", import.meta.url), "utf8"),
 ) as { version: string };
+
+/**
+ * THE ru-code PAYLOAD `fg install` CARRIES, packed HERE — in the build — from `vendor/ru-code/`.
+ *
+ * `vendor/` is gitignored and holds ru-code's own build outputs: `preflight.mjs` and ONE plugin
+ * folder under `plugins/` (docs/CONTRIBUTING.md says how to refresh them). `packVendor`
+ * (`packages/fg-install/src/pack.ts`) brotli-compresses every file and records the sha256 and
+ * size of its original bytes; the result reaches the bundle as one string literal through
+ * `define`, exactly like `__FG_VERSION__` below, and `packages/fg-install/src/embedded.ts` is the
+ * consuming half. THE BUILD FAILS when the vendor tree is missing or malformed — a `fg.mjs` whose
+ * `install` cannot install is not a build anyone should be able to ship by accident.
+ */
+const vendorDir = fileURLToPath(new URL("../vendor/ru-code", import.meta.url));
+let installPayload: string;
+try {
+  installPayload = JSON.stringify(packVendor(vendorDir));
+} catch (error) {
+  throw new Error(
+    `fg build: cannot embed the ru-code payload from ${vendorDir}: ${error instanceof Error ? error.message : String(error)}`,
+    { cause: error },
+  );
+}
 
 // The SINGLE-FILE bundle target, modelled on
 // `ru-code-packages/packages/pixso-cli/tsdown.config.ts:8-35` — the proven recipe for a
@@ -295,7 +319,11 @@ export default defineConfig({
   // the build (tsdown 0.20.3 `dist/types-CNIFJKMX.d.mts:725`), so `__FG_VERSION__` in
   // `src/version.ts` becomes the quoted literal below and the surrounding `typeof` guard folds
   // away under `minify`. No `package.json` read survives into `dist/fg.mjs`.
-  define: { __FG_VERSION__: JSON.stringify(version) },
+  define: {
+    __FG_VERSION__: JSON.stringify(version),
+    // The packed `vendor/ru-code/` (see `installPayload` above) as ONE quoted string literal.
+    __FG_INSTALL_PAYLOAD__: JSON.stringify(installPayload),
+  },
   minify: true,
   sourcemap: false,
   clean: true,

@@ -91,8 +91,8 @@ export const HELP_GLOBAL_ROWS: readonly { spelling: Localized; description: Loca
   {
     spelling: { ru: "-o, --out <путь>", en: "-o, --out <path>" },
     description: {
-      ru: "куда писать результат (файл или каталог), кроме --pkit",
-      en: "where to write the result (file or directory), except --pkit",
+      ru: "куда писать результат (файл/каталог), кроме --pkit, install, uninstall",
+      en: "where to write the result (file/dir), except --pkit, install, uninstall",
     },
   },
   {
