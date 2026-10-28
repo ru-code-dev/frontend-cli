@@ -29,7 +29,7 @@
  * modules reference each other (the contract needs {@link CommandUi} as a type, this needs
  * `pick` at runtime) and calling it lazily means the cycle can never be observed.
  */
-import { type Lang, type Localized, pick } from "./index.ts";
+import { CLI_COMMAND, type Lang, type Localized, pick } from "./index.ts";
 
 /* ─────────────────────────────────────── the surface ─────────────────────────────────────── */
 
@@ -76,7 +76,7 @@ export interface UsageHint {
  * header: `--lang ru|en` has to reach it, and the type is the enforcement.
  */
 export interface CommandUi {
-  /** The header line, once, first thing a command prints. `fg v<version>` is prefixed here. */
+  /** The header line, once, first thing a command prints. `fguard v<version>` is prefixed here. */
   header(parts: readonly Localized[]): void;
   /**
    * Start a phase, ending the previous one.
@@ -151,7 +151,7 @@ export interface UiOptions {
   readonly lang: Lang;
   /** Read for `NO_COLOR`, `FORCE_COLOR` and `COLORTERM`. Omitted reads as an empty environment. */
   readonly env?: Readonly<Record<string, string | undefined>> | undefined;
-  /** The CLI's version, printed in the header as `fg v<version>`. */
+  /** The CLI's version, printed in the header as `fguard v<version>`. */
   readonly version?: string | undefined;
   /** Whether STDOUT — not this stream — is a terminal. Surfaced as {@link TerminalUi.stdoutIsTTY}. */
   readonly stdoutIsTTY?: boolean | undefined;
@@ -397,7 +397,7 @@ export function createUi(options: UiOptions): TerminalUi {
   const capability = capabilityOf(stream, options.env ?? {});
   const startInterval = options.interval ?? timerInterval;
   const now = options.now ?? Date.now;
-  const bin = options.bin ?? "fg";
+  const bin = options.bin ?? CLI_COMMAND;
   const version = options.version;
   const startedAt = now();
 

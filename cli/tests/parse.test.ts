@@ -420,6 +420,7 @@ describe("--config / --format", () => {
     expect(preport).toBeDefined();
     expect([...declaredValues(preport as CliCommand, "--format")]).toEqual([
       "html",
+      "summary",
       "compact",
       "json",
       "sarif",

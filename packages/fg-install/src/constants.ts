@@ -97,3 +97,46 @@ export const PREFLIGHT_TIMEOUT_MS = 60_000;
 
 /** `ru-code restart` launches with up to 3 attempts (R/ru-code/daemon/src/launch.ts:116-208). */
 export const RESTART_TIMEOUT_MS = 180_000;
+
+/* ── `bash install`: the `fguard` command, its files and the skills (fg-skills) ─────────────── */
+
+/** The command a user types — cli-kit's {@link CLI_COMMAND} (`fg` is a shell builtin). */
+export { CLI_COMMAND as FG_COMMAND } from "@smart-tools/fg-cli-kit";
+
+/** The product name; `env.sh`'s comment line (ru-code's `APP_DISPLAY_NAME`, 25-rc-path.sh:397). */
+export const FG_DISPLAY_NAME = "Frontend Guard";
+
+/**
+ * `<OUR_ROOT>/fg/` — fg's own folder under ru-code's root. No ru-code flow touches it: install,
+ * update and uninstall `rm -rf` only `<OUR_ROOT>/bin` (R/ru-code/installer/parts/30-core.sh:402-421),
+ * the in-app updater works inside `<bin>` (R/apps/server/src/ru-code/auto-update/apply/gc.ts:46-62),
+ * and it is not under `<plugins>/`, which ru-code scans (R/apps/server/src/ru-code/plugins/scan.ts:62-88).
+ */
+export const FG_DIR_NAME = "fg";
+
+/**
+ * `<OUR_ROOT>/fg/bin` — the dir `add_path` puts ON PATH. It holds ONLY names no system command
+ * has: `fg.mjs`, the `fguard` wrapper, `env.sh` and the token `.env`. The installers live one
+ * level up, in `<OUR_ROOT>/fg/` (review-1 finding 1: `install` on PATH shadowed coreutils).
+ */
+export const FG_BIN_DIR_NAME = "bin";
+
+/** The bundle, as copied: `<OUR_ROOT>/fg/bin/fg.mjs`. */
+export const FG_ENTRY = "fg.mjs";
+
+/** fg's own bash entry — `bash install` / `bash install --uninstall`. */
+export const FG_INSTALLER = "install";
+
+/** ru-code's generated installer, vendored VERBATIM; `install` sources it for node + rc. */
+export const RU_CODE_INSTALLER = "ru-code-install";
+
+/** The installers `setup` copies into `<OUR_ROOT>/fg/` (NOT on PATH) so `--uninstall` works after the clone is gone. */
+export const FG_INSTALLER_FILES: readonly string[] = [FG_INSTALLER, RU_CODE_INSTALLER];
+
+/** The journal ru-code's `log` writes to during `setup` — fg's, never ru-code's. */
+export const FG_LOG_FILE = "install.log";
+
+/** Preflight keys `setup` reads (R/apps/server/src/ru-code/preflight/preflight.ts:75-95,139-142). */
+export const PREFLIGHT_CONFIG_DIR_KEY = "CONFIG_DIR";
+export const PREFLIGHT_CLI_JS_KEY = "CLI_JS";
+export const PREFLIGHT_CHECK_CLI_KIND_KEY = "CHECK_CLI_KIND";

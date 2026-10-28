@@ -172,7 +172,7 @@ const readMember = async (
     return {
       reason: "invalid",
       file,
-      detail: `missing meta.corpus — this file was not written by "fg --parse-ui-kit ${kit}"`,
+      detail: `missing meta.corpus — this file was not written by "fguard --parse-ui-kit ${kit}"`,
     };
   }
   if (stamped.stamp.kit !== kit) {

@@ -82,7 +82,7 @@ beforeAll(async () => {
   const result = await run("pnpm", ["release"], {
     cwd: repoRoot,
     encoding: "utf8",
-    env: { ...env, FG_RELEASE_OUT: released },
+    env: { ...env, FG_RELEASE_OUT: scratchDir },
     maxBuffer: 64 * 1024 * 1024,
   });
   stdout = result.stdout;
@@ -116,11 +116,24 @@ describe("pnpm release", () => {
     expect(stdout).toContain(String(statSync(released).size));
   });
 
-  it("and the artifact stays out of git — `.gitignore` carries `/fg.mjs`", () => {
-    // The half of the contract the filesystem cannot show: `pnpm release` produces the file,
-    // and an ordinary commit must never pick it up.
-    const ignored = readFileSync(join(repoRoot, ".gitignore"), "utf8").split("\n");
-    expect(ignored.map((line) => line.trim())).toContain("/fg.mjs");
+  it("and the artifacts stay out of git — `.gitignore` carries all three", () => {
+    // The half of the contract the filesystem cannot show: `pnpm release` produces the files,
+    // and an ordinary commit must never pick them up.
+    const ignored = readFileSync(join(repoRoot, ".gitignore"), "utf8")
+      .split("\n")
+      .map((line) => line.trim());
+    for (const name of ["/fg.mjs", "/install", "/ru-code-install"]) expect(ignored).toContain(name);
+  });
+
+  it("A1: writes `install` (fg's bash entry) and `ru-code-install` (ru-code's installer, VERBATIM), both executable", () => {
+    const install = join(scratchDir, "install");
+    const ruCode = join(scratchDir, "ru-code-install");
+    expect(readFileSync(install).equals(readFileSync(join(repoRoot, "packages/fg-install/install.sh")))).toBe(true);
+    expect(readFileSync(ruCode).equals(readFileSync(join(repoRoot, "vendor/ru-code/install")))).toBe(true);
+    expect(statSync(install).mode & 0o111).not.toBe(0);
+    expect(statSync(ruCode).mode & 0o111).not.toBe(0);
+    expect(stdout).toContain(install);
+    expect(stdout).toContain(ruCode);
   });
 
   it("never touches the repo-root fg.mjs — the whole point of `FG_RELEASE_OUT` (V6 finding #8)", () => {

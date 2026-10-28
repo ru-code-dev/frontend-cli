@@ -213,7 +213,7 @@ describe("the registry entry itself", () => {
     const command = createProjectReportCommands()[0];
     if (command === undefined) throw new Error("no command");
     expect(usageLineOf(command, "ru")).toBe(
-      "fg --preport <путь|repo> [-o <путь>] [--format …] [--ui-kit …] [--config …]",
+      "fguard --preport <путь|repo> [-o <путь>] [--format …] [--ui-kit …] [--config …]",
     );
     for (const lang of ["ru", "en"] as const) {
       expect([...usageLineOf(command, lang)].length).toBeLessThanOrEqual(100);
@@ -437,8 +437,8 @@ describe("usage errors — exit 2, and nothing is acquired", () => {
     expect(run.ui).toHaveLength(1);
     expect(run.ui[0]).toBe(
       `fail:${missingSource.ru} <${missingSourceDetail.ru}> ` +
-        "[fg --preport <путь|repo> [-o <путь>] [--format …] [--ui-kit …] [--config …]" +
-        "|fg --help --preport]",
+        "[fguard --preport <путь|repo> [-o <путь>] [--format …] [--ui-kit …] [--config …]" +
+        "|fguard --help --preport]",
     );
   });
 
@@ -812,7 +812,7 @@ describe("the terminal UI the command drives", () => {
     expect(ui.filter((line) => line.startsWith("summary:"))).toEqual([]);
     // …and the failure block carries §2.6's SECOND line: the `--debug` pointer, and NO usage row
     // (the invocation was accepted, so there is nothing about it to correct) — V5 finding #4.
-    expect(ui.at(-1)).toContain("[|fg --preport … --debug]");
+    expect(ui.at(-1)).toContain("[|fguard --preport … --debug]");
   });
 
   it("--lang en renders every phase label in English", async () => {

@@ -4,7 +4,7 @@
  * V1 SCOPE, owner-corrected (design 2.1:112-122). Two routes and two refusals, in this order:
  *
  *   `http(s)://…`  → REMOTE: `fetchScan({ url, token, endpoint: remoteUrl })`. The token is
- *                    REQUIRED; missing → a localized, actionable refusal, exit 2.
+ *                    REQUIRED; missing → a localized, actionable refusal, exit 3 (TOKEN_EXIT).
  *   anything else  → LOCAL:  `fetchScan({ itemId: source, endpoint: localUrl })`, no token.
  *   absent         → a localized refusal naming both accepted forms, exit 2.
  *
@@ -28,9 +28,16 @@ import type { FetchScanOptions, PixsoClient } from "@smart-tools/pixso-core/node
 import type { PixsoRuntime } from "./runtime.ts";
 import { missingSource, missingToken } from "./strings.ts";
 
-/** The exit code both refusals carry. `2` is the usage-error code the design fixes for the
- *  whole surface (design 2.1:82, 2.1:118). */
+/** A missing source: `2`, the usage-error code the design fixes for the whole surface
+ *  (design 2.1:82). */
 export const USAGE_EXIT = 2;
+
+/**
+ * A token problem — missing, or rejected by the server (`commands.ts`). DISTINCT from `2` and `1`
+ * (E2) so a caller — the `fg:*` skills above all — can tell «ask the user for a token» from «the
+ * line was wrong» and «the run failed» without reading prose.
+ */
+export const TOKEN_EXIT = 3;
 
 export type PixsoRoute =
   | {
@@ -50,8 +57,15 @@ export function isDesignLink(source: string): boolean {
   return source.startsWith("http://") || source.startsWith("https://");
 }
 
-/** The whole decision, pure: a source plus resolved config in, a route or a refusal out. */
-export function resolveRoute(source: string | undefined, runtime: PixsoRuntime): RouteResolution {
+/**
+ * The whole decision, pure: a source plus resolved config in, a route or a refusal out.
+ * `tokenFile` is only named in the missing-token refusal (the bundle-side `.env`).
+ */
+export function resolveRoute(
+  source: string | undefined,
+  runtime: PixsoRuntime,
+  tokenFile: string,
+): RouteResolution {
   if (source === undefined || source === "") {
     return { ok: false, message: missingSource, exitCode: USAGE_EXIT };
   }
@@ -60,7 +74,7 @@ export function resolveRoute(source: string | undefined, runtime: PixsoRuntime):
   }
   const token = runtime.token;
   if (token === undefined || token === "") {
-    return { ok: false, message: missingToken, exitCode: USAGE_EXIT };
+    return { ok: false, message: missingToken(tokenFile), exitCode: TOKEN_EXIT };
   }
   return {
     ok: true,

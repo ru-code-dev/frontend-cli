@@ -64,7 +64,7 @@ import {
   rulesFor,
 } from "@smart-tools/fg-analyzer-engine";
 import type { ReportPayload } from "@smart-tools/fg-analyzer-report";
-import { payloadOf, renderReport } from "@smart-tools/fg-analyzer-report";
+import { payloadOf, renderReport, summaryOf } from "@smart-tools/fg-analyzer-report";
 import type {
   ArgSpec,
   CliCommand,
@@ -493,8 +493,9 @@ export function createProjectReportCommands(deps: ProjectReportDeps = {}): reado
     defaultOut: reportDefaultOut,
     details: commandDetails,
     examples: [
-      "fg --preport . --format compact",
-      "fg --preport ../app --format html,sarif -o ./out",
+      "fguard --preport . --format compact",
+      "fguard --preport ../app --format html,sarif -o ./out",
+      "fguard --preport . --format html,summary -o ./fg-out",
     ],
     args: [sourceArg, outArg, formatArg, uiKitArg, configArg],
     async run(ctx: CommandContext): Promise<number> {
@@ -798,12 +799,11 @@ export function createProjectReportCommands(deps: ProjectReportDeps = {}): reado
         // ONE ANALYSIS, N OUTPUTS (design §5). The scan above ran once; what follows is
         // rendering, and each format renders from the same `result` and the same `visible`.
         const documents = new Map<Exclude<ReportFormat, "compact">, string>();
-        if (formats.includes("html")) {
+        // ONE PAYLOAD for the dashboard and its summary (G1): `summary` is computed from the very
+        // object the html embeds, by the dashboard's own code (`summaryOf`).
+        if (formats.includes("html") || formats.includes("summary")) {
           ctx.ui.phase(phases.render);
-          documents.set(
-            "html",
-            render(
-              payloadOf(
+          const payload = payloadOf(
                 {
                   findings: result.findings,
                   summary: result.summary,
@@ -841,12 +841,22 @@ export function createProjectReportCommands(deps: ProjectReportDeps = {}): reado
                   ruleConfig: config,
                   ruleCatalog: catalog,
                 },
-              ),
-            ),
-          );
+              );
+          if (formats.includes("html")) documents.set("html", render(payload));
+          if (formats.includes("summary")) {
+            // Every file this run writes, by format, as absolute paths — the summary is how an
+            // agent finds the dashboard without parsing the terminal (G1).
+            const artifacts = Object.fromEntries(
+              targets.map((target) => [target.format, target.path]),
+            );
+            documents.set(
+              "summary",
+              `${JSON.stringify({ ...summaryOf(payload), artifacts }, null, 2)}\n`,
+            );
+          }
         }
         for (const format of fileFormats) {
-          if (format === "html") continue;
+          if (format === "html" || format === "summary") continue;
           documents.set(
             format,
             formatLint(format, {

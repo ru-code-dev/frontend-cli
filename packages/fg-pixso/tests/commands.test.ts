@@ -98,9 +98,22 @@ const FACES = [
 
 const ruFileUnit = (count: number): string => fileUnit(count).ru;
 
+/** The four commands that take a Pixso link (everything but the `token` verb). */
+const linkCommands = () => createPixsoCommands().filter((command) => command.flag.startsWith("--"));
+
 describe("the registry contribution", () => {
+  it("is the four link commands the design names, then `token` (E1)", () => {
+    expect(createPixsoCommands().map((c) => c.flag)).toEqual([
+      "--get-pixso-svg",
+      "--get-pixso-html",
+      "--get-pixso-prompt",
+      "--get-pixso-assets",
+      "token",
+    ]);
+  });
+
   it("is the four commands the design names, each with its alias", () => {
-    expect(createPixsoCommands().map((c) => [c.flag, c.alias] as const)).toEqual([
+    expect(linkCommands().map((c) => [c.flag, c.alias] as const)).toEqual([
       ["--get-pixso-svg", "--psvg"],
       ["--get-pixso-html", "--phtml"],
       ["--get-pixso-prompt", "--pprompt"],
@@ -109,7 +122,7 @@ describe("the registry contribution", () => {
   });
 
   it("every user-facing string it carries exists in BOTH languages", () => {
-    for (const command of createPixsoCommands()) {
+    for (const command of linkCommands()) {
       expect(command.summary.ru.length).toBeGreaterThan(0);
       expect(command.summary.en.length).toBeGreaterThan(0);
       expect(command.details?.ru).not.toBe(command.details?.en);
@@ -139,9 +152,9 @@ describe("the registry contribution", () => {
    *     languages — the ordering is the message.
    */
   it("leads with the link example in both languages, and prints no URL anywhere", () => {
-    for (const command of createPixsoCommands()) {
+    for (const command of linkCommands()) {
       const examples = command.examples ?? [];
-      expect(examples[0]).toBe(`fg ${command.alias} ${PIXSO_LINK}`);
+      expect(examples[0]).toBe(`fguard ${command.alias} ${PIXSO_LINK}`);
       expect(examples.filter((example) => example.includes("11:10"))).toHaveLength(1);
       expect(examples.findIndex((example) => example.includes("11:10"))).toBeGreaterThan(0);
 
@@ -167,7 +180,7 @@ describe("the registry contribution", () => {
   });
 
   it("the source argument is REQUIRED on all four (v1 scope, design 2.1:112-119)", () => {
-    for (const command of createPixsoCommands()) {
+    for (const command of linkCommands()) {
       expect(command.args[0]?.required).toBe(true);
     }
   });
@@ -180,7 +193,7 @@ describe("the registry contribution", () => {
    */
   it("`-o` is OPTIONAL on all four — the owner's law, visible in the help's usage line", () => {
     const required = new Map(
-      createPixsoCommands().map((c) => [c.flag, c.args[1]?.required] as const),
+      linkCommands().map((c) => [c.flag, c.args[1]?.required] as const),
     );
     expect([...required.values()]).toEqual([false, false, false, false]);
   });
@@ -561,7 +574,7 @@ describe("the terminal UI a command drives", () => {
     expect(ui.filter((line) => line.startsWith("header:"))).toEqual([]);
     expect(ui.at(-1)?.startsWith("fail:")).toBe(true);
     // …and the refusal carries the two pointer lines the design fixes.
-    expect(ui.at(-1)).toContain("[fg --psvg <pixso-link|guid> [-o <path>]|fg --help --psvg]");
+    expect(ui.at(-1)).toContain("[fguard --psvg <pixso-link|guid> [-o <path>]|fguard --help --psvg]");
     // English, because the recorder resolves every label through `pick` with the ctx's lang.
     expect(ui.at(-1)).not.toMatch(/[А-Яа-яЁё]/u);
   });

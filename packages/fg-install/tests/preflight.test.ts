@@ -148,7 +148,9 @@ describe.skipIf(process.platform === "win32")(
         ].join("\n");
         const runner = spawn(
           process.execPath,
-          [fileURLToPath(new URL("./interrupt-runner.ts", import.meta.url))],
+          // The flag runs a `.ts` file on node 22.16, where type stripping is not yet on by
+          // default (H1); later nodes accept it as a no-op.
+          ["--experimental-strip-types", fileURLToPath(new URL("./interrupt-runner.ts", import.meta.url))],
           {
             env: { ...process.env, TMPDIR: tmp, F1_SCRIPT: slow },
             stdio: ["ignore", "pipe", "pipe"],

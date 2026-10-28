@@ -1,6 +1,6 @@
 import { SEVERITY_WEIGHT, type Finding, type FindingCategory, type Severity } from "../data.js";
 import { SEVERITY_RANK } from "./severity.js";
-import type { ViewState } from "./url-state.js";
+import type { ViewState } from "./url-params.js";
 
 /**
  * Derived views over the findings list.

@@ -115,7 +115,7 @@ describe("the packed tarball", () => {
   });
 
   it("`bin.fg` points at dist/fg.mjs", () => {
-    expect(packed.bin?.["fg"]).toBe("./dist/fg.mjs");
+    expect(packed.bin?.["fguard"]).toBe("./dist/fg.mjs");
   });
 
   it("`files` is dist and nothing else", () => {

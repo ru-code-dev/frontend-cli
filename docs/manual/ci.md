@@ -7,11 +7,11 @@
 блок, — уходит в `stderr`.
 
 ```
-$ fg --preport . 2>/dev/null
+$ fguard --preport . 2>/dev/null
 /…/fg-out/report.html
 
-$ fg --preport . 2>&1 >/dev/null
-fg v1.0.0 · preport
+$ fguard --preport . 2>&1 >/dev/null
+fguard v1.0.0 · preport
   подготовка проекта     0.0s
   …
 ✖ отчёт готов, есть ошибки                         0.1s
@@ -23,10 +23,10 @@ fg v1.0.0 · preport
 Отказ — не данные: при ошибке вызова `stdout` пуст, сообщение идёт в `stderr`.
 
 В **терминале** пути в stdout не печатаются: они уже есть в итоговом блоке, дублировать незачем.
-В пайпе они появляются, поэтому `fg --preport . | tail -1` отдаёт путь к отчёту, а
-`fg --iconf | tail -2` — пару путей.
+В пайпе они появляются, поэтому `fguard --preport . | tail -1` отдаёт путь к отчёту, а
+`fguard --iconf | tail -2` — пару путей.
 
-![пайп: fg --preport . --format compact](../screenshots/41-preport-compact-pipe-ru-fail.png)
+![пайп: fguard --preport . --format compact](../screenshots/41-preport-compact-pipe-ru-fail.png)
 
 Режим вывода выбирается по TTY-ности потока: в терминале — живая строка с перерисовкой,
 в пайпе — по строке на фазу с её временем.
@@ -42,8 +42,8 @@ fg v1.0.0 · preport
 Отдельного флага для CI не нужно:
 
 ```bash
-fg --preport .                     # 1, если есть видимые ошибки
-fg --preport . --format compact    # то же самое, плюс находки в логе сборки
+fguard --preport .                     # 1, если есть видимые ошибки
+fguard --preport . --format compact    # то же самое, плюс находки в логе сборки
 ```
 
 Что считать ошибкой — решает `fg.config.json`. Например, уронить сборку только на доступности:
@@ -57,9 +57,9 @@ fg --preport . --format compact    # то же самое, плюс находк
 С IDE и платформами интегрируются через `sarif`, а не разбором консольного текста.
 
 ```bash
-fg --preport . --format sarif             # → ./fg-out/report.sarif
-fg --preport . --format sarif -o fg.sarif
-fg --preport . --format json              # массив в форме `eslint -f json`
+fguard --preport . --format sarif             # → ./fg-out/report.sarif
+fguard --preport . --format sarif -o fg.sarif
+fguard --preport . --format json              # массив в форме `eslint -f json`
 ```
 
 `report.sarif` — SARIF 2.1.0 (`"$schema": "https://json.schemastore.org/sarif-2.1.0.json"`), с
@@ -68,7 +68,7 @@ fg --preport . --format json              # массив в форме `eslint -
 GitHub code scanning:
 
 ```yaml
-- run: fg --preport . --format sarif -o fg.sarif
+- run: fguard --preport . --format sarif -o fg.sarif
   continue-on-error: true # шаг сам вернёт 1, если есть ошибки
 - uses: github/codeql-action/upload-sarif@v3
   with:
@@ -81,7 +81,7 @@ GitHub code scanning:
 а не терминала: живая строка с перерисовкой в настоящем терминале остаётся, режим вывода не
 меняется. В пайпе цвета нет и без переменной.
 
-![NO_COLOR=1 fg --preport . --format compact](../screenshots/20-preport-nocolor-tty-ru-fail.png)
+![NO_COLOR=1 fguard --preport . --format compact](../screenshots/20-preport-nocolor-tty-ru-fail.png)
 
 Обратный случай — `FORCE_COLOR`: непустое значение (кроме `0` / `false`) включает цвет там, где
 пайп его выключил бы. Полный список — [env.md](env.md).

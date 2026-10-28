@@ -39,24 +39,38 @@ export type DotEnvResult =
   | { readonly loaded: false; readonly error: Localized };
 
 /**
- * Load `<cwd>/.env` if it exists. Never throws.
+ * Load `<cwd>/.env`, then `<binDir>/.env`, each only if it exists. Never throws.
  *
- * `cwd` is a parameter, not `process.cwd()`, so a test can point it at a temp directory without
- * chdir-ing the whole runner. The load itself is unavoidably global — `process.loadEnvFile`
- * writes into `process.env` and offers no other target — which is the reason `resolveSettings`
- * reads an injected environment instead of `process.env`: the global write stays confined to
- * this one function, and everything downstream is pure.
+ * THE ORDER IS THE PRECEDENCE. `process.loadEnvFile` never overwrites a variable that is already
+ * set (behaviour 1 above), so whatever is loaded first wins: the real environment, then the
+ * project's `./.env`, then the bundle-side file `fguard token` writes beside `fg.mjs`
+ * (`<root>/fg/bin/.env` once installed — E3: flag > env / project `.env` > bundle `.env` >
+ * constants). The flag is applied above all three by `resolveSettings`.
+ *
+ * `cwd` and `binDir` are parameters, not `process.cwd()` / `import.meta.url`, so a test can point
+ * them at temp directories without chdir-ing the whole runner. The load itself is unavoidably
+ * global — `process.loadEnvFile` writes into `process.env` and offers no other target — which is
+ * the reason `resolveSettings` reads an injected environment instead of `process.env`: the global
+ * write stays confined to this one function, and everything downstream is pure.
  */
-export function loadDotEnv(cwd: string): DotEnvResult {
-  const path = join(cwd, ".env");
-  if (!existsSync(path)) return { loaded: false };
-  try {
-    process.loadEnvFile(path);
-    return { loaded: true };
-  } catch (cause) {
-    return {
-      loaded: false,
-      error: envLoadFailed(path, cause instanceof Error ? cause.message : String(cause)),
-    };
+export function loadDotEnv(cwd: string, binDir?: string): DotEnvResult {
+  let loaded = false;
+  const files = [join(cwd, ".env")];
+  if (binDir !== undefined) {
+    const bundle = join(binDir, ".env");
+    if (bundle !== files[0]) files.push(bundle);
   }
+  for (const path of files) {
+    if (!existsSync(path)) continue;
+    try {
+      process.loadEnvFile(path);
+      loaded = true;
+    } catch (cause) {
+      return {
+        loaded: false,
+        error: envLoadFailed(path, cause instanceof Error ? cause.message : String(cause)),
+      };
+    }
+  }
+  return { loaded };
 }

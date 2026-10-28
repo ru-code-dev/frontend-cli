@@ -97,7 +97,7 @@ export class LockedError extends Error {
   readonly lockPath: string;
   constructor(pid: number | undefined, lockPath: string) {
     super(
-      `another fg install/uninstall is running${pid === undefined ? "" : ` (pid ${pid})`}: ${lockPath}`,
+      `another fguard install/uninstall is running${pid === undefined ? "" : ` (pid ${pid})`}: ${lockPath}`,
     );
     this.pid = pid;
     this.lockPath = lockPath;

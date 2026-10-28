@@ -17,9 +17,9 @@ import { fetchScan, loadCapture } from "@smart-tools/pixso-core/node";
 import { pixsoCommands } from "../src/index.ts";
 
 describe("fg-pixso — the wiring the feature work will stand on", () => {
-  it("exports a registry contribution — the four commands 3.2 filled it with", () => {
+  it("exports a registry contribution — the four link commands and `token`", () => {
     expect(Array.isArray(pixsoCommands)).toBe(true);
-    expect(pixsoCommands).toHaveLength(4);
+    expect(pixsoCommands).toHaveLength(5);
   });
 
   it("resolves pixso-core's browser-safe root entry", () => {

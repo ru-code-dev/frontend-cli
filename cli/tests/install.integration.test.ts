@@ -167,7 +167,7 @@ function home(
 const treeOf = (dir: string): string[] =>
   readdirSync(dir, { recursive: true }).map(String).toSorted();
 
-describe.skipIf(relocated)("fg install — the real bundle in a scratch HOME", () => {
+describe.skipIf(relocated)("fguard install — the real bundle in a scratch HOME", () => {
   it("install → check → uninstall: byte-identical files, restart with --no-browser, data survives", async () => {
     const h = home({ running: true });
     const target = join(h.root, "plugins", "pixso");
@@ -247,7 +247,7 @@ describe.skipIf(relocated)("fg install — the real bundle in a scratch HOME", (
     expect(run.stderr).toContain(
       "установлен ru-code 0.0.33, а плагину pixso нужен 0.0.34 или новее",
     );
-    expect(run.stderr).toContain("обновите ru-code и повторите fg install");
+    expect(run.stderr).toContain("обновите ru-code и повторите fguard install");
     const en = await fg(h.home, "--lang", "en", "install");
     expect(en.code).toBe(1);
     expect(en.stderr).toContain(
@@ -272,7 +272,7 @@ describe.skipIf(relocated)("fg install — the real bundle in a scratch HOME", (
   });
 });
 
-describe("fg install — usage errors on the real bundle", () => {
+describe("fguard install — usage errors on the real bundle", () => {
   it("undeclared flags exit 2, localized", async () => {
     const h = home({ installed: false });
     const ru = await fg(h.home, "uninstall", "--check");
@@ -286,7 +286,7 @@ describe("fg install — usage errors on the real bundle", () => {
 });
 
 describe.skipIf(relocated)(
-  "fg install — the restart's environment is the SHELL's (audit 1, on the real bundle)",
+  "fguard install — the restart's environment is the SHELL's (audit 1, on the real bundle)",
   () => {
     it("a project `.env` and `--token` never reach `ru-code restart`", async () => {
       const h = home({ running: true });
@@ -332,7 +332,7 @@ describe.skipIf(relocated)(
   },
 );
 
-describe.skipIf(relocated)("fg install — a concurrent run and a crash, on the real bundle", () => {
+describe.skipIf(relocated)("fguard install — a concurrent run and a crash, on the real bundle", () => {
   it("a live lock → exit 1 with the localized refusal; a dead holder's lock is taken over; the work dir is outside plugins/", async () => {
     const h = home();
     const lock = join(h.root, ".fg-install", "lock");
@@ -384,7 +384,7 @@ describe.skipIf(!existsSync(release100))(
       ["--psvg", "x", "--install"],
     ];
     for (const argv of argvs) {
-      it(`fg ${argv.join(" ")}`, async () => {
+      it(`fguard ${argv.join(" ")}`, async () => {
         const h = home();
         const before = treeOf(h.home);
         const old = await fgAt(
@@ -394,18 +394,19 @@ describe.skipIf(!existsSync(release100))(
         const now = await fg(h.home, ...argv);
         expect(now.code).toBe(old.code);
         expect(now.code).toBe(2);
-        expect(now.stderr).toBe(old.stderr);
+        // The ONE intended difference since that build: the command is spelled `fguard` (D4).
+        expect(now.stderr).toBe(old.stderr.replace(/(^|\s)fg(?= (?:<|--))/gmu, "$1fguard"));
         expect(now.stdout).toBe(old.stdout);
         // …and `fg --uninstall` / `fg --install` ran nothing.
         expect(treeOf(h.home)).toEqual(before);
       });
     }
 
-    it("`fg --help --install` keeps working (the 1.0.0 build never had it)", async () => {
+    it("`fguard --help --install` keeps working (the 1.0.0 build never had it)", async () => {
       const h = home();
       const help = await fg(h.home, "--help", "--install");
       expect(help.code).toBe(0);
-      expect(help.stdout.split("\n")[0]).toBe("fg install [--check] [--no-restart]");
+      expect(help.stdout.split("\n")[0]).toBe("fguard install [--check] [--no-restart]");
     });
   },
 );

@@ -109,10 +109,6 @@ export const rowKeys = {
 /** The summary headline every pixso command ends with (design 2.5). */
 export const ready: Localized = { ru: "готово", en: "done" };
 
-/** The three owner-fixed names, quoted inside the missing-token message. Kept as one string
- *  so the message and `runtime.ts`'s reader can never disagree about the spelling. */
-const TOKEN_KEY = "PIXSO_REMOTE_MCP_TOKEN";
-
 /**
  * HOW A DESIGN LINK IS SPELLED WHEREVER ONE IS SHOWN RATHER THAN USED — owner's decision.
  *
@@ -228,19 +224,80 @@ export const missingSource: Localized = {
 };
 
 /**
- * A design link was given but no token was resolved. ACTIONABLE: all three ways to supply
- * one, in the precedence order the cli applies them (design 2.1:110-111).
+ * A design link was given but no token was resolved (E2). ACTIONABLE in one line: the command
+ * that stores one and the file it lands in — absolute, so an agent relaying it verbatim tells the
+ * user exactly where the secret lives. `--token` and the environment still work (E3); they are the
+ * manual's business, not this line's.
  */
-export const missingToken: Localized = {
-  ru:
-    `для ссылки на кадр (${PIXSO_LINK}) нужен токен удалённого MCP. Задайте его любым из трёх способов: ` +
-    `флаг --token <значение>; переменная окружения ${TOKEN_KEY}; ` +
-    `строка ${TOKEN_KEY}=<значение> в файле .env рядом с местом запуска`,
-  en:
-    `a frame link (${PIXSO_LINK}) needs the remote MCP token. Supply it any of three ways: ` +
-    `the --token <value> flag; the ${TOKEN_KEY} environment variable; ` +
-    `a ${TOKEN_KEY}=<value> line in a .env file next to where you run`,
+export const missingToken = (file: string): Localized => ({
+  ru: `нет токена Pixso для ссылки на кадр. Выполните: fguard token <ваш токен> — токен сохранится в файле ${file}`,
+  en: `no Pixso token for a frame link. Run: fguard token <your token> — it is stored in ${file}`,
+});
+
+/**
+ * The server refused the token: pixso-core reported the HTTP status 401/403 on the probe call
+ * (`PixsoFailure.httpStatus`, `ru-code-packages/packages/pixso-core/src/io/client.ts:140-155`).
+ */
+export const rejectedToken = (status: number, file: string): Localized => ({
+  ru: `токен Pixso отклонён сервером (HTTP ${String(status)}). Задайте новый: fguard token <ваш токен> — токен сохранится в файле ${file}`,
+  en: `the Pixso server rejected the token (HTTP ${String(status)}). Set a new one: fguard token <your token> — it is stored in ${file}`,
+});
+
+/* ── `fguard token` ───────────────────────────────────────────────────────────────────────── */
+
+export const tokenSummary: Localized = {
+  ru: "сохранить токен Pixso",
+  en: "store the Pixso token",
 };
+
+export const tokenDetails: Localized = {
+  ru:
+    "Записывает PIXSO_REMOTE_MCP_TOKEN в файл .env рядом с fg.mjs (после установки — " +
+    "<корень ru-code>/fg/bin/.env, права 600) и печатает абсолютный путь к нему. Без значения " +
+    "спрашивает токен со скрытым вводом — так он не попадёт в историю оболочки. Переменная " +
+    "окружения и ./.env проекта важнее этого файла; флаг --token важнее всего.",
+  en:
+    "Writes PIXSO_REMOTE_MCP_TOKEN to the .env beside fg.mjs (once installed, " +
+    "<ru-code root>/fg/bin/.env, mode 600) and prints its absolute path. Without a value it asks " +
+    "for the token with hidden input, so it stays out of the shell history. The environment and " +
+    "the project's ./.env take precedence over this file; --token over everything.",
+};
+
+export const tokenArg = {
+  name: { ru: "<токен>", en: "<token>" },
+  description: {
+    ru: "токен удалённого Pixso MCP; без него — скрытый ввод",
+    en: "the remote Pixso MCP token; omitted — hidden input",
+  },
+} as const;
+
+export const tokenHeader: Localized = { ru: "token", en: "token" };
+
+export const tokenPrompt: Localized = { ru: "токен Pixso: ", en: "Pixso token: " };
+
+export const tokenSaved: Localized = { ru: "токен сохранён", en: "token saved" };
+
+export const tokenFileRow: Localized = { ru: "файл", en: "file" };
+
+export const tokenEmpty: Localized = {
+  ru: "токен не задан: передайте его аргументом или введите по запросу",
+  en: "no token given: pass it as the argument or type it when asked",
+};
+
+export const tokenUnwritable: Localized = {
+  ru: "токен содержит символы, которые нельзя записать в .env (перевод строки и т. п.)",
+  en: "the token contains characters a .env cannot hold (a newline or the like)",
+};
+
+export const tokenNoBinDir: Localized = {
+  ru: "не удалось определить папку fg.mjs — запустите команду через fguard",
+  en: "could not tell which folder fg.mjs lives in — run the command through fguard",
+};
+
+export const tokenWriteFailed = (detail: string): Localized => ({
+  ru: `не удалось записать токен: ${detail}`,
+  en: `could not write the token: ${detail}`,
+});
 
 /** Anything the engine threw — a bad link, a refused scan, a dead endpoint, a failed write. */
 export const failed = (detail: string): Localized => ({

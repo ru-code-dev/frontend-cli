@@ -7,7 +7,7 @@
 | Инструмент            | Версия                                                                 |
 | --------------------- | ---------------------------------------------------------------------- |
 | pnpm                  | 10.18.1 (`packageManager` в корневом `package.json`)                   |
-| Node                  | `engines` в `cli/package.json`: `>=24`; проверки проходили на v24.14.1 |
+| Node                  | `engines` в `cli/package.json`: `>=22.16`; проверки проходили на официальном v22.16.0 и на v24.22.1 |
 | tsdown                | 0.20.3                                                                 |
 | vite-plus (`vp`)      | 0.2.2                                                                  |
 | tsgo (`@effect/tsgo`) | 0.13.2                                                                 |
@@ -43,40 +43,55 @@ pnpm test:e2e           # Playwright; перегенерирует docs/screensh
 pnpm release    # pnpm -r run build && node scripts/release.mjs
 ```
 
-`scripts/release.mjs` копирует `cli/dist/fg.mjs` в корень репозитория как `fg.mjs`: размер
-проверяется по коридору 18–25 MiB (сейчас ~22 MiB), и если файла нет или он вне коридора —
-скрипт падает громко. Дистрибутив — именно этот файл в корне.
+`scripts/release.mjs` пишет в корень репозитория три файла релиза:
 
-`.gitignore` содержит `/fg.mjs`, так что обычная сборка его не коммитит: **коммитит мейнтейнер и
-только на релизе**, иначе двадцатимегабайтный файл переписывался бы в каждом коммите. Поэтому
-`git clone` + `node <repo>/fg.mjs` сработает только на релизном коммите или теге, где файл
-закоммичен вручную; на обычном чекауте нужен `pnpm install && pnpm release` (см.
-[README.md](../README.md)).
+| Файл              | Откуда                                                     |
+| ----------------- | ---------------------------------------------------------- |
+| `fg.mjs`          | `cli/dist/fg.mjs`; размер — в коридоре 18–25 MiB (сейчас ~22 MiB) |
+| `install`         | `packages/fg-install/install.sh`                           |
+| `ru-code-install` | `vendor/ru-code/install` дословно (без запрещённых строк)  |
 
-## Сборка ru-code для `fg install`
+Чего-то нет или бандл вне коридора — скрипт падает громко. `--out <каталог>` / `FG_RELEASE_OUT`
+пишут в другой каталог (так делают тесты).
 
-`fg install` вшивает в `fg.mjs` preflight-скрипт ru-code и сборку плагина pixso из каталога
-`vendor/ru-code/`. Каталог в `.gitignore`; без него `pnpm build` падает с сообщением, какого
-файла не хватает. Чтобы обновить вшитую сборку, код менять не нужно — достаточно заменить файлы
-и пересобрать:
+`.gitignore` содержит все три, так что обычная сборка их не коммитит: **мейнтейнер кладёт их в
+репозиторий релиза**. Пользователь делает `git clone <репозиторий релиза> && bash
+<репозиторий релиза>/install` ([docs/manual/setup.md](manual/setup.md)).
 
-1. Соберите ru-code (`pnpm build`, затем `pnpm prepare-release` в репозитории ru-code — он кладёт
-   `preflight.mjs` в `dist-bundle/staging/package/`) и плагин
-   (`pnpm --filter @smart-tools/t3-code-pixso-mcp-assistant-plugin build` в ru-code-packages).
-2. Скопируйте:
+## Сборка ru-code для `fguard install` и `bash install`
 
-   ```bash
-   rm -rf vendor/ru-code && mkdir -p vendor/ru-code/plugins
-   cp <ru-code>/dist-bundle/staging/package/preflight.mjs vendor/ru-code/preflight.mjs
-   cp -R <ru-code-packages>/packages/t3-code-pixso-mcp-assistant-plugin/dist vendor/ru-code/plugins/pixso
-   ```
+`vendor/ru-code/` — три вещи из **свежей сборки HEAD** ru-code и ru-code-packages: preflight и
+плагин pixso вшиваются в `fg.mjs`, установщик ru-code уходит в релиз как `ru-code-install`.
+Каталог в `.gitignore`; без него `pnpm build` (и `pnpm release`) падает с сообщением, какого
+файла не хватает. Код при обновлении не меняется — только файлы и пересборка. Сборка идёт
+**на месте** в корнях ru-code; ни один отслеживаемый файл там не меняется (проверьте
+`git status --porcelain` — пусто). Чтобы pnpm не трогал ваш HOME и `node_modules` ru-code,
+запускайте скрипты напрямую и с отдельным HOME:
 
-   Имя папки в `vendor/ru-code/plugins/` должно совпадать с `id` в её `plugin.json`, и папка там
-   должна быть ровно одна.
+```bash
+# ru-code-packages: все пакеты, затем плагин
+(cd <ru-code-packages> && pnpm build && pnpm --filter @smart-tools/t3-code-pixso-mcp-assistant-plugin build)
+# ru-code: установщик (`install` в корне, он в .gitignore) и preflight (apps/server/dist/preflight.mjs)
+(cd <ru-code> && node scripts/build-installer.ts)
+(cd <ru-code>/apps/server && ./node_modules/.bin/vp pack src/ru-code/preflight/preflight.ts --out-dir dist --no-clean --minify --no-sourcemap)
 
-3. `pnpm build` (или `pnpm release`), затем `pnpm test:integration`:
-   `cli/tests/install.integration.test.ts` ставит плагин из собранного бандла в чистый HOME и
-   сверяет файлы побайтно с `vendor/ru-code/plugins/pixso`.
+rm -rf vendor/ru-code && mkdir -p vendor/ru-code/plugins
+cp <ru-code>/install vendor/ru-code/install
+cp <ru-code>/apps/server/dist/preflight.mjs vendor/ru-code/preflight.mjs
+cp -R <ru-code-packages>/packages/t3-code-pixso-mcp-assistant-plugin/dist vendor/ru-code/plugins/pixso
+git -C <ru-code> status --porcelain; git -C <ru-code-packages> status --porcelain   # оба пусто
+```
+
+`node scripts/build-installer.ts` и `vp pack …` — это ровно скрипты `pnpm build:installer` и
+`build:preflight` ru-code; `pnpm` 11 перед запуском скрипта проверяет зависимости и пытается
+переустановить `node_modules`, поэтому они вызываются напрямую. Тот же `install` и тот же
+`preflight.mjs` кладёт в релизный архив и `pnpm prepare-release` ru-code — байт в байт (проверено).
+
+Имя папки в `vendor/ru-code/plugins/` должно совпадать с `id` в её `plugin.json`, и папка там
+должна быть ровно одна. Затем `pnpm build` (или `pnpm release`) и `pnpm test:integration`:
+`cli/tests/install.integration.test.ts` ставит плагин из бандла в чистый HOME и сверяет файлы с
+`vendor/ru-code/plugins/pixso`; `packages/fg-install/tests/rc.integration.test.ts` проверяет, что
+строки и `env.sh` fguard байт в байт совпадают с тем, что дают функции нового `install`.
 
 Что должно быть в `vendor/ru-code` и как оно попадает в бандл — в
 [ARCHITECTURE.md](ARCHITECTURE.md#вшитая-сборка-ru-code-vendorru-code).

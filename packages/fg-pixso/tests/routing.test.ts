@@ -12,6 +12,8 @@
  * an observable difference between the two routes that no assertion about internals could
  * replace.
  */
+import { join } from "node:path";
+
 import { afterEach, beforeEach, describe, expect, it } from "vite-plus/test";
 
 import { createPixsoCommands, PIXSO_LINK, resolveRoute } from "../src/index.ts";
@@ -83,14 +85,14 @@ describe("the source argument picks the route — the user never does", () => {
   });
 
   it("the pure decision agrees with the commands, for both forms", () => {
-    const remote = resolveRoute(DESIGN_URL, { ...RUNTIME, token: "t" });
+    const remote = resolveRoute(DESIGN_URL, { ...RUNTIME, token: "t" }, "/b/.env");
     expect(remote.ok && remote.route).toEqual({
       kind: "remote",
       url: DESIGN_URL,
       token: "t",
       endpoint: RUNTIME.remoteUrl,
     });
-    const local = resolveRoute(ROOT_GUID, RUNTIME);
+    const local = resolveRoute(ROOT_GUID, RUNTIME, "/b/.env");
     expect(local.ok && local.route).toEqual({
       kind: "local",
       itemId: ROOT_GUID,
@@ -126,22 +128,24 @@ describe("a source that cannot be routed — exit 2, in the language in play", (
       expect(enMessage).not.toBe(ruMessage);
     });
 
-    it(`${flag} with a design link but no token: exit 2, and all three fixes are named`, async () => {
+    it(`${flag} with a design link but no token: exit 3 (E2), fguard token and the bundle .env named`, async () => {
       for (const lang of ["ru", "en"] as const) {
         const { ctx, out, err, ui } = makeContext({
           cwd,
           source: DESIGN_URL,
           lang,
           env: {},
+          binDir: "/root/.app/fg/bin",
         });
-        expect(await commandFor(flag).run(ctx)).toBe(2);
+        expect(await commandFor(flag).run(ctx)).toBe(3);
         expect(out).toEqual([]);
         expect(err).toEqual([]);
         const message = ui.at(-1) ?? "";
-        expect(message).toContain("--token");
-        expect(message).toContain("PIXSO_REMOTE_MCP_TOKEN");
-        expect(message).toContain(".env");
+        expect(message).toContain("fguard token <");
+        expect(message).toContain("/root/.app/fg/bin/.env");
         expect(message.match(/[а-яё]/i) !== null).toBe(lang === "ru");
+        // No usage rows: a missing token is not a mistyped line.
+        expect(message).not.toContain("--help");
       }
     });
   }
@@ -151,10 +155,18 @@ describe("a source that cannot be routed — exit 2, in the language in play", (
       cwd,
       source: DESIGN_URL,
       env: { PIXSO_REMOTE_MCP_TOKEN: "" },
+      binDir: "/b",
     });
-    expect(await commandFor("--get-pixso-svg").run(ctx)).toBe(2);
+    expect(await commandFor("--get-pixso-svg").run(ctx)).toBe(3);
     // Ours, not the engine's `a remote fetch needs a token`.
-    expect(ui.at(-1)).toContain("--token");
+    expect(ui.at(-1)).toContain("fguard token");
+    expect(ui.at(-1)).toContain("/b/.env");
+  });
+
+  it("without a bundle directory the refusal names <cwd>/.env", async () => {
+    const { ctx, ui } = makeContext({ cwd, source: DESIGN_URL, env: {} });
+    expect(await commandFor("--get-pixso-svg").run(ctx)).toBe(3);
+    expect(ui.at(-1)).toContain(join(cwd, ".env"));
   });
 
   it("no scan is attempted when the line is refused", async () => {

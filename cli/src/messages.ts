@@ -15,9 +15,9 @@
  * value; they build BOTH languages from that value so an interpolated message can never be
  * half-translated.
  */
-import type { Localized } from "@smart-tools/fg-cli-kit";
+import { CLI_COMMAND, type Localized } from "@smart-tools/fg-cli-kit";
 
-/** The half-line after `fg v<version> — ` at the top of `--help` (design 2.7). */
+/** The half-line after `fguard v<version> — ` at the top of `--help` (design 2.7). */
 export const HELP_TAGLINE: Localized = {
   ru: "фронтенд-инструменты в командной строке",
   en: "frontend tools on the command line",
@@ -27,8 +27,8 @@ export const HELP_TAGLINE: Localized = {
 export const HELP_USAGE_HEADING: Localized = { ru: "Использование", en: "Usage" };
 
 export const HELP_USAGE_LINE: Localized = {
-  ru: "fg <команда> <аргумент> [опции]",
-  en: "fg <command> <argument> [options]",
+  ru: "fguard <команда> <аргумент> [опции]",
+  en: "fguard <command> <argument> [options]",
 };
 
 /** The right-hand column's heading, on the first group's title row (design 2.7). */
@@ -51,8 +51,8 @@ export const HELP_GLOBALS_HEADING: Localized = { ru: "Общие опции", en
 export const HELP_ENV_HEADING: Localized = { ru: "Окружение", en: "Environment" };
 
 export const HELP_ENV_NOTE: Localized = {
-  ru: "./.env читается автоматически. Приоритет: флаг > env/.env > умолчание",
-  en: "./.env is read automatically. Precedence: flag > env/.env > default",
+  ru: "Приоритет: флаг > env и ./.env > .env fguard (fguard token) > умолчание",
+  en: "Precedence: flag > env and ./.env > fguard .env (fguard token) > default",
 };
 
 /** The environment variables the block names, in one place so the note cannot drift from them. */
@@ -113,8 +113,8 @@ export const HELP_GLOBAL_ROWS: readonly { spelling: Localized; description: Loca
   {
     spelling: { ru: "-h, --help", en: "-h, --help" },
     description: {
-      ru: "справка;  fg --help --preport — подробно по команде",
-      en: "this page;  fg --help --preport — one command in detail",
+      ru: "справка;  fguard --help --preport — подробно по команде",
+      en: "this page;  fguard --help --preport — one command in detail",
     },
   },
   {
@@ -133,12 +133,12 @@ export const HELP_GLOBAL_ROWS: readonly { spelling: Localized; description: Loca
  * specific thing that can be said when the command is unknown.
  */
 export const GENERIC_HINT: Localized = {
-  ru: "fg <команда> <аргумент> [опции]",
-  en: "fg <command> <argument> [options]",
+  ru: "fguard <команда> <аргумент> [опции]",
+  en: "fguard <command> <argument> [options]",
 };
 
 /** Where to read the whole surface. Paired with {@link GENERIC_HINT}. */
-export const HELP_POINTER = "fg --help";
+export const HELP_POINTER = `${CLI_COMMAND} --help`;
 
 /** No command flag given. The help is printed too, and the exit code is 2 (design 2.1:82). */
 export const NO_COMMAND: Localized = {

@@ -23,6 +23,7 @@ function harness(): { deps: RunDeps; out: () => string; err: () => string } {
       version: "1.1.0",
       readEnv: () => ({}),
       cwd: () => process.cwd(),
+      binDir: () => undefined,
       loadEnv: () => ({ loaded: false }),
       stdout: (s) => void (out += s),
       stderr: (s) => void (err += s),
@@ -35,11 +36,45 @@ function harness(): { deps: RunDeps; out: () => string; err: () => string } {
 }
 
 describe("verbs are parsed from the first positional", () => {
-  it("`install` and `uninstall` are the registry's two verbs", () => {
-    expect(COMMANDS.filter(isVerb).map((c) => c.flag)).toEqual(["install", "uninstall"]);
+  it("the registry's verbs: token, install, uninstall — and the installer's hidden setup/teardown", () => {
+    expect(COMMANDS.filter(isVerb).map((c) => c.flag)).toEqual([
+      "token",
+      "install",
+      "uninstall",
+      "setup",
+      "teardown",
+    ]);
+    expect(COMMANDS.filter((c) => c.hidden === true).map((c) => c.flag)).toEqual([
+      "setup",
+      "teardown",
+    ]);
   });
 
-  it("fg install → the install command, no source, no flags set", () => {
+  it("E1: fguard token <value> → the token verb with the value as its source", () => {
+    const result = parse(["token", "abc-123"]);
+    expect(result.kind).toBe("command");
+    if (result.kind !== "command") return;
+    expect(result.command.flag).toBe("token");
+    expect(result.source).toBe("abc-123");
+  });
+
+  it("E1: fguard token → the token verb with no source (the hidden prompt)", () => {
+    const result = parse(["token"]);
+    expect(result.kind).toBe("command");
+    if (result.kind !== "command") return;
+    expect(result.command.flag).toBe("token");
+    expect(result.source).toBeUndefined();
+  });
+
+  it("E3: the GLOBAL --token still selects nothing and still carries the token", () => {
+    const result = parse(["--psvg", "https://x/y?item-id=1:2", "--token", "T"]);
+    expect(result.kind).toBe("command");
+    if (result.kind !== "command") return;
+    expect(result.command.alias).toBe("--psvg");
+    expect(result.token).toBe("T");
+  });
+
+  it("fguard install → the install command, no source, no flags set", () => {
     const result = parse(["install"]);
     expect(result.kind).toBe("command");
     if (result.kind !== "command") return;
@@ -49,7 +84,7 @@ describe("verbs are parsed from the first positional", () => {
     expect(result.flags["no-restart"]).toBe(false);
   });
 
-  it("fg install --check → check set; fg install --no-restart → no-restart set", () => {
+  it("fguard install --check → check set; fguard install --no-restart → no-restart set", () => {
     const check = parse(["install", "--check"]);
     const noRestart = parse(["--lang", "en", "install", "--no-restart"]);
     expect(check.kind === "command" && check.flags["check"]).toBe(true);
@@ -57,7 +92,7 @@ describe("verbs are parsed from the first positional", () => {
     expect(noRestart.lang).toBe("en");
   });
 
-  it("fg uninstall --no-restart → uninstall", () => {
+  it("fguard uninstall --no-restart → uninstall", () => {
     const result = parse(["uninstall", "--no-restart"]);
     expect(result.kind === "command" && result.command.flag).toBe("uninstall");
   });
@@ -105,11 +140,11 @@ describe("undeclared flags → exit 2, localized", () => {
     [["--psvg", "1:2", "--help", "--no-restart"], "--no-restart"],
   ];
   for (const [argv, token] of unknownAs1_0_0) {
-    it(`fg ${argv.join(" ")} → «неизвестный флаг: ${token}», exit 2 — as 1.0.0`, async () => {
+    it(`fguard ${argv.join(" ")} → «неизвестный флаг: ${token}», exit 2 — as 1.0.0`, async () => {
       const h = harness();
       expect(await run(argv, h.deps)).toBe(EXIT_USAGE);
       expect(h.err()).toContain(`✖ неизвестный флаг: ${token}`);
-      expect(h.err()).toContain("fg <команда> <аргумент> [опции]");
+      expect(h.err()).toContain("fguard <команда> <аргумент> [опции]");
       expect(h.err()).not.toContain("не поддерживается");
       expect(h.out()).toBe("");
     });
@@ -122,14 +157,14 @@ describe("undeclared flags → exit 2, localized", () => {
     expect(h.err()).not.toMatch(/[а-яё]/i);
   });
 
-  it("`fg --uninstall` and `fg --install` RUN NOTHING (parse level)", () => {
+  it("`fguard --uninstall` and `fguard --install` RUN NOTHING (parse level)", () => {
     for (const flag of ["--install", "--uninstall"]) {
       expect(parse([flag]).kind).toBe("error");
       expect(parse([flag, "--no-restart"]).kind).toBe("error");
     }
   });
 
-  it("what keeps working: `fg --help --install`, `fg install --check`, `fg --help install --check`", () => {
+  it("what keeps working: `fguard --help --install`, `fguard install --check`, `fguard --help install --check`", () => {
     expect(parse(["--help", "--install"])).toMatchObject({ kind: "help", exitCode: EXIT_OK });
     expect(parse(["install", "--check"]).kind).toBe("command");
     expect(parse(["uninstall", "--no-restart"]).kind).toBe("command");
@@ -140,7 +175,7 @@ describe("undeclared flags → exit 2, localized", () => {
   });
 
   for (const [argv, needle, lang] of refusals) {
-    it(`fg ${argv.join(" ")}`, async () => {
+    it(`fguard ${argv.join(" ")}`, async () => {
       const h = harness();
       expect(await run(argv, h.deps)).toBe(EXIT_USAGE);
       expect(h.err()).toContain(needle);
@@ -157,7 +192,7 @@ describe("undeclared flags → exit 2, localized", () => {
 });
 
 describe("help", () => {
-  it("fg --help lists both verbs under their own group, in both languages", () => {
+  it("fguard --help lists both verbs under their own group, in both languages", () => {
     const ru = helpText(COMMANDS, "ru", "1.1.0");
     const en = helpText(COMMANDS, "en", "1.1.0");
     expect(ru).toContain("Плагин для ru-code");
@@ -175,10 +210,10 @@ describe("help", () => {
     ["install", "--help"],
     ["--help", "--install"],
   ]) {
-    it(`fg ${argv.join(" ")} prints install's own page, exit 0`, async () => {
+    it(`fguard ${argv.join(" ")} prints install's own page, exit 0`, async () => {
       const h = harness();
       expect(await run(argv, h.deps)).toBe(EXIT_OK);
-      expect(h.out().split("\n")[0]).toBe("fg install [--check] [--no-restart]");
+      expect(h.out().split("\n")[0]).toBe("fguard install [--check] [--no-restart]");
       expect(h.out()).toContain("ru-code restart --no-browser");
     });
   }

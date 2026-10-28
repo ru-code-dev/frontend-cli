@@ -28,6 +28,17 @@
  * vocabulary (`FG_OUT_DIR`, `safeSegment`, `emitPaths`) every command builds its answer from.
  */
 export { FG_OUT_DIR, emitPaths, safeSegment } from "./out.ts";
+
+/**
+ * THE COMMAND A USER TYPES — `fguard`, never `fg`.
+ *
+ * `fg` is a job-control builtin in bash, zsh and dash, and a builtin beats any file on PATH, so a
+ * command named `fg` can never run when typed (`WORKFLOW/features/fg-skills/reports/r1-*.md` §TL;DR 1).
+ * Every place that SHOWS the command — help, usage lines, refusal hints, the header — spells it
+ * from here. File names (`fg.mjs`, `fg-out/`, `fg.config.json`) and package names are not the
+ * command and stay as they are.
+ */
+export const CLI_COMMAND = "fguard";
 export type {
   CommandUi,
   Summary,
@@ -194,6 +205,13 @@ export interface CommandContext {
    * (`cli/src/main.ts`) — never to `stdout`, which stays byte-for-byte the data a caller piped.
    */
   readonly ui: CommandUi;
+  /**
+   * The directory the running `fg.mjs` lives in — `<root>/fg/bin` once `bash install` has put it
+   * there. Its `.env` is the bundle-side token file `fguard token` writes and the CLI reads below
+   * the environment and the project `.env` (`cli/src/dotenv.ts`). `undefined` in a hand-built
+   * context, which then has no bundle-side file.
+   */
+  readonly binDir?: string | undefined;
 }
 
 /**
@@ -228,6 +246,11 @@ export interface CliCommand {
   /** Command lines printed verbatim under `Примеры` on the per-command page. */
   readonly examples?: readonly string[] | undefined;
   readonly args: readonly ArgSpec[];
+  /**
+   * Left out of `--help` entirely. For the entry points only `bash install` drives (`setup`,
+   * `teardown`): they are reachable by name like any verb, but they are not a user's command.
+   */
+  readonly hidden?: boolean | undefined;
   run(ctx: CommandContext): Promise<number>;
 }
 
@@ -262,7 +285,7 @@ export function argName(arg: ArgSpec, lang: Lang): string {
  * The DISPLAY NAME is the short alias (U8), alone: the long spelling is a second line on the
  * help page (`также: --project-report`), not a second column in every refusal.
  */
-export function usageLineOf(command: CliCommand, lang: Lang, bin = "fg"): string {
+export function usageLineOf(command: CliCommand, lang: Lang, bin = CLI_COMMAND): string {
   const name = command.alias ?? command.flag;
   const args = command.args
     .map((arg) => {
@@ -298,14 +321,14 @@ function elide(name: string): string {
  * command that let the error escape got the pointer row from `cli/src/main.ts`. Two shapes for
  * one kind of failure, decided by which of them threw.
  */
-export function debugHintOf(command: CliCommand, bin = "fg"): { usage: string; help: string } {
+export function debugHintOf(command: CliCommand, bin = CLI_COMMAND): { usage: string; help: string } {
   return { usage: "", help: `${bin} ${command.alias ?? command.flag} … --debug` };
 }
 
 export function usageHintOf(
   command: CliCommand,
   lang: Lang = "ru",
-  bin = "fg",
+  bin = CLI_COMMAND,
 ): { usage: string; help: string } {
   return {
     usage: usageLineOf(command, lang, bin),

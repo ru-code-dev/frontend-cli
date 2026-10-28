@@ -12,12 +12,19 @@
  * runtime pieces are exported because the cli's own help/diagnostics may want to name the same
  * three configuration keys rather than re-spell them.
  */
-export { createPixsoCommands, pixsoCommands, type PixsoDeps } from "./commands.ts";
+export {
+  createPixsoCommands,
+  pixsoCommands,
+  tokenFileOf,
+  type PixsoDeps,
+} from "./commands.ts";
+export { type ReadSecret, withToken } from "./token.ts";
 
 export {
   fetchOptionsOf,
   isDesignLink,
   resolveRoute,
+  TOKEN_EXIT,
   USAGE_EXIT,
   type PixsoRoute,
   type RouteResolution,

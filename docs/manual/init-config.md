@@ -1,20 +1,20 @@
 # `--iconf` — `fg.config.json` и схема
 
 ```
-fg --iconf [-o <файл>] [--ui-kit …]
+fguard --iconf [-o <файл>] [--ui-kit …]
   также: --init-config
 ```
 
 Пишет два файла: конфигурацию со всеми правилами выбранной дизайн-системы и JSON-схему к ней.
 Без `-o` — `./fg.config.json`, схема кладётся рядом.
 
-![fg --iconf](../screenshots/24-iconf-tty-ru-ok.png)
+![fguard --iconf](../screenshots/24-iconf-tty-ru-ok.png)
 
 ```bash
-fg --iconf                       # 11 правил · 30 подправил (кит не определён)
-fg --iconf --ui-kit eds          # 32 правила · 30 подправил
-fg --iconf --ui-kit eds2         # 32 правила · 30 подправил — файл подходит обеим версиям
-fg --iconf -o ./ci/fg.config.json
+fguard --iconf                       # 11 правил · 30 подправил (кит не определён)
+fguard --iconf --ui-kit eds          # 32 правила · 30 подправил
+fguard --iconf --ui-kit eds2         # 32 правила · 30 подправил — файл подходит обеим версиям
+fguard --iconf -o ./ci/fg.config.json
 ```
 
 Дизайн-система берётся из `--ui-kit` либо определяется по зависимостям текущего каталога; если

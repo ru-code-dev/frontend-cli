@@ -57,7 +57,7 @@ export const alphaCommand: CliCommand = {
   summary: { ru: "тестовая команда альфа", en: "fake command alpha" },
   defaultOut: { ru: "./fg-out/alpha.txt", en: "./fg-out/alpha.txt" },
   details: { ru: "Подробности альфы, абзацем.", en: "Alpha, explained in a paragraph." },
-  examples: ["fg --falpha 11:10"],
+  examples: ["fguard --falpha 11:10"],
   args: [
     {
       name: "<url|guid>",

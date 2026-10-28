@@ -39,7 +39,7 @@ describe("the help TABLE — design 2.7", () => {
 
       it("opens with `fg v<version> — <tagline>`", () => {
         expect(text.split("\n")[0]).toBe(
-          `fg v1.2.3 — ${lang === "ru" ? "фронтенд-инструменты в командной строке" : "frontend tools on the command line"}`,
+          `fguard v1.2.3 — ${lang === "ru" ? "фронтенд-инструменты в командной строке" : "frontend tools on the command line"}`,
         );
       });
 
@@ -145,7 +145,7 @@ describe("the help TABLE — the REAL registry", () => {
 
     it(`shows every command ONCE, by its short alias, in ${lang}`, () => {
       const text = helpText(COMMANDS, lang, "1.0.0");
-      for (const command of COMMANDS) {
+      for (const command of COMMANDS.filter((c) => c.hidden !== true)) {
         const name = displayName(command);
         expect(text).toContain(name);
         // Once as a row, and never a second time as a long spelling beside it.
@@ -241,8 +241,17 @@ describe("the help TABLE — the REAL registry", () => {
     });
   }
 
+  it("hidden commands (bash install's setup/teardown) are not on the page", () => {
+    for (const lang of LANGS) {
+      const rows = helpText(COMMANDS, lang, "1.0.0").split("\n").map((line) => line.trimStart());
+      for (const name of ["setup", "teardown"]) {
+        expect(rows.some((line) => line.startsWith(`${name} `))).toBe(false);
+      }
+    }
+  });
+
   it("every command carries the metadata the page needs", () => {
-    for (const command of COMMANDS) {
+    for (const command of COMMANDS.filter((c) => c.hidden !== true)) {
       expect(command.group.id).not.toBe("");
       expect(command.summary.ru).not.toBe("");
       expect(command.summary.en).not.toBe("");
@@ -290,12 +299,15 @@ describe("the help TABLE — the REAL registry", () => {
       ];
       for (const page of pages) expect(page).not.toMatch(/https?:\/\//u);
     }
-    const pixso = COMMANDS.filter((command) => command.group.id === "pixso");
+    // The four LINK commands; `token` shares the group but takes a token, not a link.
+    const pixso = COMMANDS.filter(
+      (command) => command.group.id === "pixso" && command.flag.startsWith("--"),
+    );
     expect(pixso).toHaveLength(4);
     for (const command of pixso) {
-      expect(command.examples?.[0]).toBe(`fg ${displayName(command)} <pixso-link>`);
+      expect(command.examples?.[0]).toBe(`fguard ${displayName(command)} <pixso-link>`);
       for (const lang of LANGS) {
-        expect(commandHelpText(command, lang)).toContain(`fg ${displayName(command)} <pixso-link>`);
+        expect(commandHelpText(command, lang)).toContain(`fguard ${displayName(command)} <pixso-link>`);
       }
     }
   });
@@ -334,7 +346,7 @@ describe("the PER-COMMAND page — design 2.8", () => {
       // §2.8's elision: a long flag that takes a value is `--config …`, not its value list. The
       // 127-column line V5 finding #5 measured was the value lists, expanded, plus both
       // spellings of the command in the first column.
-      expect(usage).toBe("fg --falpha <url|guid> [--config …]");
+      expect(usage).toBe("fguard --falpha <url|guid> [--config …]");
       expect(usage).toBe(commandUsageLine(alphaCommand, lang));
       expect(usage).not.toContain("--fake-alpha");
       // The long spelling is still taught — on its own line, where it costs no width (#5).
@@ -354,14 +366,14 @@ describe("the PER-COMMAND page — design 2.8", () => {
     it(`prints the examples under their heading, in ${lang}`, () => {
       const page = commandHelpText(alphaCommand, lang);
       expect(page).toContain(lang === "ru" ? "Примеры" : "Examples");
-      expect(page).toContain("fg --falpha 11:10");
+      expect(page).toContain("fguard --falpha 11:10");
     });
 
     it(`omits the blocks a command does not ship, in ${lang}`, () => {
       const page = commandHelpText(betaCommand, lang);
       expect(page).not.toContain(lang === "ru" ? "Примеры" : "Examples");
       // No alias, so no `также:` line either: the page states what the command has.
-      expect(page.trim()).toBe("fg --fake-beta");
+      expect(page.trim()).toBe("fguard --fake-beta");
     });
   }
 
@@ -408,7 +420,7 @@ describe("the PER-COMMAND page — design 2.8", () => {
     const preport = COMMANDS.find((c) => c.alias === "--preport");
     expect(preport).toBeDefined();
     expect(commandUsageLine(preport as (typeof COMMANDS)[number], "ru")).toBe(
-      "fg --preport <путь|repo> [-o <путь>] [--format …] [--ui-kit …] [--config …]",
+      "fguard --preport <путь|repo> [-o <путь>] [--format …] [--ui-kit …] [--config …]",
     );
   });
 });

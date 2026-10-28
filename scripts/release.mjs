@@ -1,4 +1,6 @@
-// `pnpm release`'s second half: publish the built bundle as `<repo root>/fg.mjs`.
+// `pnpm release`'s second half: publish the release — `fg.mjs`, `install` and `ru-code-install` —
+// at the repo root (A1: the owner commits these three to the release repo; the user runs
+// `git clone <release-repo> && bash <release-repo>/install`).
 //
 // `pnpm -r run build` (the first half, in the root `release` script) rebuilds every package
 // from clean — tsdown's `clean: true` wipes each `dist/` before it writes, so the file this
@@ -14,26 +16,31 @@
 // band is a loud failure, because a truncated or mysteriously tiny bundle that got copied
 // anyway is exactly the artifact nobody notices until a user runs it.
 //
-// DESTINATION IS OVERRIDABLE — `--out <path>` or `FG_RELEASE_OUT` (the flag wins if both are
+// DESTINATION IS OVERRIDABLE — `--out <dir>` or `FG_RELEASE_OUT` (the flag wins if both are
 // given) — so `cli/tests/release.integration.test.ts` can run the REAL script against a scratch
 // path instead of the repo root (f1-fixes item 5: the integration gate must not rewrite an
 // owner's own release artifact by merely running). `pnpm release`, typed plain, is unchanged:
-// neither is set, so `destination` is `<repo root>/fg.mjs` exactly as before.
+// neither is set, so the destination is the repo root.
 
-import { copyFileSync, statSync } from "node:fs";
+import { chmodSync, copyFileSync, mkdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { vendorInstaller } from "../packages/fg-install/dist/pack.mjs";
+
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const source = join(repoRoot, "cli", "dist", "fg.mjs");
+/** fg's own bash entry (`bash install`), shipped as `install`. */
+const installer = join(repoRoot, "packages", "fg-install", "install.sh");
+/** ru-code's generated installer, vendored from a fresh HEAD build; shipped VERBATIM as `ru-code-install`. */
+const vendorDir = join(repoRoot, "vendor", "ru-code");
 
 const outFlagIndex = process.argv.indexOf("--out");
 const outFlagValue = outFlagIndex === -1 ? undefined : process.argv[outFlagIndex + 1];
 const requestedDestination = outFlagValue ?? process.env["FG_RELEASE_OUT"];
+/** The release DIRECTORY: `fg.mjs`, `install`, `ru-code-install` land in it. */
 const destination =
-  requestedDestination === undefined
-    ? join(repoRoot, "fg.mjs")
-    : resolve(process.cwd(), requestedDestination);
+  requestedDestination === undefined ? repoRoot : resolve(process.cwd(), requestedDestination);
 
 /**
  * The guard band, in bytes. The bundle measured 20 115 307 B when this script was written, so
@@ -65,6 +72,20 @@ if (bytes < MIN_BYTES || bytes > MAX_BYTES) {
   );
 }
 
-copyFileSync(source, destination);
+let ruCodeInstaller;
+try {
+  ruCodeInstaller = vendorInstaller(vendorDir);
+} catch (error) {
+  fail(error instanceof Error ? error.message : String(error));
+}
 
-console.log(`release: ${destination} (${String(bytes)} bytes)`);
+mkdirSync(destination, { recursive: true });
+copyFileSync(source, join(destination, "fg.mjs"));
+copyFileSync(installer, join(destination, "install"));
+chmodSync(join(destination, "install"), 0o755);
+writeFileSync(join(destination, "ru-code-install"), ruCodeInstaller, { mode: 0o755 });
+chmodSync(join(destination, "ru-code-install"), 0o755);
+
+console.log(`release: ${join(destination, "fg.mjs")} (${String(bytes)} bytes)`);
+console.log(`release: ${join(destination, "install")}`);
+console.log(`release: ${join(destination, "ru-code-install")}`);

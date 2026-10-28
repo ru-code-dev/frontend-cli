@@ -130,7 +130,7 @@ export function createInitConfigCommands(deps: InitConfigDeps = {}): readonly Cl
     summary: initConfigSummary,
     defaultOut: initConfigDefaultOut,
     details: initConfigDetails,
-    examples: ["fg --iconf", "fg --iconf --ui-kit eds"],
+    examples: ["fguard --iconf", "fguard --iconf --ui-kit eds"],
     args: [outArg, uiKitArg],
     async run(ctx: CommandContext): Promise<number> {
       // Built per run: the usage line it quotes is localized (V5 finding #12).

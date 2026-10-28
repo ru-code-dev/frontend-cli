@@ -30,7 +30,7 @@ export const CONFIG_SCHEMA_FILE = "fg.config.schema.json";
  * `--lint` and `stylish` are both gone with U1: one flag, four values, and the value decides
  * whether the run writes a file or prints to stdout.
  */
-export const REPORT_FORMATS = ["html", ...LINT_FORMATS] as const;
+export const REPORT_FORMATS = ["html", "summary", ...LINT_FORMATS] as const;
 
 /** One of {@link REPORT_FORMATS}. */
 export type ReportFormat = (typeof REPORT_FORMATS)[number];
@@ -46,6 +46,9 @@ export type ReportFormat = (typeof REPORT_FORMATS)[number];
  */
 export const FILE_FORMAT_EXTENSION: Readonly<Record<Exclude<ReportFormat, "compact">, string>> = {
   html: "html",
+  // The dashboard's numbers as a small JSON (G1) — `report.summary.json`, so it can sit beside the
+  // `json` format's `report.json` in one `-o` directory.
+  summary: "summary.json",
   json: "json",
   sarif: "sarif",
 };

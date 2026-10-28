@@ -157,7 +157,7 @@ function expectQuietUi(stderr: string): void {
   expect(stderr).not.toContain("\u001b");
   expect(stderr).not.toContain("\r");
   // The header line, first thing a command prints (§2.1).
-  expect(stderr).toContain("fg v");
+  expect(stderr).toContain("fguard v");
   // The summary block's headline (§2.3).
   expect(stderr).toContain("\u2714 ");
   expect(stderr).not.toContain("\u2716");
@@ -192,9 +192,13 @@ describe("(a) --help lists the whole pixso surface, in both languages", () => {
   it("the literal surface above IS the registry — neither may drift from the other", () => {
     // Both directions. A fifth command that never reached the help page, and a renamed flag
     // that left this list stale, are the same bug seen from two sides.
-    expect(pixsoCommands.map((command) => [command.flag, command.alias])).toEqual(
-      EXPECTED_SURFACE.map(([flag, alias]) => [flag, alias]),
-    );
+    expect(
+      pixsoCommands
+        .filter((command) => command.flag.startsWith("--"))
+        .map((command) => [command.flag, command.alias]),
+    ).toEqual(EXPECTED_SURFACE.map(([flag, alias]) => [flag, alias]));
+    // …and the one verb beside them (E1).
+    expect(pixsoCommands.filter((command) => !command.flag.startsWith("--")).map((c) => c.flag)).toEqual(["token"]);
   });
 
   it("default (ru) — every flag and every alias, in Russian", async () => {
@@ -329,7 +333,7 @@ describe("(d) --get-pixso-assets <guid> -o <dir>", () => {
 // ── (e) a remote link with no token anywhere ──────────────────────────────────────────────
 
 describe("(e) a design link with no token anywhere", () => {
-  it("refuses in Russian naming all three fixes, exit 2, and dials NOTHING", async () => {
+  it("refuses in Russian with exit 3 (E2), the fguard token line and the bundle .env path, and dials NOTHING", async () => {
     const server = await serving();
     const dir = scratchWithBundle();
 
@@ -339,12 +343,11 @@ describe("(e) a design link with no token anywhere", () => {
       ...childEnv({ PIXSO_REMOTE_MCP_URL: server.url, PIXSO_LOCAL_MCP_URL: server.url }),
     });
 
-    expect(result.code).toBe(2);
+    expect(result.code).toBe(3);
     expect(result.stdout).toBe("");
-    // All three fixes the user can apply (report 3.2 §2).
-    expect(result.stderr).toContain("--token");
-    expect(result.stderr).toContain("PIXSO_REMOTE_MCP_TOKEN");
-    expect(result.stderr).toContain(".env");
+    // The one fix to apply, and where it lands: the .env beside the bundle (E1/E2).
+    expect(result.stderr).toContain("fguard token <ваш токен>");
+    expect(result.stderr).toContain(join(dir, ".env"));
     expect(result.stderr).toMatch(/[А-Яа-яЁё]/u);
 
     // The refusal is decided BEFORE the transport: a mistyped line costs no round trip.
@@ -352,16 +355,15 @@ describe("(e) a design link with no token anywhere", () => {
     expect(server.sessions).toHaveLength(0);
   });
 
-  it("--lang en says the same three things in English", async () => {
+  it("--lang en says the same in English", async () => {
     const server = await serving();
     const dir = scratchWithBundle();
     const result = await fg(dir, ["--lang", "en", "--get-pixso-svg", DESIGN_URL], {
       ...childEnv({ PIXSO_REMOTE_MCP_URL: server.url }),
     });
-    expect(result.code).toBe(2);
-    expect(result.stderr).toContain("--token");
-    expect(result.stderr).toContain("PIXSO_REMOTE_MCP_TOKEN");
-    expect(result.stderr).toContain(".env");
+    expect(result.code).toBe(3);
+    expect(result.stderr).toContain("fguard token <your token>");
+    expect(result.stderr).toContain(join(dir, ".env"));
     expect(result.stderr).not.toMatch(/[А-Яа-яЁё]/u);
     expect(server.calls).toHaveLength(0);
   });
@@ -419,7 +421,7 @@ describe("(f) a .env file beside the bundle carries the remote token onto the wi
     const result = await fg(dir, ["--get-pixso-svg", DESIGN_URL], {
       ...childEnv({ PIXSO_REMOTE_MCP_URL: server.url }),
     });
-    expect(result.code).toBe(2);
+    expect(result.code).toBe(3);
     expect(server.calls).toHaveLength(0);
   });
 });
@@ -552,7 +554,7 @@ describe("(g) the terminal UI", () => {
     expectQuietUi(result.stderr);
     // §2.1: `fg v<version> · psvg · локальный маршрут · 11:10`.
     const header = result.stderr.split("\n")[0] ?? "";
-    expect(header.startsWith("fg v")).toBe(true);
+    expect(header.startsWith("fguard v")).toBe(true);
     expect(header).toContain("psvg");
     expect(header).toContain("локальный маршрут");
     expect(header).toContain(ROOT_GUID);
@@ -630,7 +632,7 @@ describe("(g) the terminal UI", () => {
     expect(result.code).toBe(1);
     expect(result.stdout).toBe("");
     // The header was printed: the run HAD started (design 2.6's last line).
-    expect(result.stderr).toContain("fg v");
+    expect(result.stderr).toContain("fguard v");
     expect(result.stderr).toContain("✖");
     expect(result.stderr).not.toContain("✔");
     expect(result.stderr).not.toContain("✓");

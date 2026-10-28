@@ -9,8 +9,10 @@ pnpm-lock.yaml
 ru-code-packages
 .pnpmfile.cjs
 
-# the release artifact: `pnpm release` writes it, the owner commits it on a release thread
+# the release: `pnpm release` writes these three, the owner commits them to the release repo
 /fg.mjs
+/install
+/ru-code-install
 
-# ru-code build inputs embedded by `fg install`: the owner copies preflight.mjs + plugins/pixso here
+# ru-code build inputs: preflight.mjs + plugins/pixso (embedded in fg.mjs) and install (shipped as ru-code-install)
 /vendor/

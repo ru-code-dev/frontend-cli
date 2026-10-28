@@ -97,6 +97,12 @@ export interface FakeMcpOptions {
   readonly failing?: readonly string[];
   /** The name this server reports at `initialize`. Cosmetic; the client does not check it. */
   readonly serverName?: string;
+  /**
+   * When set, every POST whose `Token` header is not exactly this is answered with a bare
+   * HTTP 401 (no body) — a rejected or missing remote token, the shape pixso-core reports as
+   * `PixsoFailure.httpStatus` (`ru-code-packages/packages/pixso-core/src/io/client.ts:140-155`).
+   */
+  readonly requiredToken?: string;
 }
 
 export interface FakeMcp {
@@ -190,6 +196,12 @@ export async function startFakeMcp(options: FakeMcpOptions = {}): Promise<FakeMc
     // and is NOT an error to it (SDK `client/streamableHttp.js:100-103`).
     if (request.method !== "POST") {
       response.writeHead(405, { allow: "POST" });
+      response.end();
+      return;
+    }
+    if (options.requiredToken !== undefined && headersOf(request)["token"] !== options.requiredToken) {
+      await readBody(request);
+      response.statusCode = 401;
       response.end();
       return;
     }

@@ -300,8 +300,8 @@ export const appTooOld = (installed: string, id: string, minimum: string): Local
 });
 
 export const appTooOldDetail: Localized = {
-  ru: "обновите ru-code и повторите fg install",
-  en: "update ru-code and run fg install again",
+  ru: "обновите ru-code и повторите fguard install",
+  en: "update ru-code and run fguard install again",
 };
 
 /** THE VERSION GATE, when `<bin>/current.json` names no `X.Y.Z` version: it cannot be verified. */
@@ -311,8 +311,8 @@ export const appVersionUnknown = (id: string, minimum: string): Localized => ({
 });
 
 export const appVersionUnknownDetail = (pointer: string): Localized => ({
-  ru: `в ${pointer} нет версии вида X.Y.Z — обновите или переустановите ru-code и повторите fg install`,
-  en: `${pointer} names no X.Y.Z version — update or reinstall ru-code and run fg install again`,
+  ru: `в ${pointer} нет версии вида X.Y.Z — обновите или переустановите ru-code и повторите fguard install`,
+  en: `${pointer} names no X.Y.Z version — update or reinstall ru-code and run fguard install again`,
 });
 
 export const badManifest: Localized = {
@@ -363,8 +363,8 @@ export const installFailedDetail: Localized = {
 
 /** A live `fg install` / `fg uninstall` of the same plugin holds the lock — refuse, do not wait. */
 export const alreadyRunning = (pid: number | undefined): Localized => ({
-  ru: `другой запуск fg install/uninstall уже работает${pid === undefined ? "" : ` (pid ${pid})`}`,
-  en: `another fg install/uninstall is already running${pid === undefined ? "" : ` (pid ${pid})`}`,
+  ru: `другой запуск fguard install/uninstall уже работает${pid === undefined ? "" : ` (pid ${pid})`}`,
+  en: `another fguard install/uninstall is already running${pid === undefined ? "" : ` (pid ${pid})`}`,
 });
 
 export const alreadyRunningDetail = (lockPath: string): Localized => ({
@@ -386,3 +386,176 @@ export const unexpectedArgument = (value: string): Localized => ({
   ru: `лишний аргумент: ${value}`,
   en: `unexpected argument: ${value}`,
 });
+
+/* ── `bash install` → `setup` / `teardown` (hidden verbs) ───────────────────────────────────── */
+
+export const setupSummary: Localized = {
+  ru: "установить fguard, навыки и плагин (запускает bash install)",
+  en: "install fguard, the skills and the plugin (run by bash install)",
+};
+
+export const teardownSummary: Localized = {
+  ru: "удалить fguard, навыки и плагин (запускает bash install --uninstall)",
+  en: "remove fguard, the skills and the plugin (run by bash install --uninstall)",
+};
+
+export const setupNodeArg: Localized = {
+  ru: "node, выбранный установщиком ru-code",
+  en: "the node ru-code's installer chose",
+};
+
+export const setupHeaders = {
+  setup: same("install"),
+  teardown: same("install --uninstall"),
+} as const;
+
+export const setupPhases = {
+  files: { ru: "файлы fguard", en: "fguard files" },
+  shell: { ru: "команда fguard", en: "fguard command" },
+  skills: { ru: "навыки CLI", en: "CLI skills" },
+  plugin: { ru: "плагин pixso", en: "pixso plugin" },
+  folder: { ru: "папка fg", en: "fg folder" },
+} as const satisfies Record<string, Localized>;
+
+export const setupRows = {
+  command: { ru: "команда", en: "command" },
+  node: { ru: "node", en: "node" },
+  shell: { ru: "оболочка", en: "shell" },
+  skills: { ru: "навыки", en: "skills" },
+  plugin: { ru: "плагин", en: "plugin" },
+  token: { ru: "токен", en: "token" },
+  folder: { ru: "папка", en: "folder" },
+  uninstall: { ru: "удаление", en: "uninstall" },
+} as const satisfies Record<string, Localized>;
+
+export const needsInstaller: Localized = {
+  ru: "эту команду запускает установщик: bash install (или bash install --uninstall)",
+  en: "this command is run by the installer: bash install (or bash install --uninstall)",
+};
+
+export const releaseFileMissing = (path: string): Localized => ({
+  ru: `нет файла ${path} — запустите bash install из папки релиза fguard`,
+  en: `${path} is missing — run bash install from the fguard release folder`,
+});
+
+export const markerClashFailed = (root: string, marker: string): Localized => ({
+  ru: `путь корня ${root} уже содержит «${marker}» — строки ru-code и fguard в rc-файлах нельзя было бы различить; установка остановлена`,
+  en: `the root path ${root} already contains "${marker}" — ru-code's and fguard's rc lines could not be told apart; nothing was installed`,
+});
+
+export const copyFailed = (detail: string): Localized => ({
+  ru: `не удалось скопировать файлы fguard: ${detail}`,
+  en: `could not copy the fguard files: ${detail}`,
+});
+
+export const shellValue = (sourced: boolean, files: number): Localized =>
+  sourced
+    ? { ru: `функция fguard в env.sh; rc-файлов: ${files}`, en: `fguard function in env.sh; rc files: ${files}` }
+    : { ru: `строка PATH; rc-файлов: ${files}`, en: `PATH line; rc files: ${files}` };
+
+export const shellFailed = (tail: string): Localized => ({
+  ru: `не удалось записать команду fguard ни в один rc-файл${tail === "" ? "" : `: ${tail}`}`,
+  en: `could not write the fguard command into any rc file${tail === "" ? "" : `: ${tail}`}`,
+});
+
+export const shellCleaned: Localized = {
+  ru: "строки fguard убраны из rc-файлов; строки ru-code не тронуты",
+  en: "fguard's lines removed from the rc files; ru-code's left alone",
+};
+
+export const shellCleanFailed = (tail: string): Localized => ({
+  ru: `не удалось убрать строки fguard из rc-файлов${tail === "" ? "" : `: ${tail}`}`,
+  en: `could not remove fguard's lines from the rc files${tail === "" ? "" : `: ${tail}`}`,
+});
+
+export const noConfigDir: Localized = {
+  ru: "preflight ru-code не сообщил папку CLI (CONFIG_DIR) — навыки не записаны",
+  en: "the ru-code preflight reported no CLI folder (CONFIG_DIR) — the skills were not written",
+};
+
+export const cliMissingWarning = (skillsDir: string): Localized => ({
+  ru: `CLI не найден — навыки всё равно записаны в ${skillsDir} и появятся, когда CLI будет установлен`,
+  en: `the CLI was not found — the skills are written to ${skillsDir} anyway and appear once the CLI is installed`,
+});
+
+export const skillsValue = (dir: string, cliFound: boolean): Localized =>
+  cliFound
+    ? same(dir)
+    : { ru: `${dir} (CLI не найден)`, en: `${dir} (CLI not found)` };
+
+export const skillsFailed = (detail: string): Localized => ({
+  ru: `не удалось записать навыки: ${detail}`,
+  en: `could not write the skills: ${detail}`,
+});
+
+export const skillsRemoved = (dir: string): Localized => ({
+  ru: `fg-get-pixso-specs, fg-get-pixso-html, fg-project-report удалены из ${dir}`,
+  en: `fg-get-pixso-specs, fg-get-pixso-html, fg-project-report removed from ${dir}`,
+});
+
+export const pluginValues = {
+  installed: (id: string, version: string): Localized => ({
+    ru: `${id} ${version} установлен`,
+    en: `${id} ${version} installed`,
+  }),
+  replaced: (id: string, version: string): Localized => ({
+    ru: `${id} ${version} установлен поверх прежнего`,
+    en: `${id} ${version} installed over the previous copy`,
+  }),
+  already: (id: string, version: string): Localized => ({
+    ru: `${id} ${version} уже установлен`,
+    en: `${id} ${version} already installed`,
+  }),
+  skippedNoRuCode: {
+    ru: "пропущен: ru-code не установлен — после установки ru-code повторите bash install",
+    en: "skipped: ru-code is not installed — run bash install again once it is",
+  },
+  skipped: (message: Localized): Localized => ({
+    ru: `пропущен: ${message.ru}`,
+    en: `skipped: ${message.en}`,
+  }),
+  failed: (detail: string): Localized => ({
+    ru: `не установлен: ${detail}`,
+    en: `not installed: ${detail}`,
+  }),
+  removed: (id: string): Localized => ({ ru: `${id} удалён`, en: `${id} removed` }),
+  absent: (id: string): Localized => ({ ru: `${id} не был установлен`, en: `${id} was not installed` }),
+} as const;
+
+export const tokenValues = {
+  set: (file: string): Localized => ({ ru: `задан: ${file}`, en: `set: ${file}` }),
+  unset: {
+    ru: "не задан — выполните fguard token (спросит токен скрытым вводом)",
+    en: "not set — run fguard token (asks for it with hidden input)",
+  },
+} as const;
+
+export const setupHeadline = (restartFailed: boolean, pluginSkipped: boolean): Localized =>
+  restartFailed
+    ? { ru: "fguard установлен, но ru-code не перезапустился", en: "fguard installed, but ru-code did not restart" }
+    : pluginSkipped
+      ? {
+          ru: "fguard установлен (плагин pixso пропущен) — откройте новый терминал",
+          en: "fguard installed (pixso plugin skipped) — open a new terminal",
+        }
+      : { ru: "fguard установлен — откройте новый терминал", en: "fguard installed — open a new terminal" };
+
+export const uninstallCommand = (installer: string): Localized => ({
+  ru: `bash ${installer} --uninstall`,
+  en: `bash ${installer} --uninstall`,
+});
+
+export const folderRemoved = (dir: string, hadToken: boolean): Localized =>
+  hadToken
+    ? { ru: `${dir} удалена вместе с токеном (.env)`, en: `${dir} removed, the token (.env) with it` }
+    : { ru: `${dir} удалена`, en: `${dir} removed` };
+
+export const folderRemoveFailed = (detail: string): Localized => ({
+  ru: `не удалось удалить папку fg: ${detail}`,
+  en: `could not remove the fg folder: ${detail}`,
+});
+
+export const teardownHeadline = (failed: boolean): Localized =>
+  failed
+    ? { ru: "fguard удалён не полностью", en: "fguard was not removed completely" }
+    : { ru: "fguard удалён", en: "fguard removed" };

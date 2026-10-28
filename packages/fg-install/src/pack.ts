@@ -124,3 +124,16 @@ export function packVendor(vendorDir: string): PackedPayload {
     }),
   };
 }
+
+/** ru-code's generated installer inside `vendor/ru-code/` — shipped verbatim as `ru-code-install`. */
+export const VENDOR_INSTALLER = "install";
+
+/**
+ * BUILD TIME (`scripts/release.mjs`): the vendored ru-code installer's bytes, refused when missing
+ * or when it carries anything of the forbidden set — the same guard every embedded file passes.
+ */
+export function vendorInstaller(vendorDir: string): Uint8Array {
+  const bytes = read(join(vendorDir, VENDOR_INSTALLER), "ru-code installer");
+  assertClean(VENDOR_INSTALLER, bytes);
+  return bytes;
+}

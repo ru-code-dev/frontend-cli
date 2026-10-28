@@ -86,8 +86,8 @@ export const argHints = {
     en: "design system (default: from the dependencies)",
   },
   config: {
-    ru: "fg.config.json (по умолчанию — корень проекта, затем cwd)",
-    en: "fg.config.json (default: the project root, then the cwd)",
+    ru: "fg.config.json (корень проекта, затем cwd)",
+    en: "fg.config.json (project root, then the cwd)",
   },
 } as const satisfies Record<string, Localized>;
 
@@ -508,8 +508,8 @@ export function corpusWarning(kit: string, warning: CorpusWarning): Localized {
   switch (warning.reason) {
     case "incomplete": {
       return {
-        ru: `корпус ${kit} неполон: нет файла ${warning.file} — используется встроенный снимок. Соберите корпус заново: fg --parse-ui-kit ${kit}`,
-        en: `the ${kit} corpus is incomplete: ${warning.file} is missing — using the embedded snapshot instead. Regenerate it with: fg --parse-ui-kit ${kit}`,
+        ru: `корпус ${kit} неполон: нет файла ${warning.file} — используется встроенный снимок. Соберите корпус заново: fguard --parse-ui-kit ${kit}`,
+        en: `the ${kit} corpus is incomplete: ${warning.file} is missing — using the embedded snapshot instead. Regenerate it with: fguard --parse-ui-kit ${kit}`,
       };
     }
     case "invalid": {
@@ -518,11 +518,11 @@ export function corpusWarning(kit: string, warning: CorpusWarning): Localized {
         ru:
           `файл корпуса ${kit} не прошёл проверку: ${warning.file}` +
           (detail === undefined ? "" : ` (${detail})`) +
-          `. Используется встроенный снимок. Соберите корпус заново: fg --parse-ui-kit ${kit}`,
+          `. Используется встроенный снимок. Соберите корпус заново: fguard --parse-ui-kit ${kit}`,
         en:
           `a ${kit} corpus file failed validation: ${warning.file}` +
           (detail === undefined ? "" : ` (${detail})`) +
-          `. Using the embedded snapshot instead. Regenerate it with: fg --parse-ui-kit ${kit}`,
+          `. Using the embedded snapshot instead. Regenerate it with: fguard --parse-ui-kit ${kit}`,
       };
     }
   }
@@ -647,8 +647,8 @@ export const parsePhases = {
 
 /** `--parse-ui-kit` with no name. Names the accepted values, because that is the actionable half. */
 export const missingKit = (names: readonly string[]): Localized => ({
-  ru: `не указана дизайн-система: fg --parse-ui-kit <${names.join("|")}>`,
-  en: `no design system given: fg --parse-ui-kit <${names.join("|")}>`,
+  ru: `не указана дизайн-система: fguard --parse-ui-kit <${names.join("|")}>`,
+  en: `no design system given: fguard --parse-ui-kit <${names.join("|")}>`,
 });
 
 /** A name nobody registered. A usage error: exit 2, with the accepted list. */
@@ -733,15 +733,15 @@ export const configArgDescriptions = {
     en: `Path to the rule configuration file (${CONFIG_FILE}). Without the flag it is looked for in the analysed project's root first, then in the current directory; when neither has one, the built-in defaults apply`,
   },
   format: {
-    ru: `Что произвести: ${REPORT_FORMATS.join(", ")} — несколько через запятую, порядок не важен, повторы игнорируются (по умолчанию ${DEFAULT_REPORT_FORMAT}). html — самодостаточный HTML-отчёт; compact — находки в консоль; json — массив в формате ESLint; sarif — SARIF 2.1.0 для IDE и CI`,
-    en: `What to produce: ${REPORT_FORMATS.join(", ")} — several comma-separated, order irrelevant, duplicates ignored (default ${DEFAULT_REPORT_FORMAT}). html — a self-contained HTML report; compact — the findings in the console; json — an ESLint-shaped array; sarif — SARIF 2.1.0 for an IDE or CI`,
+    ru: `Что произвести: ${REPORT_FORMATS.join(", ")} — несколько через запятую, порядок не важен, повторы игнорируются (по умолчанию ${DEFAULT_REPORT_FORMAT}). html — самодостаточный HTML-отчёт; summary — краткий JSON с цифрами дашборда (report.summary.json); compact — находки в консоль; json — массив в формате ESLint; sarif — SARIF 2.1.0 для IDE и CI`,
+    en: `What to produce: ${REPORT_FORMATS.join(", ")} — several comma-separated, order irrelevant, duplicates ignored (default ${DEFAULT_REPORT_FORMAT}). html — a self-contained HTML report; summary — a short JSON of the dashboard's numbers (report.summary.json); compact — the findings in the console; json — an ESLint-shaped array; sarif — SARIF 2.1.0 for an IDE or CI`,
   },
 } as const satisfies Record<string, Localized>;
 
 /** `--config <path>` naming a file that is not there. The user promised it; exit 2. */
 export const configNotFound = (path: string): Localized => ({
-  ru: `файл конфигурации не найден: ${path}. Создать его: fg --init-config`,
-  en: `configuration file not found: ${path}. Create one with: fg --init-config`,
+  ru: `файл конфигурации не найден: ${path}. Создать его: fguard --init-config`,
+  en: `configuration file not found: ${path}. Create one with: fguard --init-config`,
 });
 
 /** The file is there and unreadable — a directory, a permission. Never a silent fallback. */
@@ -969,13 +969,13 @@ export const initConfigPhases = {
  * …» — which is this package's sentence about the catalog's, not the catalog's own.
  */
 export const schemaTitle: Localized = {
-  ru: "fg — конфигурация правил анализа проекта",
-  en: "fg — rule configuration for the project analysis",
+  ru: "fguard — конфигурация правил анализа проекта",
+  en: "fguard — rule configuration for the project analysis",
 };
 
 export const schemaAnalyzer: Localized = {
-  ru: "Что и как проверяет fg --project-report",
-  en: "What fg --project-report checks, and how",
+  ru: "Что и как проверяет fguard --project-report",
+  en: "What fguard --project-report checks, and how",
 };
 
 export const schemaUiKit: Localized = {

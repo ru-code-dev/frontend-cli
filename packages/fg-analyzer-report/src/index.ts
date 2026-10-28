@@ -57,3 +57,10 @@ export type {
 export { countFindings, DEFAULT_RULE_CONFIG, payloadOf } from "./payload.ts";
 export { renderReport, ReportTemplateError } from "./render.ts";
 export { REPORT_TEMPLATE } from "./template.ts";
+export {
+  type ReportSummary,
+  SUMMARY_SCHEMA,
+  SUMMARY_TOP_PROBLEMS,
+  type SummaryProblem,
+  summaryOf,
+} from "./summary.ts";

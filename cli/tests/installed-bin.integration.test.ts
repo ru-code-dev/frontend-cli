@@ -8,7 +8,7 @@
  * command and prints its output.
  *
  * WHY THAT NEEDED ITS OWN FILE. `npm install` does not copy the bin; it writes a SYMLINK
- * (`node_modules/.bin/fg` -> `../@smart-tools/frontend-guard/dist/fg.mjs`). Node then sets
+ * (`node_modules/.bin/fguard` -> `../@smart-tools/frontend-guard/dist/fg.mjs`). Node then sets
  * `process.argv[1]` to the symlink it was invoked through, while `import.meta.url` is the
  * RESOLVED target. The entry guard at the bottom of `cli/src/main.ts` compares the two, and for
  * as long as it compared them unresolved, that comparison was false for every installed copy of
@@ -90,7 +90,7 @@ async function ran(file: string, args: readonly string[], cwd: string): Promise<
 
 /** The throwaway prefix and everything under it. */
 let scratch = "";
-/** `<prefix>/node_modules/.bin/fg` — the symlink, and the only thing this file spawns. */
+/** `<prefix>/node_modules/.bin/fguard` — the symlink, and the only thing this file spawns. */
 let installedBin = "";
 /** Where that symlink points, i.e. the installed `dist/fg.mjs`. */
 let installedReal = "";
@@ -134,7 +134,7 @@ beforeAll(async () => {
   );
   expect(install.code, `npm install failed:\n${install.stderr}`).toBe(0);
 
-  installedBin = join(prefix, "node_modules", ".bin", "fg");
+  installedBin = join(prefix, "node_modules", ".bin", "fguard");
   installedReal = join(prefix, "node_modules", "@smart-tools", "frontend-guard", "dist", "fg.mjs");
 
   project = join(scratch, "project");
@@ -182,7 +182,7 @@ describe("running the symlinked bin", () => {
     expect(result.code).toBe(0);
     // Real output, not merely non-empty: the usage line, a command the registry contributes,
     // and the version the help renders into its own title.
-    expect(result.stdout).toContain("fg <");
+    expect(result.stdout).toContain("fguard <");
     // The TABLE shows the short alias (U8); the long spelling is on the per-command page.
     expect(result.stdout).toContain("--preport");
     expect(result.stdout).toContain(declaredVersion);

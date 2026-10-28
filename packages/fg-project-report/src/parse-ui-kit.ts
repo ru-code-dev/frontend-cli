@@ -231,7 +231,7 @@ export function createParseUiKitCommands(deps: ParseUiKitDeps = {}): readonly Cl
     summary: parseSummary,
     defaultOut: parseDefaultOutOf(names),
     details: parseDetails,
-    examples: ["fg --pkit eds", "fg --pkit eds2", "fg --pkit eds --source ../ui-kit-eds-ce"],
+    examples: ["fguard --pkit eds", "fguard --pkit eds2", "fguard --pkit eds --source ../ui-kit-eds-ce"],
     args: [kitArg, sourceFlagArg],
     async run(ctx: CommandContext): Promise<number> {
       // Built per run: the usage line it quotes is localized (V5 finding #12).

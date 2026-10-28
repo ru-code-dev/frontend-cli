@@ -49,7 +49,10 @@ describe("whatever the registry holds is well-formed", () => {
 
   it("no command collides with a global — those are the CLI's own surface", () => {
     const globals = new Set(["out", "token", "endpoint", "lang", "help", "version", "debug"]);
-    for (const command of REGISTRY) {
+    // A VERB is typed as a bare word (`fguard token <value>`), never as `--token`: its flag-style
+    // spelling runs nothing (`parse.ts`'s `isVerb`), so `token` the verb and `--token` the global
+    // do not compete — `parse.test.ts` pins that `--token X` stays the global.
+    for (const command of REGISTRY.filter((c) => !isVerb(c))) {
       expect(globals.has(optionName(command.flag))).toBe(false);
       if (command.alias !== undefined) {
         expect(globals.has(optionName(command.alias))).toBe(false);

@@ -5,13 +5,21 @@
 ## Кадр из Pixso
 
 ```bash
-fg --passets <pixso-link>   # svg + html + md + json за один запрос к макету
-fg --psvg <pixso-link>      # только SVG
-fg --phtml <pixso-link>     # только HTML
-fg --pprompt <pixso-link>   # Markdown-промпт: спецификация экрана для LLM
+fguard --passets <pixso-link>   # svg + html + md + json за один запрос к макету
+fguard --psvg <pixso-link>      # только SVG
+fguard --phtml <pixso-link>     # только HTML
+fguard --pprompt <pixso-link>   # Markdown-промпт: спецификация экрана для LLM
 ```
 
-![fg --passets по ссылке на кадр](../../screenshots/30-passets-tty-ru-ok.png)
+```
+$ fguard --passets <pixso-link>
+fguard v1.2.0 · passets · удалённый маршрут · item 11-10
+✔ готово
+  svg    /home/u/app/fg-out/pixso/11-10/card.svg
+  html   /home/u/app/fg-out/pixso/11-10/card.html
+  md     /home/u/app/fg-out/pixso/11-10/card.md
+  json   /home/u/app/fg-out/pixso/11-10/card.json
+```
 
 Аргумент — ссылка на кадр из Pixso («Поделиться → Копировать ссылку»). Токен удалённого MCP
 кладут в `./.env` рядом с местом запуска:
@@ -27,14 +35,14 @@ PIXSO_REMOTE_MCP_TOKEN=<ваш токен>
 
 ## Корпус дизайн-системы
 
-`fg` носит вшитый снимок каждой дизайн-системы — токены, компоненты, иконки, публичные сигнатуры
-и правила доступности. Снимок замирает в момент сборки `fg`; когда дизайн-система ушла вперёд,
+`fguard` носит вшитый снимок каждой дизайн-системы — токены, компоненты, иконки, публичные сигнатуры
+и правила доступности. Снимок замирает в момент сборки `fguard`; когда дизайн-система ушла вперёд,
 корпус пересобирают локально:
 
 ```bash
-fg --pkit eds                              # → ~/.fg/kits/eds/
-fg --pkit eds2                             # 2.x, ветка develop-2.0
-fg --pkit eds --source ../ui-kit-eds-ce    # из локального клона
+fguard --pkit eds                              # → ~/.fg/kits/eds/
+fguard --pkit eds2                             # 2.x, ветка develop-2.0
+fguard --pkit eds --source ../ui-kit-eds-ce    # из локального клона
 ```
 
 Пять файлов на каждую: `tokens`, `components`, `kit-a11y`, `kit-icons`, `kit-signatures`. После

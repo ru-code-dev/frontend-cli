@@ -1,7 +1,7 @@
 # `--preport` — отчёт по проекту
 
 ```
-fg --preport <путь|repo> [-o <путь>] [--format …] [--ui-kit …] [--config …]
+fguard --preport <путь|repo> [-o <путь>] [--format …] [--ui-kit …] [--config …]
   также: --project-report
 ```
 
@@ -9,7 +9,7 @@ fg --preport <путь|repo> [-o <путь>] [--format …] [--ui-kit …] [--co
 репозиторий (`http(s)://…`, `git@…`, `file://…`); репозиторий клонируется во временный каталог
 и удаляется после анализа.
 
-![fg --preport .](../screenshots/13-preport-eds2-tty-ru-fail.png)
+![fguard --preport .](../screenshots/13-preport-eds2-tty-ru-fail.png)
 
 ## Флаги
 
@@ -28,6 +28,7 @@ fg --preport <путь|repo> [-o <путь>] [--format …] [--ui-kit …] [--co
 | Формат    | Что это                                            | Куда   |
 | --------- | -------------------------------------------------- | ------ |
 | `html`    | самодостаточный интерактивный отчёт (по умолчанию) | файл   |
+| `summary` | краткий JSON с цифрами дашборда                    | файл   |
 | `compact` | находки в консоль                                  | stdout |
 | `json`    | массив в форме `eslint -f json`                    | файл   |
 | `sarif`   | SARIF 2.1.0 для IDE и CI                           | файл   |
@@ -35,16 +36,35 @@ fg --preport <путь|repo> [-o <путь>] [--format …] [--ui-kit …] [--co
 Проект читается и проверяется **один раз**, сколько бы форматов ни попросили. Порядок в списке
 не важен, повторы игнорируются.
 
-![fg --preport . --format compact](../screenshots/16-preport-compact-tty-ru-fail.png)
+![fguard --preport . --format compact](../screenshots/16-preport-compact-tty-ru-fail.png)
+
+### `summary`
+
+`report.summary.json` — те же числа, что показывает экран «Обзор» дашборда: они считаются тем же
+кодом дашборда по тем же данным, что вшиты в `report.html` (конфиг правил из файла применён).
+
+| Поле          | Что                                                                                   |
+| ------------- | ------------------------------------------------------------------------------------- |
+| `health`      | здоровье `score`/100 и формула; `null` без дизайн-системы                             |
+| `totals`      | находки, ошибки, предупреждения, info, кандидаты, решения, авто-фикс, a11y, файлы     |
+| `kit`         | доли компонентов из ДС / на токенах / без токенов и покрытие токенами, %; `null` без ДС |
+| `topProblems` | первые 5 строк «С чего начать»: правило, подпись, `actual` → `expected`, повторы, файлы |
+| `artifacts`   | абсолютные пути всех файлов этого запуска по форматам (`html`, `summary`, …)          |
+
+Файл маленький: на репозитории дизайн-системы EDS (2 385 файлов, 197 находок) — 2 359 символов.
+
+```bash
+fguard --preport . --format html,summary -o ./fg-out   # → ./fg-out/report.html + report.summary.json
+```
 
 ## `-o`
 
 - один формат-файл → `-o` называет **файл**;
-- несколько → `-o` называет **каталог**, внутри появятся `report.html`, `report.sarif`, `report.json`;
+- несколько → `-o` называет **каталог**, внутри появятся `report.html`, `report.summary.json`, `report.sarif`, `report.json`;
 - без `-o` → `./fg-out/report.<ext>`; недостающие каталоги создаются;
 - `--format compact -o …` — ошибка вызова (код 2): `compact` уходит в stdout и файла не имеет.
 
-![fg --preport . --format html,sarif,json -o ./report](../screenshots/15-preport-formats-tty-ru-fail.png)
+![fguard --preport . --format html,sarif,json -o ./report](../screenshots/15-preport-formats-tty-ru-fail.png)
 
 Пути в итоговом блоке всегда абсолютные. В пайпе они же уходят в stdout по одному в строке, а в
 терминале — только в блок, чтобы не печатать дважды.
@@ -71,7 +91,7 @@ fg --preport <путь|repo> [-o <путь>] [--format …] [--ui-kit …] [--co
 
 ## Корпус дизайн-системы
 
-Пока в `~/.fg/kits/<кит>/` нет корпуса, собранного [`fg --pkit`](parse-ui-kit.md), отчёт
+Пока в `~/.fg/kits/<кит>/` нет корпуса, собранного [`fguard --pkit`](parse-ui-kit.md), отчёт
 считается по встроенному снимку. Каталог переносится переменной `FG_KITS_DIR` (см.
 [env.md](env.md)). Испорченный или не прошедший проверку файл корпуса запуск не роняет: команда
 предупреждает, называя файл и причину, и возвращается к встроенному снимку.
@@ -84,9 +104,9 @@ fg --preport <путь|repo> [-o <путь>] [--format …] [--ui-kit …] [--co
 ## `--config` и уровни правил
 
 ```bash
-fg --iconf                                   # создать fg.config.json и схему
-fg --preport .                               # файл подхватится сам
-fg --preport . --config ./ci/fg.config.json  # …или явно
+fguard --iconf                                   # создать fg.config.json и схему
+fguard --preport .                               # файл подхватится сам
+fguard --preport . --config ./ci/fg.config.json  # …или явно
 ```
 
 Порядок поиска — побеждает первый найденный:
@@ -115,6 +135,6 @@ HTML-отчёт попадают все находки, а панель «Пра
 без перезапуска. Строка `скрыто` в итоговом блоке говорит, сколько находок убрал конфиг и какой
 файл при этом действовал.
 
-![fg --preport . с конфигом](../screenshots/18-preport-config-tty-ru-ok.png)
+![fguard --preport . с конфигом](../screenshots/18-preport-config-tty-ru-ok.png)
 
 Подробнее о самом файле — [init-config.md](init-config.md).

@@ -162,6 +162,8 @@ export function context(
     readonly verbose?: boolean;
     /** The context's `env` — default: a copy of `process.env` (what `run()` hands a command after `.env` + the PIXSO_* overlay). */
     readonly env?: Readonly<Record<string, string | undefined>>;
+    /** The running bundle's directory (`setup`/`teardown` copy from / source the installer beside it). */
+    readonly binDir?: string;
   } = {},
 ): Captured {
   const lang = options.lang ?? "ru";
@@ -180,6 +182,7 @@ export function context(
     env: options.env ?? { ...process.env },
     flags: options.flags ?? {},
     ...(options.source === undefined ? {} : { source: options.source }),
+    ...(options.binDir === undefined ? {} : { binDir: options.binDir }),
     stdout: (s) => void (out += s),
     stderr: (s) => {
       if (!ui.ended()) err += s;

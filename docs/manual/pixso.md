@@ -9,7 +9,15 @@
 | `--pprompt` | `--get-pixso-prompt` | Markdown-промпт                                    | `./fg-out/pixso/<имя>.md`   |
 | `--passets` | `--get-pixso-assets` | `card.svg` + `card.html` + `card.md` + `card.json` | `./fg-out/pixso/<имя>/`     |
 
-![fg --passets по ссылке на кадр](../screenshots/30-passets-tty-ru-ok.png)
+```
+$ fguard --passets <pixso-link>
+fguard v1.2.0 · passets · удалённый маршрут · item 11-10
+✔ готово
+  svg    /home/u/app/fg-out/pixso/11-10/card.svg
+  html   /home/u/app/fg-out/pixso/11-10/card.html
+  md     /home/u/app/fg-out/pixso/11-10/card.md
+  json   /home/u/app/fg-out/pixso/11-10/card.json
+```
 
 `--passets` обращается к макету **ровно один раз** и раскладывает один скан в четыре файла.
 
@@ -21,7 +29,7 @@ MCP: ни плагина, ни открытого редактора, ни то�
 
 ```bash
 export PIXSO_REMOTE_MCP_TOKEN=<ваш токен>
-fg --psvg <pixso-link>
+fguard --psvg <pixso-link>
 ```
 
 Вместо `export` строку можно положить в `./.env` рядом с местом запуска — файл читается
@@ -31,12 +39,17 @@ fg --psvg <pixso-link>
 PIXSO_REMOTE_MCP_TOKEN=<ваш токен>
 ```
 
-![fg --psvg по ссылке на кадр](../screenshots/27-psvg-tty-ru-ok.png)
+```
+$ fguard --psvg <pixso-link>
+fguard v1.2.0 · psvg · удалённый маршрут · item 11-10
+✔ готово
+  svg    /home/u/app/fg-out/pixso/11-10.svg
+```
 
 Без токена ссылка отклоняется с кодом 2 ещё до обращения к сети, и в отказе перечислены все три
 способа его задать:
 
-![fg --psvg без токена](../screenshots/33-psvg-token-tty-ru-usage.png)
+![fguard --psvg без токена](../screenshots/33-psvg-token-tty-ru-usage.png)
 
 ## Имя файла
 
@@ -60,27 +73,37 @@ PIXSO_REMOTE_MCP_TOKEN=<ваш токен>
 `--endpoint` перебивает **обе** URL-переменные: маршрут выбирается по аргументу, так что в дело
 всё равно пойдёт ровно одна из них.
 
-Приоритет — **флаг > env / `.env` > умолчание**. Полный список переменных и правила `.env` —
+Приоритет — **флаг > env / `./.env` > `.env` рядом с `fg.mjs` > умолчание**. Проще всего задать
+токен один раз командой [`fguard token`](token.md). Полный список переменных и правила `.env` —
 [env.md](env.md).
+
+Нет токена или сервер его отклонил (HTTP 401/403) — код **3** и строка с готовой командой:
+
+```
+✖ нет токена Pixso для ссылки на кадр. Выполните: fguard token <ваш токен> — токен сохранится в файле <корень ru-code>/fg/bin/.env
+✖ токен Pixso отклонён сервером (HTTP 401). Задайте новый: fguard token <ваш токен> — токен сохранится в файле …/.env
+```
+
+Сервер недоступен или ответил другой ошибкой — код 1, как раньше.
 
 ## Примеры
 
 ```bash
-fg --psvg <pixso-link>                    # → ./fg-out/pixso/<item-id>.svg
-fg --phtml <pixso-link> -o ./card.html
-fg --pprompt <pixso-link> -o ./card.md
-fg --passets <pixso-link>                 # → ./fg-out/pixso/<item-id>/
-fg --passets <pixso-link> -o ./out/card   # -o = каталог
+fguard --psvg <pixso-link>                    # → ./fg-out/pixso/<item-id>.svg
+fguard --phtml <pixso-link> -o ./card.html
+fguard --pprompt <pixso-link> -o ./card.md
+fguard --passets <pixso-link>                 # → ./fg-out/pixso/<item-id>/
+fguard --passets <pixso-link> -o ./out/card   # -o = каталог
 ```
 
 Без источника — отказ с кодом 2:
 
-![fg --psvg без источника](../screenshots/32-psvg-tty-ru-usage.png)
+![fguard --psvg без источника](../screenshots/32-psvg-tty-ru-usage.png)
 
 Флаг, которого у команды нет, тоже не проглатывается молча:
 
 ```
-$ fg --psvg <pixso-link> --config ./fg.config.json
+$ fguard --psvg <pixso-link> --config ./fg.config.json
 ✖ флаг --config не поддерживается командой --psvg.
 ```
 
@@ -91,7 +114,7 @@ $ fg --psvg <pixso-link> --config ./fg.config.json
 редакторе; отдельного флага нет: всё, что не `http(s)://…`, идёт локально.
 
 ```bash
-fg --psvg 11:10                           # → ./fg-out/pixso/11-10.svg
+fguard --psvg 11:10                           # → ./fg-out/pixso/11-10.svg
 ```
 
 Токен не нужен, адрес задаёт `PIXSO_LOCAL_MCP_URL`, редактор должен быть открыт: закрытый

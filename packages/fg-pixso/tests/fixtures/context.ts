@@ -52,6 +52,8 @@ export interface ContextOptions {
    */
   readonly stdoutIsTTY?: boolean;
   readonly verbose?: boolean;
+  /** The bundle's directory — where `fguard token` writes and a token refusal points. */
+  readonly binDir?: string | undefined;
 }
 
 export function makeContext(options: ContextOptions): TestContext {
@@ -97,6 +99,7 @@ export function makeContext(options: ContextOptions): TestContext {
     source: options.source,
     out: options.out,
     cwd: options.cwd,
+    binDir: options.binDir,
     lang,
     env: options.env ?? {},
     flags: options.flags ?? {},

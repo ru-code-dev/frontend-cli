@@ -110,3 +110,50 @@ describe("an unusable ./.env yields a localized error, never a stack trace", () 
     expect(() => loadDotEnv(dir)).not.toThrow();
   });
 });
+
+describe("E3 — the bundle-side .env (`fguard token`) is the LOWEST env tier", () => {
+  it("is read when it is the only source", () => {
+    const project = tempDirWith({});
+    const bundle = tempDirWith({ ".env": `${PROBE_KEY}=from-bundle\n` });
+    expect(loadDotEnv(project, bundle).loaded).toBe(true);
+    expect(process.env[PROBE_KEY]).toBe("from-bundle");
+  });
+
+  it("loses to the project's ./.env", () => {
+    const project = tempDirWith({ ".env": `${PROBE_KEY}=from-project\n` });
+    const bundle = tempDirWith({ ".env": `${PROBE_KEY}=from-bundle\n` });
+    loadDotEnv(project, bundle);
+    expect(process.env[PROBE_KEY]).toBe("from-project");
+  });
+
+  it("loses to the real environment", () => {
+    process.env[PROBE_KEY] = "from-env";
+    const bundle = tempDirWith({ ".env": `${PROBE_KEY}=from-bundle\n` });
+    loadDotEnv(tempDirWith({}), bundle);
+    expect(process.env[PROBE_KEY]).toBe("from-env");
+  });
+
+  it("feeds the token chain below a flag — flag > env/project > bundle > constant", () => {
+    const bundle = tempDirWith({ ".env": `${SETTING_KEYS.token}=bundle-token\n` });
+    loadDotEnv(tempDirWith({}), bundle);
+    const env = { ...process.env };
+    expect(resolveSettings({}, env).token).toBe("bundle-token");
+    expect(resolveSettings({ token: "flag" }, env).token).toBe("flag");
+    delete process.env[SETTING_KEYS.token];
+    expect(resolveSettings({}, { ...process.env }).token).toBe("");
+  });
+
+  it("is not read twice when the bundle sits in the cwd", () => {
+    const dir = tempDirWith({ ".env": `${PROBE_KEY}=once\n` });
+    expect(loadDotEnv(dir, dir)).toEqual({ loaded: true });
+    expect(process.env[PROBE_KEY]).toBe("once");
+  });
+
+  it("a broken bundle .env is reported with its own path", () => {
+    const bundle = tempDirWith({});
+    mkdirSync(join(bundle, ".env"));
+    const result = loadDotEnv(tempDirWith({}), bundle);
+    expect(result.loaded).toBe(false);
+    expect(result.error?.ru).toContain(join(bundle, ".env"));
+  });
+});

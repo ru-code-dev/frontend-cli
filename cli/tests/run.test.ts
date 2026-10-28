@@ -43,6 +43,7 @@ function harness(overrides: Partial<RunDeps> = {}): Harness {
     version: "9.9.9",
     readEnv: () => ({}),
     cwd: () => packageRoot,
+    binDir: () => "/bundle/dir",
     // A no-op loader by default: `.env` behaviour has its own suite against real directories
     // (`cli/tests/dotenv.test.ts`), and dispatch must not depend on what is on disk.
     loadEnv: () => ({ loaded: false }),
@@ -134,7 +135,7 @@ describe("--help", () => {
       const h = harness();
       expect(await run(argv, h.deps)).toBe(EXIT_OK);
       // ONE elided usage line (§2.8), with the long spelling on the line below it — V5 #5/#8.
-      expect(h.out().split("\n")[0]).toBe("fg --falpha <url|guid> [--config …]");
+      expect(h.out().split("\n")[0]).toBe("fguard --falpha <url|guid> [--config …]");
       expect(h.out().split("\n")[1]).toBe("  также: --fake-alpha");
       // The whole table is NOT printed underneath it.
       expect(h.out()).not.toContain("--fake-beta");
@@ -154,7 +155,7 @@ describe("errors go to stderr, localized, exit 2", () => {
     expect(await run(["--nope"], h.deps)).toBe(EXIT_USAGE);
     expect(h.out()).toBe("");
     expect(h.err()).toContain("--nope");
-    expect(h.err()).toContain("fg --help");
+    expect(h.err()).toContain("fguard --help");
   });
 
   it("the same error in en", async () => {
@@ -171,7 +172,7 @@ describe("errors go to stderr, localized, exit 2", () => {
     const h = harness();
     expect(await run(["--fake-alpha", "--fake-beta"], h.deps)).toBe(EXIT_USAGE);
     expect(h.err()).toContain("✖");
-    expect(h.err()).toContain("fg --help");
+    expect(h.err()).toContain("fguard --help");
     // The table is not underneath it.
     expect(h.err()).not.toContain("Использование");
     expect(
@@ -201,8 +202,8 @@ describe("errors go to stderr, localized, exit 2", () => {
     expect(h.err()).toContain("-o");
     expect(h.err()).toContain("--parse-ui-kit");
     // The refusal names the COMMAND's own surface, because the refusal knows which one it was.
-    expect(h.err()).toContain("fg --help --pkit");
-    expect(h.err()).toContain("fg --pkit");
+    expect(h.err()).toContain("fguard --help --pkit");
+    expect(h.err()).toContain("fguard --pkit");
   });
 
   it("the same refusal in en", async () => {
@@ -258,6 +259,21 @@ describe("dispatch", () => {
     await run(["--fake-beta"], h.deps);
     expect(calls[0]?.ctx.cwd).toBe("/somewhere/else");
     expect(seen).toEqual(["/somewhere/else"]);
+  });
+
+  it("E3: hands the loader AND the command the bundle's directory — the bundle-side .env's home", async () => {
+    calls.length = 0;
+    const seen: (string | undefined)[] = [];
+    const h = harness({
+      binDir: () => "/root/fg/bin",
+      loadEnv: (_cwd, binDir) => {
+        seen.push(binDir);
+        return { loaded: false };
+      },
+    });
+    await run(["--fake-beta"], h.deps);
+    expect(seen).toEqual(["/root/fg/bin"]);
+    expect(calls[0]?.ctx.binDir).toBe("/root/fg/bin");
   });
 
   it("`-o` absent leaves ctx.out undefined — the command decides the default, not the CLI", async () => {
@@ -344,7 +360,7 @@ describe("a command that throws", () => {
     // Core's own text passes through untranslated — core owns its error strings.
     expect(h.err()).toContain("engine said no");
     // Design 2.6's runtime block: ONE pointer row, the line just typed with `--debug` on it.
-    expect(h.err()).toContain("fg --fboom … --debug");
+    expect(h.err()).toContain("fguard --fboom … --debug");
     expect(h.err()).not.toContain("at ");
   });
 

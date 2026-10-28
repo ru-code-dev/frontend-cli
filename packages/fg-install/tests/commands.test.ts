@@ -77,7 +77,7 @@ const target = (m: Machine) => layoutOf(m.root, "pixso").target;
 const restarted = (m: Machine): string[] | null =>
   existsSync(m.argvFile) ? readFileSync(m.argvFile, "utf8").trim().split("\n") : null;
 
-describe("fg install", () => {
+describe("fguard install", () => {
   it("refuses with exit 1 when ru-code is not installed, and writes nothing", async () => {
     const m = machine({ installed: false });
     const run = context();
@@ -199,7 +199,7 @@ describe("fg install", () => {
     const run = context({ source: "extra" });
     expect(await install(m).run(run.ctx)).toBe(2);
     expect(run.err()).toContain("лишний аргумент: extra");
-    expect(run.err()).toContain("fg install [--check] [--no-restart]");
+    expect(run.err()).toContain("fguard install [--check] [--no-restart]");
   });
 
   it("speaks English under --lang en", async () => {
@@ -219,7 +219,7 @@ describe("fg install", () => {
   });
 });
 
-describe("fg install --check — read-only, exit 0 only when installed, identical and not shadowed", () => {
+describe("fguard install --check — read-only, exit 0 only when installed, identical and not shadowed", () => {
   const check = async (m: Machine, lang: "ru" | "en" = "ru") => {
     const before = listTree(m.root);
     const run = context({ lang, flags: { check: true } });
@@ -328,13 +328,13 @@ describe("a concurrent run (the lock)", () => {
     writeFileSync(join(lock, "pid"), "424242");
     const ru = context();
     expect(await install(m).run(ru.ctx)).toBe(1);
-    expect(ru.err()).toContain("другой запуск fg install/uninstall уже работает");
+    expect(ru.err()).toContain("другой запуск fguard install/uninstall уже работает");
     expect(ru.err()).toContain(lock);
     expect(existsSync(target(m))).toBe(false);
     expect(restarted(m)).toBeNull();
     const en = context({ lang: "en" });
     expect(await install(m).run(en.ctx)).toBe(1);
-    expect(en.err()).toContain("another fg install/uninstall is already running");
+    expect(en.err()).toContain("another fguard install/uninstall is already running");
   });
 
   it("uninstall: a live lock → exit 1; the plugin stays", async () => {
@@ -350,7 +350,7 @@ describe("a concurrent run (the lock)", () => {
   });
 });
 
-describe("fg uninstall", () => {
+describe("fguard uninstall", () => {
   it("removes the folder, keeps <stateDir>/plugins/<id>, restarts a running ru-code", async () => {
     const m = machine({ running: true });
     await install(m).run(context({ flags: { "no-restart": true } }).ctx);
@@ -429,7 +429,7 @@ describe("the version gate — MINIMUM_APP_VERSION against <bin>/current.json", 
       expect(run.err()).toContain(
         `✖ установлен ru-code ${version}, а плагину pixso нужен 0.0.34 или новее`,
       );
-      expect(run.err()).toContain("обновите ru-code и повторите fg install");
+      expect(run.err()).toContain("обновите ru-code и повторите fguard install");
       expect(listTree(m.root)).toEqual(before);
       expect(existsSync(target(m))).toBe(false);
       expect(existsSync(join(m.root, ".fg-install"))).toBe(false);
@@ -444,7 +444,7 @@ describe("the version gate — MINIMUM_APP_VERSION against <bin>/current.json", 
     expect(run.err()).toContain(
       "✖ ru-code 0.0.33 is installed, but the pixso plugin needs 0.0.34 or newer",
     );
-    expect(run.err()).toContain("update ru-code and run fg install again");
+    expect(run.err()).toContain("update ru-code and run fguard install again");
     expect(run.err()).not.toMatch(/[а-яё]/i);
   });
 

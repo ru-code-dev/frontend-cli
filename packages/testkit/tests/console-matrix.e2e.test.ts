@@ -38,11 +38,12 @@
  * bytes on every run. No header prints a clock — the `· 11:10` in design §2.1's pixso sample is
  * the node guid the user typed, not a time.
  */
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import {
   cpSync,
   existsSync,
   mkdirSync,
+  readFileSync,
   readdirSync,
   rmSync,
   statSync,
@@ -85,6 +86,8 @@ import {
 const here = dirname(fileURLToPath(import.meta.url));
 /** `packages/testkit/tests` → the repo root. */
 const repoRoot = resolve(here, "..", "..", "..");
+/** The bundle's version, read where the build reads it (`cli/package.json`). */
+const VERSION = (JSON.parse(readFileSync(join(repoRoot, "cli", "package.json"), "utf8")) as { version: string }).version;
 /** THE REAL SHIPPED ARTIFACT. Never `src/`: the matrix is about what a user runs. */
 const bundle = join(repoRoot, "cli", "dist", "fg.mjs");
 /** The analyser fixtures, READ-ONLY — they belong to `cli/tests` and are COPIED, never written. */
@@ -118,6 +121,10 @@ const shots = join(repoRoot, "docs", "screenshots");
  * holds a `pty.raw` next to its `package.json`.
  */
 const workRoot = join(tmpdir(), "fg-e2e");
+/** `pnpm release`'s three files, written by the release script into the work root (rows 46-47). */
+const releaseDir = join(workRoot, "fguard-release");
+/** The sandbox HOME row 46 installs into — under the work root, never the real HOME. */
+const installHome = join(workRoot, ".install-home");
 const captures = join(tmpdir(), "fg-e2e-captures");
 /** A kits directory that does not exist: the analyser then measures against the EMBEDDED corpus
  *  rather than against whatever `~/.fg/kits/` the machine happens to hold — the reasoning at
@@ -239,6 +246,12 @@ interface Row {
    * colour" invariant below would be asserting something the design never promised.
    */
   readonly plain?: boolean;
+  /**
+   * A command run INSTEAD of `node <bundle> <argv>` (tty lane) — for the release-folder rows
+   * (`bash install`, the released `fg.mjs`). `caption` is then what the card's prompt shows.
+   */
+  readonly script?: readonly string[];
+  readonly caption?: string;
 }
 
 /** `<nn>-<command>-<mode>-<lang>-<outcome>.png` — deliverable 2(d)'s naming, exactly. */
@@ -260,13 +273,14 @@ function workDirOf(row: Row): string {
  * Only {@link SHOWN_ENV} rides in front.
  */
 function commandLine(row: Row): string {
+  if (row.caption !== undefined) return row.caption;
   const env = SHOWN_ENV.filter((key) => row.env?.[key] !== undefined).map(
     (key) => `${key}=${String(row.env?.[key])}`,
   );
   // `promptArgument` is the ONE display rule — a design link is shown as `<pixso-link>`, the
   // placeholder the product's own help page prints. Everything else, including the guid on the
   // local-route row, is the argv verbatim, and the capture below the caption is never touched.
-  return [...env, "fg", ...row.argv.map(promptArgument)].join(" ");
+  return [...env, "fguard", ...row.argv.map(promptArgument)].join(" ");
 }
 
 /* ────────────────────────────────────────── THE MATRIX ────────────────────────────────────── */
@@ -291,7 +305,7 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "ok",
-    label: "fg --help — the grouped page (design §2.7)",
+    label: "fguard --help — the grouped page (design §2.7)",
     project: "my-app",
     argv: ["--help"],
     plain: true,
@@ -319,7 +333,7 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "en",
     outcome: "ok",
-    label: "fg --lang en --help",
+    label: "fguard --lang en --help",
     project: "my-app",
     argv: ["--lang", "en", "--help"],
     plain: true,
@@ -332,7 +346,7 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "ok",
-    label: "fg --help --psvg — one command in detail (design §2.8)",
+    label: "fguard --help --psvg — one command in detail (design §2.8)",
     project: "my-app",
     argv: ["--help", "--psvg"],
     plain: true,
@@ -342,11 +356,11 @@ const ROWS: readonly Row[] = [
     // `consoleGallery.ts`'s restated `PIXSO_LINK` to the product's own
     // (`packages/fg-pixso/src/strings.ts`).
     must: [
-      "fg --psvg <pixso-link|guid>",
+      "fguard --psvg <pixso-link|guid>",
       "также:",
       "--get-pixso-svg",
       "Примеры",
-      `fg --psvg ${PIXSO_LINK}`,
+      `fguard --psvg ${PIXSO_LINK}`,
     ],
     // No URL on a help page — the law, asserted where a reader would meet it.
     mustNot: ["https://", "http://"],
@@ -357,12 +371,12 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "ok",
-    label: "fg --help --phtml",
+    label: "fguard --help --phtml",
     project: "my-app",
     argv: ["--help", "--phtml"],
     plain: true,
     exit: 0,
-    must: ["fg --phtml <pixso-link|guid>", "--get-pixso-html", `fg --phtml ${PIXSO_LINK}`],
+    must: ["fguard --phtml <pixso-link|guid>", "--get-pixso-html", `fguard --phtml ${PIXSO_LINK}`],
     mustNot: ["https://", "http://"],
   },
   {
@@ -371,12 +385,12 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "ok",
-    label: "fg --help --pprompt",
+    label: "fguard --help --pprompt",
     project: "my-app",
     argv: ["--help", "--pprompt"],
     plain: true,
     exit: 0,
-    must: ["fg --pprompt <pixso-link|guid>", "--get-pixso-prompt", `fg --pprompt ${PIXSO_LINK}`],
+    must: ["fguard --pprompt <pixso-link|guid>", "--get-pixso-prompt", `fguard --pprompt ${PIXSO_LINK}`],
     mustNot: ["https://", "http://"],
   },
   {
@@ -385,12 +399,12 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "ok",
-    label: "fg --help --passets",
+    label: "fguard --help --passets",
     project: "my-app",
     argv: ["--help", "--passets"],
     plain: true,
     exit: 0,
-    must: ["fg --passets <pixso-link|guid>", "--get-pixso-assets", `fg --passets ${PIXSO_LINK}`],
+    must: ["fguard --passets <pixso-link|guid>", "--get-pixso-assets", `fguard --passets ${PIXSO_LINK}`],
     mustNot: ["https://", "http://"],
   },
   {
@@ -399,12 +413,12 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "ok",
-    label: "fg --help --preport",
+    label: "fguard --help --preport",
     project: "my-app",
     argv: ["--help", "--preport"],
     plain: true,
     exit: 0,
-    must: ["fg --preport <путь|repo>", "--project-report", "--format", "--ui-kit", "--config"],
+    must: ["fguard --preport <путь|repo>", "--project-report", "--format", "--ui-kit", "--config"],
   },
   {
     n: 8,
@@ -412,12 +426,12 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "en",
     outcome: "ok",
-    label: "fg --lang en --help --preport",
+    label: "fguard --lang en --help --preport",
     project: "my-app",
     argv: ["--lang", "en", "--help", "--preport"],
     plain: true,
     exit: 0,
-    must: ["fg --preport <path|repo>", "--project-report", "Examples"],
+    must: ["fguard --preport <path|repo>", "--project-report", "Examples"],
   },
   {
     n: 9,
@@ -425,12 +439,12 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "ok",
-    label: "fg --help --iconf",
+    label: "fguard --help --iconf",
     project: "my-app",
     argv: ["--help", "--iconf"],
     plain: true,
     exit: 0,
-    must: ["fg --iconf", "--init-config", "fg.config.json"],
+    must: ["fguard --iconf", "--init-config", "fg.config.json"],
   },
   {
     n: 10,
@@ -438,12 +452,12 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "ok",
-    label: "fg --help --pkit",
+    label: "fguard --help --pkit",
     project: "my-app",
     argv: ["--help", "--pkit"],
     plain: true,
     exit: 0,
-    must: ["fg --pkit eds|eds2", "--parse-ui-kit", "--source"],
+    must: ["fguard --pkit eds|eds2", "--parse-ui-kit", "--source"],
   },
   {
     n: 11,
@@ -451,12 +465,12 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "ok",
-    label: "fg --version",
+    label: "fguard --version",
     project: "my-app",
     argv: ["--version"],
     plain: true,
     exit: 0,
-    must: ["1.0.0"],
+    must: [VERSION],
   },
   {
     n: 12,
@@ -479,12 +493,12 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "fail",
-    label: "fg --preport . in an EDS 2.x app — html by default, exit 1 on visible errors (U2)",
+    label: "fguard --preport . in an EDS 2.x app — html by default, exit 1 on visible errors (U2)",
     project: "my-app",
     argv: ["--preport", "."],
     exit: 1,
     must: [
-      "fg v1.0.0 · preport",
+      `fguard v${VERSION} · preport`,
       "дизайн-система: eds2 2.0.0 (встроенная)",
       "✖ отчёт готов, есть ошибки",
       "находок",
@@ -499,7 +513,7 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "fail",
-    label: "fg --preport . in an EDS 1.x app — the other autodetect branch",
+    label: "fguard --preport . in an EDS 1.x app — the other autodetect branch",
     project: "eds-app",
     argv: ["--preport", "."],
     exit: 1,
@@ -603,14 +617,14 @@ const ROWS: readonly Row[] = [
     exit: 2,
     must: [
       "✖ неизвестный формат: htlm",
-      "html, compact, json, sarif",
+      "html, summary, compact, json, sarif",
       "использование:",
-      "fg --preport <путь|repo>",
+      "fguard --preport <путь|repo>",
       "подробнее:",
-      "fg --help --preport",
+      "fguard --help --preport",
     ],
     // §2.6: no header before a usage error — the run never started.
-    mustNot: ["fg v1.0.0 ·"],
+    mustNot: [`fguard v${VERSION} ·`],
   },
   {
     n: 22,
@@ -618,15 +632,15 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "usage",
-    label: "fg --preport with no project",
+    label: "fguard --preport with no project",
     project: "my-app",
     argv: ["--preport"],
     exit: 2,
     must: [
       "✖ не указан проект",
       "использование:",
-      "fg --preport <путь|repo>",
-      "fg --help --preport",
+      "fguard --preport <путь|repo>",
+      "fguard --help --preport",
     ],
   },
   {
@@ -639,7 +653,7 @@ const ROWS: readonly Row[] = [
     project: "my-app",
     argv: ["--lang", "en", "--preport"],
     exit: 2,
-    must: ["✖ no project given", "usage:", "fg --preport <path|repo>", "more:"],
+    must: ["✖ no project given", "usage:", "fguard --preport <path|repo>", "more:"],
   },
 
   /* ── --iconf ──────────────────────────────────────────────────────────────────────────── */
@@ -649,12 +663,12 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "ok",
-    label: "fg --iconf in a project with no design system in its dependencies",
+    label: "fguard --iconf in a project with no design system in its dependencies",
     project: "new-project",
     argv: ["--iconf"],
     exit: 0,
     must: [
-      "fg v1.0.0 · iconf",
+      `fguard v${VERSION} · iconf`,
       "! дизайн-система не определена",
       "✔ конфигурация создана",
       "fg.config.json",
@@ -667,11 +681,11 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "en",
     outcome: "ok",
-    label: "fg --iconf --ui-kit eds — the kit named explicitly",
+    label: "fguard --iconf --ui-kit eds — the kit named explicitly",
     project: "admin-panel",
     argv: ["--lang", "en", "--iconf", "--ui-kit", "eds"],
     exit: 0,
-    must: ["fg v1.0.0 · iconf · eds 1.13.0", "✔ configuration written", "32 rules"],
+    must: [`fguard v${VERSION} · iconf · eds 1.13.0`, "✔ configuration written", "32 rules"],
   },
 
   /* ── --pkit ───────────────────────────────────────────────────────────────────────────── */
@@ -681,13 +695,13 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "ok",
-    label: "fg --pkit eds --source file://… — the corpus, rebuilt from the kit's own sources",
+    label: "fguard --pkit eds --source file://… — the corpus, rebuilt from the kit's own sources",
     project: "my-app",
     argv: ["--pkit", "eds", "--source", `file://${kitWorkspaceLink}`],
     env: { FG_KITS_DIR: pkitKits },
     exit: 0,
     must: [
-      "fg v1.0.0 · pkit · eds",
+      `fguard v${VERSION} · pkit · eds`,
       "✔ корпус собран, файлов: 5",
       "tokens",
       "components",
@@ -719,7 +733,7 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "ok",
-    label: "fg --psvg <pixso-link> — the remote route, one file",
+    label: "fguard --psvg <pixso-link> — the remote route, one file",
     project: "landing",
     argv: ["--psvg", DESIGN_URL],
     mcp: "remote",
@@ -727,7 +741,7 @@ const ROWS: readonly Row[] = [
     // `item 11-10` is the link's `item-id`, sanitized — the same name the file gets, which is
     // the point of `designName` being one function (`packages/fg-pixso/src/out.ts:97-99`).
     must: [
-      "fg v1.0.0 · psvg · удалённый маршрут · item 11-10",
+      `fguard v${VERSION} · psvg · удалённый маршрут · item 11-10`,
       "✔ готово",
       "fg-out/pixso/11-10.svg",
     ],
@@ -738,13 +752,13 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "ok",
-    label: "fg --phtml <pixso-link>",
+    label: "fguard --phtml <pixso-link>",
     project: "pricing-page",
     argv: ["--phtml", DESIGN_URL],
     mcp: "remote",
     exit: 0,
     must: [
-      "fg v1.0.0 · phtml · удалённый маршрут · item 11-10",
+      `fguard v${VERSION} · phtml · удалённый маршрут · item 11-10`,
       "✔ готово",
       "fg-out/pixso/11-10.html",
     ],
@@ -755,13 +769,13 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "ok",
-    label: "fg --pprompt <pixso-link>",
+    label: "fguard --pprompt <pixso-link>",
     project: "marketing-site",
     argv: ["--pprompt", DESIGN_URL],
     mcp: "remote",
     exit: 0,
     must: [
-      "fg v1.0.0 · pprompt · удалённый маршрут · item 11-10",
+      `fguard v${VERSION} · pprompt · удалённый маршрут · item 11-10`,
       "✔ готово",
       "fg-out/pixso/11-10.md",
     ],
@@ -772,7 +786,7 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "ok",
-    label: "fg --passets <pixso-link> — four files, and the one counted progress phase",
+    label: "fguard --passets <pixso-link> — four files, and the one counted progress phase",
     project: "mobile-web",
     argv: ["--passets", DESIGN_URL],
     mcp: "remote",
@@ -780,7 +794,7 @@ const ROWS: readonly Row[] = [
     // THE CARD THE README SHOWS. Its path rows are the documented default for a link:
     // `fg-out/pixso/<item-id>/card.*`.
     must: [
-      "fg v1.0.0 · passets · удалённый маршрут · item 11-10",
+      `fguard v${VERSION} · passets · удалённый маршрут · item 11-10`,
       "✔ готово",
       "fg-out/pixso/11-10/card.svg",
       "11-10/card.html",
@@ -794,12 +808,12 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "en",
     outcome: "ok",
-    label: "fg --passets <pixso-link> -o ./card — `-o` as a directory, in English",
+    label: "fguard --passets <pixso-link> -o ./card — `-o` as a directory, in English",
     project: "promo-site",
     argv: ["--lang", "en", "--passets", DESIGN_URL, "-o", "./card"],
     mcp: "remote",
     exit: 0,
-    must: ["fg v1.0.0 · passets · remote route · item 11-10", "✔ done", "card/card.svg"],
+    must: [`fguard v${VERSION} · passets · remote route · item 11-10`, "✔ done", "card/card.svg"],
   },
   {
     n: 32,
@@ -807,7 +821,7 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "usage",
-    label: "fg --psvg with no source",
+    label: "fguard --psvg with no source",
     project: "my-app",
     argv: ["--psvg"],
     mcp: "remote",
@@ -815,8 +829,8 @@ const ROWS: readonly Row[] = [
     must: [
       "✖ не указан источник",
       "использование:",
-      "fg --psvg <pixso-link|guid>",
-      "fg --help --psvg",
+      "fguard --psvg <pixso-link|guid>",
+      "fguard --help --psvg",
     ],
   },
   {
@@ -836,21 +850,15 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "usage",
-    label: "a design link with no token — exit 2, and all three fixes are named",
+    label: "a design link with no token — exit 3 (E2), the fguard token line and the .env path",
     project: "my-app",
     argv: ["--psvg", DESIGN_URL],
     mcp: "remote-no-token",
-    exit: 2,
-    must: [
-      "✖ для ссылки на кадр",
-      "--token",
-      "PIXSO_REMOTE_MCP_TOKEN",
-      ".env",
-      "использование:",
-      "fg --psvg <pixso-link|guid>",
-    ],
-    // §2.6 again: the run never started, so it carries no header.
-    mustNot: ["fg v1.0.0 ·"],
+    exit: 3,
+    must: ["✖ нет токена Pixso для ссылки на кадр", "fguard token <ваш токен>", "/.env"],
+    // §2.6 again: the run never started, so it carries no header — and a token is not a typo,
+    // so no usage rows either.
+    mustNot: [`fguard v${VERSION} ·`, "использование:"],
   },
   {
     /**
@@ -865,12 +873,12 @@ const ROWS: readonly Row[] = [
     mode: "tty",
     lang: "ru",
     outcome: "ok",
-    label: "fg --psvg 11:10 — the local route, the advanced case",
+    label: "fguard --psvg 11:10 — the local route, the advanced case",
     project: "brand-site",
     argv: ["--psvg", "11:10"],
     mcp: "local",
     exit: 0,
-    must: ["fg v1.0.0 · psvg · локальный маршрут · 11:10", "✔ готово", "fg-out/pixso/11-10.svg"],
+    must: [`fguard v${VERSION} · psvg · локальный маршрут · 11:10`, "✔ готово", "fg-out/pixso/11-10.svg"],
   },
 
   /* ── the refusals the CLI owns ────────────────────────────────────────────────────────── */
@@ -884,8 +892,8 @@ const ROWS: readonly Row[] = [
     project: "my-app",
     argv: ["--nope"],
     exit: 2,
-    must: ["✖ неизвестный флаг: --nope", "fg <команда> <аргумент> [опции]", "fg --help"],
-    mustNot: ["fg v1.0.0 ·"],
+    must: ["✖ неизвестный флаг: --nope", "fguard <команда> <аргумент> [опции]", "fguard --help"],
+    mustNot: [`fguard v${VERSION} ·`],
   },
   {
     n: 36,
@@ -897,7 +905,7 @@ const ROWS: readonly Row[] = [
     project: "my-app",
     argv: ["--lang", "en", "--nope"],
     exit: 2,
-    must: ["✖ unknown flag: --nope", "fg <command> <argument> [options]"],
+    must: ["✖ unknown flag: --nope", "fguard <command> <argument> [options]"],
   },
   {
     n: 37,
@@ -909,7 +917,7 @@ const ROWS: readonly Row[] = [
     project: "my-app",
     argv: ["--psvg", DESIGN_URL, "--config", "./fg.config.json"],
     exit: 2,
-    must: ["✖ флаг --config не поддерживается командой --psvg.", "fg --psvg <pixso-link|guid>"],
+    must: ["✖ флаг --config не поддерживается командой --psvg.", "fguard --psvg <pixso-link|guid>"],
   },
   {
     n: 38,
@@ -948,13 +956,13 @@ const ROWS: readonly Row[] = [
     argv: ["--preport", "."],
     exit: 1,
     must: [
-      "fg v1.0.0 · preport",
+      `fguard v${VERSION} · preport`,
       "подготовка проекта",
       "чтение файлов",
       "✖ отчёт готов, есть ошибки",
     ],
     stdoutMust: ["fg-out/report.html"],
-    stdoutMustNot: ["отчёт готов", "fg v1.0.0", "файлов"],
+    stdoutMustNot: ["отчёт готов", `fguard v${VERSION}`, "файлов"],
   },
   {
     n: 41,
@@ -966,9 +974,9 @@ const ROWS: readonly Row[] = [
     project: "legacy-ui",
     argv: ["--preport", ".", "--format", "compact"],
     exit: 1,
-    must: ["fg v1.0.0 · preport", "чтение файлов"],
+    must: [`fguard v${VERSION} · preport`, "чтение файлов"],
     stdoutMust: ["src/App.tsx", "a11y.name.missing", "✖ 6 проблем"],
-    stdoutMustNot: ["fg v1.0.0", "отчёт готов"],
+    stdoutMustNot: [`fguard v${VERSION}`, "отчёт готов"],
   },
   {
     n: 42,
@@ -995,7 +1003,7 @@ const ROWS: readonly Row[] = [
     argv: ["--psvg", DESIGN_URL],
     mcp: "remote",
     exit: 0,
-    must: ["fg v1.0.0 · psvg · удалённый маршрут · item 11-10", "✔ готово"],
+    must: [`fguard v${VERSION} · psvg · удалённый маршрут · item 11-10`, "✔ готово"],
     stdoutMust: ["fg-out/pixso/11-10.svg"],
     stdoutMustNot: ["готово"],
   },
@@ -1034,13 +1042,47 @@ const ROWS: readonly Row[] = [
     argv: ["--lang", "en", "--iconf", "--ui-kit", "eds"],
     exit: 0,
     must: [
-      "fg v1.0.0 · iconf · eds 1.13.0",
+      `fguard v${VERSION} · iconf · eds 1.13.0`,
       "  selecting the design system  ",
       "✔ configuration written",
     ],
     mustNot: ["selecting the design system0", "selecting the design system1"],
     stdoutMust: ["fg.config.json", "fg.config.schema.json"],
     stdoutMustNot: ["configuration written"],
+  },
+  /* ── bash install and fguard token (1.2.0) ────────────────────────────────────────────── */
+  {
+    n: 46,
+    command: "bash-install",
+    mode: "tty",
+    lang: "ru",
+    outcome: "ok",
+    label: "bash install on a machine without ru-code — command + skills, plugin skipped visibly",
+    project: "landing",
+    argv: [],
+    script: ["bash", join(releaseDir, "install")],
+    caption: "bash fguard-release/install",
+    env: { HOME: installHome },
+    exit: 0,
+    must: [
+      `fguard v${VERSION} · install`,
+      "fguard установлен (плагин pixso пропущен) — откройте новый терминал",
+      "навыки",
+      "bash ",
+    ],
+  },
+  {
+    n: 47,
+    command: "token",
+    mode: "tty",
+    lang: "ru",
+    outcome: "ok",
+    label: "fguard token — the token beside fg.mjs, mode 600, path printed",
+    project: "pricing-page",
+    argv: ["token", "pixso-e2e-token"],
+    script: [process.execPath, join(releaseDir, "fg.mjs"), "token", "pixso-e2e-token"],
+    exit: 0,
+    must: [`fguard v${VERSION} · token`, "✔ токен сохранён", join(releaseDir, ".env")],
   },
 ];
 
@@ -1061,6 +1103,9 @@ const FAKE_TOKEN = "fg-e2e-token";
 function baseEnv(row: Row, mcpUrl: string): Record<string, string> {
   return {
     PATH: process.env["PATH"] ?? "",
+    // A sandbox HOME for every row: without one, a child falls back to the passwd home, and
+    // `--pkit`'s npm install wrote its cache and logs into the real `~/.npm`.
+    HOME: join(workRoot, ".home"),
     FG_KITS_DIR: noKits,
     ...mcpEnv(row.mcp, mcpUrl),
     // No `?? {}`: spreading `undefined` adds nothing, which is what `unicorn/no-useless-
@@ -1122,6 +1167,7 @@ function buildWorkspace(): void {
   rmSync(workRoot, { recursive: true, force: true });
   rmSync(captures, { recursive: true, force: true });
   mkdirSync(captures, { recursive: true });
+  mkdirSync(join(workRoot, ".home"), { recursive: true });
   for (const [project, fixture] of Object.entries(PROJECTS)) {
     const dir = join(workRoot, project);
     if (fixture === null) mkdirSync(dir, { recursive: true });
@@ -1143,7 +1189,9 @@ async function runRow(row: Row, mcpUrl: string): Promise<RunResult> {
   const dir = workDirOf(row);
   const env = baseEnv(row, mcpUrl);
   if (row.mode === "pipe") return runPiped(row, dir, env);
-  const command = [process.execPath, bundle, ...row.argv].map((part) => shq(part)).join(" ");
+  const command = (row.script ?? [process.execPath, bundle, ...row.argv])
+    .map((part) => shq(part))
+    .join(" ");
   const run = await spawnPtyCommand({
     workDir: dir,
     // OUTSIDE the project: see `spawnPtyCommand`'s `rawFile`. A `pty.raw` sitting next to
@@ -1238,6 +1286,11 @@ it("the console matrix: every row asserted, the gallery and every screenshot wri
   ).toBe(true);
 
   buildWorkspace();
+  // Rows 46-47 run the RELEASE, written by the real release script.
+  const released = spawnSync(process.execPath, [join(repoRoot, "scripts", "release.mjs"), "--out", releaseDir], {
+    encoding: "utf8",
+  });
+  expect(released.status, released.stderr).toBe(0);
   mkdirSync(pkitKits, { recursive: true });
 
   fake = await startFakeMcp();

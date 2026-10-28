@@ -15,15 +15,15 @@ node <repo>/fg.mjs --preport .
 ## Работа в консоли
 
 ```bash
-fg --preport . --format compact            # находки списком
-fg --preport . --format compact --verbose  # + объяснение «почему» под каждой
+fguard --preport . --format compact            # находки списком
+fguard --preport . --format compact --verbose  # + объяснение «почему» под каждой
 ```
 
 Строка находки — `строка:колонка`, глиф и серьёзность (`✖ error`, `▲ warning`, `● info`,
 `◇ candidate`), само значение из кода, короткое имя правила и его id справа. Строка `→ …` под
 находкой — чем заменить.
 
-![fg --preport . --format compact](../../screenshots/16-preport-compact-tty-ru-fail.png)
+![fguard --preport . --format compact](../../screenshots/16-preport-compact-tty-ru-fail.png)
 
 ## Код возврата
 
@@ -33,7 +33,7 @@ fg --preport . --format compact --verbose  # + объяснение «почем
 ## Что не показывать
 
 ```bash
-fg --iconf              # fg.config.json + схема
+fguard --iconf              # fg.config.json + схема
 ```
 
 Дальше правится один файл: `default`, восемь категорий, конкретные правила. Все строки

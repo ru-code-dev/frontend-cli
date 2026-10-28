@@ -375,8 +375,8 @@ describe("(a) --project-report <local fixture> -o report.html", () => {
     const dir = scratchWithBundle();
     const result = await fg(dir, ["--project-report", fixture, "-o", join(dir, "r.html")]);
     const first = result.stderr.split("\n")[0] ?? "";
-    expect(first).toMatch(/^fg v\d+\.\d+\.\d+ · preport$/u);
-    expect(result.stderr.split("\n").filter((line) => line.startsWith("fg v"))).toHaveLength(1);
+    expect(first).toMatch(/^fguard v\d+\.\d+\.\d+ · preport$/u);
+    expect(result.stderr.split("\n").filter((line) => line.startsWith("fguard v"))).toHaveLength(1);
 
     // …and with `--ui-kit` on the line, the design system is on the header instead of in a note.
     const named = await fg(dir, [
@@ -388,7 +388,7 @@ describe("(a) --project-report <local fixture> -o report.html", () => {
       join(dir, "r2.html"),
     ]);
     expect(named.stderr.split("\n")[0]).toMatch(
-      /^fg v\d+\.\d+\.\d+ · preport · без дизайн-системы$/u,
+      /^fguard v\d+\.\d+\.\d+ · preport · без дизайн-системы$/u,
     );
   });
 
@@ -403,9 +403,9 @@ describe("(a) --project-report <local fixture> -o report.html", () => {
     const result = await fg(dir, ["--preport", join(dir, "no", "such", "dir")]);
     expect(result.code).toBe(1);
     const lines = result.stderr.trimEnd().split("\n");
-    expect(lines[0]).toMatch(/^fg v\d+\.\d+\.\d+ · preport$/u);
+    expect(lines[0]).toMatch(/^fguard v\d+\.\d+\.\d+ · preport$/u);
     expect(lines.some((line) => line.startsWith("✖"))).toBe(true);
-    expect(lines.at(-1)).toContain("fg --preport … --debug");
+    expect(lines.at(-1)).toContain("fguard --preport … --debug");
     // NO usage row: the invocation was accepted, so there is nothing about it to correct.
     expect(result.stderr).not.toContain("использование:");
   });
@@ -577,7 +577,7 @@ describe("(c) the surface, in both languages", () => {
     // §2.8: ONE elided usage line, ≤ 100 columns, with the long spelling on the line below it
     // (V5 findings #5 and #8 — the line used to be 127 columns and spelled two different ways).
     expect(page.stdout.split("\n")[0]).toBe(
-      "fg --preport <путь|repo> [-o <путь>] [--format …] [--ui-kit …] [--config …]",
+      "fguard --preport <путь|repo> [-o <путь>] [--format …] [--ui-kit …] [--config …]",
     );
     expect(page.stdout.split("\n")[1]).toBe("  также: --project-report");
     for (const line of page.stdout.split("\n")) {
@@ -776,7 +776,7 @@ describe("(e) a project that uses a design system", () => {
     expect(ruNotice).toMatch(/[А-Яа-яЁё]/u);
     // The version is the manifest's, read here rather than written down: a release bump (1.1.0,
     // brief a1) must not turn this assertion about the HEADER'S SHAPE into a stale literal.
-    expect(ru.stderr.split("\n")[0]).toBe(`fg v${CLI_MANIFEST_VERSION} · preport`);
+    expect(ru.stderr.split("\n")[0]).toBe(`fguard v${CLI_MANIFEST_VERSION} · preport`);
 
     expect(noticeOf(en.stderr)).toBe("");
     expect(en.stderr).not.toContain("design system: eds");

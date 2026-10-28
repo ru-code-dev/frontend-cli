@@ -20,6 +20,7 @@
   "scripts": {
     "typecheck": "tsgo -p tsconfig.json",
     "test": "vp test run --project unit",
+    "test:integration": "vp test run --project integration",
     "build": "tsdown"
   },
   "dependencies": {

@@ -21,6 +21,7 @@
  * `src/main.ts:14-17`). Tests therefore import `../src/*.ts` relatively.
  */
 import { realpathSync } from "node:fs";
+import { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import {
@@ -50,7 +51,12 @@ export interface RunDeps {
   /** Read AFTER `loadEnv`, so a `.env` written into `process.env` is visible to it. */
   readonly readEnv: () => Env;
   readonly cwd: () => string;
-  readonly loadEnv: (cwd: string) => DotEnvResult;
+  /**
+   * The directory the running bundle lives in — `<root>/fg/bin` once installed. Its `.env` is the
+   * bundle-side token file (`fguard token`), read BELOW the environment and `./.env`.
+   */
+  readonly binDir: () => string | undefined;
+  readonly loadEnv: (cwd: string, binDir: string | undefined) => DotEnvResult;
   readonly stdout: (s: string) => void;
   readonly stderr: (s: string) => void;
   /**
@@ -87,6 +93,9 @@ export function defaultDeps(): RunDeps {
     version: CLI_VERSION,
     readEnv: () => process.env,
     cwd: () => process.cwd(),
+    // In the bundle every module shares `fg.mjs`'s URL, so this IS the bundle's directory; real
+    // path, so a symlinked `fg.mjs` reads the `.env` beside the file it points at.
+    binDir: () => dirname(realOrSelf(fileURLToPath(import.meta.url))),
     loadEnv: loadDotEnv,
     stdout: (s) => void process.stdout.write(s),
     stderr: (s) => void process.stderr.write(s),
@@ -122,7 +131,8 @@ export async function run(argv: readonly string[], deps: RunDeps = defaultDeps()
   const parsed = parseInvocation(argv, deps.commands);
   const lang = parsed.lang;
 
-  const env = deps.loadEnv(deps.cwd());
+  const binDir = deps.binDir();
+  const env = deps.loadEnv(deps.cwd(), binDir);
   if (env.error !== undefined) {
     deps.stderr(`${pick(env.error, lang)}\n`);
     return EXIT_USAGE;
@@ -184,6 +194,7 @@ export async function run(argv: readonly string[], deps: RunDeps = defaultDeps()
         // `-o` is optional for every command now, and the defaults are cwd-relative
         // (`packages/cli-kit/src/out.ts`), so this decides where a bare run WRITES.
         cwd: deps.cwd(),
+        binDir,
         lang,
         // The resolved settings OVERLAY the ambient environment under the three owner-fixed
         // names, so a command reading `ctx.env.PIXSO_LOCAL_MCP_URL` gets the value the

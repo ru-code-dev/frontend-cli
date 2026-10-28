@@ -259,7 +259,7 @@ describe("what it writes", () => {
     expect(await command().run(run.ctx)).toBe(0);
 
     const schema = await readSchema(join(dir, SCHEMA));
-    expect(schema.title).toBe("fg — rule configuration for the project analysis");
+    expect(schema.title).toBe("fguard — rule configuration for the project analysis");
     for (const sentence of ownSentencesOf(schema)) {
       expect(sentence).not.toBe("");
       expect(sentence).not.toMatch(CYRILLIC);
@@ -297,9 +297,9 @@ describe("what it writes", () => {
     expect(await command().run(run.ctx)).toBe(0);
 
     const schema = await readSchema(join(dir, SCHEMA));
-    expect(schema.title).toBe("fg — конфигурация правил анализа проекта");
+    expect(schema.title).toBe("fguard — конфигурация правил анализа проекта");
     const analyzer = schema.properties.analyzer;
-    expect(analyzer.description).toBe("Что и как проверяет fg --project-report");
+    expect(analyzer.description).toBe("Что и как проверяет fguard --project-report");
     expect(analyzer.properties.uiKit.description).toBe(
       "Дизайн-система, правила которой учитывать. Флаг --ui-kit важнее этого значения",
     );

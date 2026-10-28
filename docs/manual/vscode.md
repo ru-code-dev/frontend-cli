@@ -1,7 +1,7 @@
 # VS Code
 
 > **Не проверено.** Ниже — конфигурация для VS Code. На этой машине проверено одно:
-> `fg --preport . --format sarif` действительно пишет файл SARIF 2.1.0 со схемой
+> `fguard --preport . --format sarif` действительно пишет файл SARIF 2.1.0 со схемой
 > `https://json.schemastore.org/sarif-2.1.0.json` и каталогом правил внутри. Сам редактор,
 > расширение и задачи здесь не запускались.
 
@@ -14,7 +14,7 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "fg: отчёт (sarif)",
+      "label": "fguard: отчёт (sarif)",
       "type": "shell",
       "command": "node",
       "args": [
@@ -29,7 +29,7 @@
       "problemMatcher": []
     },
     {
-      "label": "fg: находки в консоль",
+      "label": "fguard: находки в консоль",
       "type": "shell",
       "command": "node",
       "args": ["${workspaceFolder}/fg.mjs", "--preport", ".", "--format", "compact"],
@@ -50,7 +50,7 @@
 
 ## Схема конфигурации
 
-`fg --iconf` кладёт `fg.config.schema.json` рядом с `fg.config.json`, а `$schema` в конфиге
+`fguard --iconf` кладёт `fg.config.schema.json` рядом с `fg.config.json`, а `$schema` в конфиге
 указывает на неё относительным путём — редактор подхватывает автодополнение имён правил и
 уровней без настройки. Подробности — [init-config.md](init-config.md); в VS Code ничем не
 отличается.

@@ -1,22 +1,22 @@
 # `--pkit` — пересборка корпуса дизайн-системы
 
 ```
-fg --pkit eds|eds2 [--source …]
+fguard --pkit eds|eds2 [--source …]
   также: --parse-ui-kit
 ```
 
 В бандл вшит снимок каждой дизайн-системы — токены, компоненты, иконки, публичные сигнатуры и
 правила доступности. По нему `--preport` отличает «свой» компонент от чужого и подсказывает
-штатную замену. Снимок замирает в момент сборки `fg`, а дизайн-система живёт дальше; `--pkit`
+штатную замену. Снимок замирает в момент сборки `fguard`, а дизайн-система живёт дальше; `--pkit`
 пересобирает его из исходников **на вашей машине, поверх встроенного**.
 
-![fg --pkit eds --source …](../screenshots/26-pkit-tty-ru-ok.png)
+![fguard --pkit eds --source …](../screenshots/26-pkit-tty-ru-ok.png)
 
 ```bash
-fg --pkit eds                                  # → ~/.fg/kits/eds/
-fg --pkit eds2                                 # 2.x, ветка develop-2.0
-fg --pkit eds --source ../ui-kit-eds-ce        # из локального клона
-FG_KITS_DIR=./kits fg --pkit eds               # → ./kits/eds/
+fguard --pkit eds                                  # → ~/.fg/kits/eds/
+fguard --pkit eds2                                 # 2.x, ветка develop-2.0
+fguard --pkit eds --source ../ui-kit-eds-ce        # из локального клона
+FG_KITS_DIR=./kits fguard --pkit eds               # → ./kits/eds/
 ```
 
 ## Что делает команда
@@ -46,10 +46,10 @@ FG_KITS_DIR=./kits fg --pkit eds               # → ./kits/eds/
 **Флага `-o` у команды нет**, и переданный `-o` не игнорируется молча:
 
 ```
-$ fg --pkit eds -o ./corpus
+$ fguard --pkit eds -o ./corpus
 ✖ флаг -o не поддерживается командой --pkit.
-  использование:  fg --pkit eds|eds2 [--source …]
-  подробнее:      fg --help --pkit
+  использование:  fguard --pkit eds|eds2 [--source …]
+  подробнее:      fguard --help --pkit
 ```
 
 ## Что видно в отчёте
@@ -60,7 +60,7 @@ $ fg --pkit eds -o ./corpus
 · дизайн-система: eds2 2.0.0 (встроенная) — определена по зависимостям проекта
 ```
 
-После `fg --pkit` в этой строке появляются дата сборки корпуса и коммит исходников. То же уходит
+После `fguard --pkit` в этой строке появляются дата сборки корпуса и коммит исходников. То же уходит
 в `report.html`, так что по отчёту видно, на каких данных он построен.
 
 **Испорченный корпус не ломает запуск.** Файл, не прошедший проверку, даёт предупреждение с
@@ -68,8 +68,8 @@ $ fg --pkit eds -o ./corpus
 
 ```
 ! файл корпуса eds2 не прошёл проверку: …/kits/eds2/tokens.json (missing meta.corpus — this file
-  was not written by "fg --parse-ui-kit eds2"). Используется встроенный снимок. Соберите корпус
-  заново: fg --parse-ui-kit eds2
+  was not written by "fguard --parse-ui-kit eds2"). Используется встроенный снимок. Соберите корпус
+  заново: fguard --parse-ui-kit eds2
 ```
 
 Пустого каталога это не касается: на свежей машине он пуст всегда, и команда об этом молчит.

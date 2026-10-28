@@ -27,6 +27,7 @@
  * Pure: strings in, a string out, no I/O. The caller decides where it goes.
  */
 import {
+  CLI_COMMAND,
   type CliCommand,
   type CommandGroup,
   type Lang,
@@ -116,9 +117,11 @@ export function groupsOf(commands: readonly CliCommand[]): readonly CommandGroup
  * pixso rows and the three analysis rows line up as one table. That is the difference between a
  * page and a stack of blocks.
  */
-export function helpText(commands: readonly CliCommand[], lang: Lang, version: string): string {
+export function helpText(all: readonly CliCommand[], lang: Lang, version: string): string {
+  // `hidden` commands (`setup`, `teardown` — driven by `bash install` only) are not on the page.
+  const commands = all.filter((command) => command.hidden !== true);
   const lines: string[] = [
-    `fg v${version} — ${pick(HELP_TAGLINE, lang)}`,
+    `${CLI_COMMAND} v${version} — ${pick(HELP_TAGLINE, lang)}`,
     "",
     pick(HELP_USAGE_HEADING, lang),
     `${INDENT}${pick(HELP_USAGE_LINE, lang)}`,

@@ -1,6 +1,6 @@
 # Frontend Guard
 
-`fg` — утилита командной строки: читает фронтенд-проект как есть и отдаёт отчёт по доступности,
+`fguard` — утилита командной строки: читает фронтенд-проект как есть и отдаёт отчёт по доступности,
 дизайн-системе, компонентам и иконкам, а из макета Pixso собирает готовые артефакты.
 
 ![Дашборд отчёта](docs/screenshots/dashboard-hero.png)
@@ -10,35 +10,43 @@
 - **Один самодостаточный `report.html`** — интерактивный дашборд: открывается двойным кликом,
   работает офлайн, в сеть не ходит.
 - **Проверяемому проекту ничего не нужно** — ни зависимостей, ни сборки: анализ читает исходники.
-- **Один проход — сколько угодно форматов**: `html`, `compact`, `json`, `sarif`.
+- **Один проход — сколько угодно форматов**: `html`, `summary`, `compact`, `json`, `sarif`.
 - **Код возврата роняет сборку**: `0` — ошибок нет, `1` — есть ошибки, `2` — неверный вызов.
 - **Макет Pixso → svg / html / md / json** одной командой.
+- **Навыки для CLI-агента**: спецификация и HTML кадра Pixso, отчёт по проекту — прямо из чата.
 
 ## Установка
 
-Дистрибутив — один файл `fg.mjs` в корне репозитория: внутри всё, внешних зависимостей нет.
+Релиз — три файла: `fg.mjs` (вся программа, без внешних зависимостей), `install` и
+`ru-code-install` (установщик ru-code, дословно).
 
 ```bash
-git clone <repo>
-node <repo>/fg.mjs --help
+git clone <репозиторий релиза> fguard-release
+bash fguard-release/install                 # команда fguard + навыки CLI + плагин pixso для ru-code
+fguard token                                # токен Pixso, скрытым вводом (один раз)
 ```
 
-Нужен Node 24+. Файл можно скопировать куда угодно и запускать оттуда.
+Нужен Node 22.16+ — `install` ищет его так же, как установщик ru-code (сначала node, который
+поставляется с CLI). Повторный `bash install` — обновление; `bash install --uninstall` — удаление
+(или `bash <корень ru-code>/fg/install --uninstall`, если клона уже нет). После установки
+откройте новый терминал. Подробно — [docs/manual/setup.md](docs/manual/setup.md).
 
-Файл кладут в репозиторий на релизе. Если на вашем чекауте его нет — соберите сами:
-`pnpm install && pnpm release` (подробнее — [CONTRIBUTING.md](docs/CONTRIBUTING.md)).
+![bash install](docs/screenshots/46-bash-install-tty-ru-ok.png)
+
+Без установки `fg.mjs` можно запускать и напрямую: `node fg.mjs --help`. Если файлов релиза на
+вашем чекауте нет — `pnpm install && pnpm release` (подробнее — [CONTRIBUTING.md](docs/CONTRIBUTING.md)).
 
 ## Две основные команды
 
 ### 1. Отчёт по проекту — `--preport`
 
 ```bash
-fg --preport .                                  # → ./fg-out/report.html
-fg --preport . --format compact                 # находки в консоль
-fg --preport . --format html,sarif -o ./report  # два документа за один проход
+fguard --preport .                                  # → ./fg-out/report.html
+fguard --preport . --format compact                 # находки в консоль
+fguard --preport . --format html,sarif -o ./report  # два документа за один проход
 ```
 
-![fg --preport .](docs/screenshots/13-preport-eds2-tty-ru-fail.png)
+![fguard --preport .](docs/screenshots/13-preport-eds2-tty-ru-fail.png)
 
 Аргумент — каталог на диске или ссылка на репозиторий (`http(s)://…`, `git@…`, `file://…`);
 репозиторий клонируется во временный каталог и удаляется после анализа. Дизайн-система
@@ -49,18 +57,27 @@ fg --preport . --format html,sarif -o ./report  # два документа за
 ### 2. Кадр Pixso → четыре файла — `--passets`
 
 ```bash
-export PIXSO_REMOTE_MCP_TOKEN=<ваш токен>   # токен удалённого MCP, см. docs/manual/env.md
-fg --passets <pixso-link>                   # → ./fg-out/pixso/<item-id>/card.{svg,html,md,json}
-fg --passets <pixso-link> -o ./card         # -o задаёт каталог
+fguard token                                # токен удалённого MCP, один раз (docs/manual/token.md)
+fguard --passets <pixso-link>                   # → ./fg-out/pixso/<item-id>/card.{svg,html,md,json}
+fguard --passets <pixso-link> -o ./card         # -o задаёт каталог
 ```
 
-![fg --passets по ссылке на кадр](docs/screenshots/30-passets-tty-ru-ok.png)
+```
+$ fguard --passets <pixso-link>
+fguard v1.2.0 · passets · удалённый маршрут · item 11-10
+✔ готово
+  svg    /home/u/app/fg-out/pixso/11-10/card.svg
+  html   /home/u/app/fg-out/pixso/11-10/card.html
+  md     /home/u/app/fg-out/pixso/11-10/card.md
+  json   /home/u/app/fg-out/pixso/11-10/card.json
+```
 
 `<pixso-link>` — ссылка на кадр из Pixso («Поделиться → Копировать ссылку»), в ней есть `item-id`.
 
 Каталог по умолчанию назван по этому `item-id`, приведённому к безопасному имени файла: на снимке
-выше это `./fg-out/pixso/11-10/`, внутри — четыре `card.*`. Токен можно не экспортировать, а
-положить строкой `PIXSO_REMOTE_MCP_TOKEN=…` в `./.env` рядом с местом запуска.
+выше это `./fg-out/pixso/11-10/`, внутри — четыре `card.*`. Токен можно задать и иначе — флагом
+`--token`, переменной `PIXSO_REMOTE_MCP_TOKEN` или строкой в `./.env` проекта; они сильнее файла
+`fguard token`. Нет токена или он отклонён — код 3 и готовая команда `fguard token <ваш токен>`.
 
 Один запрос к макету → четыре файла. Рядом — три команды по одному файлу каждая: `--psvg` (SVG),
 `--phtml` (HTML), `--pprompt` (Markdown-промпт для LLM).
@@ -69,14 +86,16 @@ fg --passets <pixso-link> -o ./card         # -o задаёт каталог
 
 ## Плагин pixso для ru-code — `install`
 
+`bash install` ставит плагин сам; эти команды — чтобы проверить, переустановить или убрать только его.
+
 ```bash
-fg install                # поставить плагин pixso в ru-code (и перезапустить ru-code, если он запущен)
-fg install --check        # только проверить: установлен ли, совпадает ли со встроенным
-fg install --no-restart   # поставить, но не перезапускать
-fg uninstall              # удалить плагин; его данные остаются
+fguard install                # поставить плагин pixso в ru-code (и перезапустить ru-code, если он запущен)
+fguard install --check        # только проверить: установлен ли, совпадает ли со встроенным
+fguard install --no-restart   # поставить, но не перезапускать
+fguard uninstall              # удалить плагин; его данные остаются
 ```
 
-Сборка плагина вшита в `fg.mjs`. Где лежит ru-code, fg узнаёт у **собственного preflight-скрипта
+Сборка плагина вшита в `fg.mjs`. Где лежит ru-code, fguard узнаёт у **собственного preflight-скрипта
 ru-code** — того же, что запускает установщик ru-code, — и пишет в
 `<корень ru-code>/plugins/pixso` (рабочие файлы — в `<корень>/.fg-install/`, вне `plugins/`).
 Замена атомарная: прежняя папка остаётся целой, пока новая не записана и не сверена по sha256;
@@ -85,17 +104,24 @@ ru-code** — того же, что запускает установщик ru-c
 
 Перезапуск — только если ru-code запущен и файлы изменились: `ru-code restart --no-browser`
 (без новой вкладки браузера), тем же способом, что у установщика ru-code: node напрямую, на любой ОС. Не запущен — плагин загрузится при следующем старте. Если текущая
-версия ru-code сама поставляет pixso, ru-code загрузит свою копию — fg об этом предупредит.
+версия ru-code сама поставляет pixso, ru-code загрузит свою копию — fguard об этом предупредит.
 
 Плагину нужен ru-code **не старше 0.0.34** (`MINIMUM_APP_VERSION` в
 `packages/fg-install/src/constants.ts`): в 0.0.33 нет API хоста, без которого ru-code пометит плагин
-как сломанный. Версию fg берёт из `<корень ru-code>/bin/current.json`. Если ru-code старее или
-версию не прочитать, `fg install` ничего не пишет и выходит с кодом 1:
+как сломанный. Версию fguard берёт из `<корень ru-code>/bin/current.json`. Если ru-code старее или
+версию не прочитать, `fguard install` ничего не пишет и выходит с кодом 1:
 `✖ установлен ru-code 0.0.33, а плагину pixso нужен 0.0.34 или новее` — обновите ru-code и повторите.
-`fg uninstall` версию не проверяет.
+`fguard uninstall` версию не проверяет.
 
 Подробно: [docs/manual/install.md](docs/manual/install.md). Как обновить вшитую сборку —
 [CONTRIBUTING.md](docs/CONTRIBUTING.md#сборка-ru-code-для-fg-install).
+
+## Навыки для CLI-агента
+
+`bash install` кладёт в папку навыков CLI три навыка: `fg:get-pixso-specs` (спецификация кадра),
+`fg:get-pixso-html` (HTML/CSS кадра) и `fg:project-report` (отчёт по проекту: спросит каталог или
+git-URL, ответит цифрами из `report.summary.json` и ссылкой на дашборд). Команды в них — с
+абсолютными путями node и `fg.mjs`. Подробно — [docs/manual/skills.md](docs/manual/skills.md).
 
 ## Роли
 
@@ -112,12 +138,15 @@ ru-code** — того же, что запускает установщик ru-c
 | [manual/pixso.md](docs/manual/pixso.md)                   | `--psvg/--phtml/--pprompt/--passets`, маршруты, токен                         |
 | [manual/init-config.md](docs/manual/init-config.md)       | `--iconf`: `fg.config.json`, схема, `inherit`                                 |
 | [manual/parse-ui-kit.md](docs/manual/parse-ui-kit.md)     | `--pkit`: пересборка корпуса дизайн-системы                                   |
+| [manual/setup.md](docs/manual/setup.md)                   | `bash install`: команда `fguard`, node, rc-файлы, обновление, удаление        |
+| [manual/token.md](docs/manual/token.md)                   | `fguard token`: где хранится токен, приоритет, код 3                          |
+| [manual/skills.md](docs/manual/skills.md)                 | три навыка CLI-агента                                                         |
 | [manual/install.md](docs/manual/install.md)               | `install` / `uninstall`: плагин pixso в ru-code, перезапуск, коды возврата    |
 | [manual/env.md](docs/manual/env.md)                       | все переменные окружения и приоритет                                          |
 | [manual/ci.md](docs/manual/ci.md)                         | пайп, `sarif`/`json`, коды возврата, `NO_COLOR`                               |
 | [manual/vscode.md](docs/manual/vscode.md)                 | задачи VS Code и просмотр SARIF                                               |
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md)                   | пакеты, поток данных, инварианты, адаптеры                                    |
 | [CONTRIBUTING.md](docs/CONTRIBUTING.md)                   | инструменты, проверки, релиз, как добавить правило / команду / дизайн-систему |
-| [CHANGELOG.md](docs/CHANGELOG.md)                         | что вошло в 1.0.0 и 1.1.0                                                     |
+| [CHANGELOG.md](docs/CHANGELOG.md)                         | что вошло в 1.0.0, 1.1.0 и 1.2.0                                                     |
 
-Справка в самом инструменте: `fg --help`, по команде — `fg --help --preport`.
+Справка в самом инструменте: `fguard --help`, по команде — `fguard --help --preport`.

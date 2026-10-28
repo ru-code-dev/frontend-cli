@@ -44,6 +44,7 @@
  * factory called with nothing, which is the "default to core's behaviour" branch.
  */
 import { mkdirSync } from "node:fs";
+import { join } from "node:path";
 
 import type {
   ArgSpec,
@@ -55,13 +56,14 @@ import type {
 } from "@smart-tools/fg-cli-kit";
 import { debugHintOf, emitPaths, usageHintOf } from "@smart-tools/fg-cli-kit";
 import type { Artifact, PixsoClient, Scan } from "@smart-tools/pixso-core/node";
-import { fetchScan } from "@smart-tools/pixso-core/node";
+import { fetchScan, makePixsoClient } from "@smart-tools/pixso-core/node";
 
 import type { FaceKind } from "./out.ts";
 import { ASSET_FILES, assetPathIn, assetsTarget, designName, faceTarget } from "./out.ts";
 import type { PixsoRoute } from "./routing.ts";
-import { fetchOptionsOf, resolveRoute } from "./routing.ts";
+import { TOKEN_EXIT, USAGE_EXIT, fetchOptionsOf, resolveRoute } from "./routing.ts";
 import { pixsoRuntimeOf } from "./runtime.ts";
+import { type ReadSecret, readSecretFromStdin, tokenCommand } from "./token.ts";
 import {
   argDescriptions,
   argNames,
@@ -73,6 +75,7 @@ import {
   PIXSO_LINK,
   pixsoGroup,
   ready,
+  rejectedToken,
   routeLabels,
   rowKeys,
   summaries,
@@ -81,10 +84,39 @@ import {
 /** The exit code for a failure the user's typing cannot fix. */
 const RUNTIME_EXIT = 1;
 
+/**
+ * The HTTP statuses that mean «this token is not accepted». pixso-core carries the status of a
+ * failed call STRUCTURALLY on `PixsoFailure.httpStatus` («an expired token is a 401 here, which is
+ * what makes "bad token" distinguishable from "server down" without scraping» —
+ * `ru-code-packages/packages/pixso-core/src/io/client.ts:625-627`), but `fetchScan` folds it into
+ * an `Error` message (`src/api/scan.ts:302-306`). So the remote route hands `fetchScan` a client
+ * that records the status of every failed call, and the refusal keys on that number, never on text.
+ */
+const REJECTED_STATUSES: ReadonlySet<number> = new Set([401, 403]);
+
+/** The bundle-side token file a token refusal names: `<binDir>/.env` (`fguard token` writes it). */
+export function tokenFileOf(ctx: CommandContext): string {
+  return join(ctx.binDir ?? ctx.cwd, ".env");
+}
+
+/** `client`, unchanged, except that the HTTP status of each failed `callTool` is reported. */
+function observed(client: PixsoClient, onStatus: (status: number) => void): PixsoClient {
+  return {
+    ...client,
+    callTool: async (tool, args, timeoutMs, signal) => {
+      const result = await client.callTool(tool, args, timeoutMs, signal);
+      if (!result.ok && result.httpStatus !== null) onStatus(result.httpStatus);
+      return result;
+    },
+  };
+}
+
 /** What a test may replace. Empty in production — `pixsoCommands` passes nothing. */
 export interface PixsoDeps {
   /** The transport `fetchScan` should use. Omitted ⇒ core builds its own over the endpoint. */
   readonly client?: PixsoClient | undefined;
+  /** How `fguard token` without a value reads the secret. Omitted ⇒ the terminal, hidden. */
+  readonly readSecret?: ReadSecret | undefined;
 }
 
 /**
@@ -169,11 +201,13 @@ async function scanFor(
   // a live progress line ahead of the header, which design §2.1 makes "the first thing a command
   // prints" (V5 finding #3). Nothing is lost: the phase measured a function call.
   const source = ctx.source ?? "";
-  const resolution = resolveRoute(source, pixsoRuntimeOf(ctx));
+  const tokenFile = tokenFileOf(ctx);
+  const resolution = resolveRoute(source, pixsoRuntimeOf(ctx), tokenFile);
   if (!resolution.ok) {
     // NO HEADER before a usage error — design 2.6: the header says what the run is doing, and
-    // this run never started.
-    return { ok: false, code: refuse(ctx, resolution.message, resolution.exitCode, hint) };
+    // this run never started. A token refusal is not a mistyped line, so it gets no usage rows.
+    const rows = resolution.exitCode === USAGE_EXIT ? hint : undefined;
+    return { ok: false, code: refuse(ctx, resolution.message, resolution.exitCode, rows) };
   }
   // THE HEADER, and it is now the run's first output on every path — including the runtime
   // failure below, which §2.6 requires to carry one (finding #4).
@@ -183,10 +217,25 @@ async function scanFor(
   // network is out and snaps when the next phase starts. That is the installer's own treatment
   // of a step it cannot measure (`install:288-289`).
   ctx.ui.phase(phases.fetch);
+  const route = resolution.route;
+  const seen: { status: number | null } = { status: null };
+  // The remote route builds the very client `fetchScan` would build for itself
+  // (`scan.ts:284-287`: endpoint, default budget, the `Token` header) — only so it can be observed.
+  const client =
+    route.kind === "remote"
+      ? observed(
+          deps.client ?? makePixsoClient(route.endpoint, undefined, { Token: route.token }),
+          (status) => void (seen.status = status),
+        )
+      : deps.client;
   try {
-    const scan = await fetchScan(fetchOptionsOf(resolution.route, deps.client));
+    const scan = await fetchScan(fetchOptionsOf(route, client));
     return { ok: true, scan, source };
   } catch (error) {
+    const rejected = seen.status;
+    if (rejected !== null && REJECTED_STATUSES.has(rejected)) {
+      return { ok: false, code: refuse(ctx, rejectedToken(rejected, tokenFile), TOKEN_EXIT) };
+    }
     // §2.6's runtime block: `✖ …` and the `--debug` pointer (V5 finding #4).
     return { ok: false, code: refuse(ctx, failed(detailOf(error)), RUNTIME_EXIT, debug) };
   }
@@ -252,7 +301,7 @@ function faceCommand(spec: {
     // it is the line a reader's eye lands on. The guid example stays because the local route
     // is real, and stays SECOND because it needs the Pixso editor open on the same machine.
     // Neither line is a URL: see `PIXSO_LINK`.
-    examples: [`fg ${short} ${PIXSO_LINK}`, `fg ${short} 11:10`],
+    examples: [`fguard ${short} ${PIXSO_LINK}`, `fguard ${short} 11:10`],
     args: [
       sourceArg,
       {
@@ -317,9 +366,9 @@ function assetsCommand(deps: PixsoDeps): CliCommand {
     // Same order as the three single-face commands above, with `-o` shown on the remote line
     // because that is the one a reader will copy.
     examples: [
-      `fg --passets ${PIXSO_LINK}`,
-      `fg --passets ${PIXSO_LINK} -o ./out/card`,
-      "fg --passets 11:10",
+      `fguard --passets ${PIXSO_LINK}`,
+      `fguard --passets ${PIXSO_LINK} -o ./out/card`,
+      "fguard --passets 11:10",
     ],
     args: [
       sourceArg,
@@ -421,6 +470,7 @@ export function createPixsoCommands(deps: PixsoDeps = {}): readonly CliCommand[]
       deps,
     }),
     assetsCommand(deps),
+    tokenCommand(pixsoGroup, deps.readSecret ?? readSecretFromStdin),
   ];
 }
 

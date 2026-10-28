@@ -136,22 +136,22 @@ describe("the header (§2.1)", () => {
       { ru: "psvg", en: "psvg" },
       { ru: "локальный маршрут", en: "local route" },
     ]);
-    expect(f.text()).toBe("fg v1.0.0 · psvg · локальный маршрут\n");
+    expect(f.text()).toBe("fguard v1.0.0 · psvg · локальный маршрут\n");
   });
 
   it("is the same text on a terminal, with the version dimmed and nothing else coloured", () => {
     const { ui: u, f } = ui(true);
     u.header([{ ru: "preport", en: "preport" }]);
     const text = f.text();
-    expect(text).toContain(`${ESC}[2mfg v1.0.0${ESC}[0m`);
-    expect(strip(text)).toBe("fg v1.0.0 · preport\n");
+    expect(text).toContain(`${ESC}[2mfguard v1.0.0${ESC}[0m`);
+    expect(strip(text)).toBe("fguard v1.0.0 · preport\n");
   });
 
   it("carries no version when none was given — a UI built without one still speaks", () => {
     const chunks: string[] = [];
     const u = createUi({ stream: { write: (c) => void chunks.push(c) }, lang: "ru" });
     u.header([{ ru: "psvg", en: "psvg" }]);
-    expect(chunks.join("")).toBe("fg · psvg\n");
+    expect(chunks.join("")).toBe("fguard · psvg\n");
   });
 });
 
@@ -408,14 +408,14 @@ describe("failure (§2.6)", () => {
   it("a usage error is `✖ message` plus the two pointer rows, padded to one column", () => {
     const { ui: u, f } = ui(false);
     u.fail(BAD, {
-      usage: "fg --preport <путь|repo> [--format …]",
-      help: "fg --help --preport",
+      usage: "fguard --preport <путь|repo> [--format …]",
+      help: "fguard --help --preport",
     });
     expect(f.text()).toBe(
       [
         "✖ не указан проект",
-        "  использование:  fg --preport <путь|repo> [--format …]",
-        "  подробнее:      fg --help --preport",
+        "  использование:  fguard --preport <путь|repo> [--format …]",
+        "  подробнее:      fguard --help --preport",
         "",
       ].join("\n"),
     );
@@ -425,10 +425,10 @@ describe("failure (§2.6)", () => {
     const { ui: u, f } = ui(false);
     u.fail(
       { ru: "клонирование не удалось", en: "clone failed" },
-      { usage: "", help: "fg --preport … --debug" },
+      { usage: "", help: "fguard --preport … --debug" },
     );
     expect(f.text()).toBe(
-      ["✖ клонирование не удалось", "  подробнее:      fg --preport … --debug", ""].join("\n"),
+      ["✖ клонирование не удалось", "  подробнее:      fguard --preport … --debug", ""].join("\n"),
     );
   });
 

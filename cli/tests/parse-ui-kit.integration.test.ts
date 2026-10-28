@@ -58,9 +58,24 @@ interface RunResult {
   readonly stderr: string;
 }
 
+/**
+ * A sandbox HOME for every child: `--pkit`'s `npm install` reads `~/.npmrc` and writes its cache
+ * and debug logs under HOME, and a child with no HOME falls back to the passwd home — the real one
+ * (review-1 finding 5). npm's cache and log dirs are pinned inside it as well.
+ */
+const sandboxHome = makeTempDir("fg-pkit-home-");
+scratches.push(sandboxHome);
+
 /** Built, never inherited. `FG_KITS_DIR` is the point of this suite, so it is always explicit. */
 function childEnv(kitsDir: string): NodeJS.ProcessEnv {
-  return { PATH: process.env["PATH"] ?? "", FG_KITS_DIR: kitsDir };
+  return {
+    PATH: process.env["PATH"] ?? "",
+    FG_KITS_DIR: kitsDir,
+    HOME: sandboxHome,
+    npm_config_cache: join(sandboxHome, ".npm"),
+    npm_config_logs_dir: join(sandboxHome, ".npm", "_logs"),
+    npm_config_userconfig: join(sandboxHome, ".npmrc"),
+  };
 }
 
 /** A scratch directory holding the bundle and nothing else. */
@@ -134,7 +149,7 @@ describe("(a) the reference checkout", () => {
   });
 });
 
-describe("(b) fg --parse-ui-kit eds --source file://<kit>", () => {
+describe("(b) fguard --parse-ui-kit eds --source file://<kit>", () => {
   it("exits 0 and writes the five members", () => {
     if (generated.code !== 0) {
       // A failed install is the one permitted stop, and it is announced with npm's own words
@@ -308,7 +323,7 @@ describe("(d) a broken corpus never breaks a report", () => {
     // errors, which is the same code the good-corpus run above returns.
     expect(result.code).toBe(1);
     expect(result.stderr).toContain(join(broken, "eds", "kit-icons.json"));
-    expect(result.stderr).toContain("fg --parse-ui-kit eds");
+    expect(result.stderr).toContain("fguard --parse-ui-kit eds");
     // The fallback is SAID, on the UI's stream, and named in the header (U3, §2.1).
     expect(result.stderr).toContain("eds 1.13.0 (embedded)");
     expect(result.stdout).not.toContain("eds 1.13.0 (embedded)");
@@ -348,9 +363,9 @@ describe("(e) refusals through the bundle", () => {
       // §2.8: ONE elided usage line, and the long spelling on the line below it (V5 #5/#8).
       // The positional is the LIST of parsable kits, so a second registered design system
       // widens it rather than turning it back into a placeholder (V5 finding #14).
-      expect(page).toContain("fg --pkit eds|eds2 [--source …]");
+      expect(page).toContain("fguard --pkit eds|eds2 [--source …]");
       expect(page).toContain("--parse-ui-kit");
-      expect(page).not.toContain("fg --pkit, --parse-ui-kit");
+      expect(page).not.toContain("fguard --pkit, --parse-ui-kit");
     }
     expect(enPage.stdout).toContain("--source <path|repo>");
     expect(ruPage.stdout).toContain("--source <путь|repo>");

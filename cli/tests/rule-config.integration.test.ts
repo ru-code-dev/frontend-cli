@@ -466,7 +466,7 @@ describe("(d) usage errors are exit 2, localized, and cost no scan", () => {
     }
     expect(result.stderr).not.toContain("stylish");
     // The refusal quotes the command's own usage line (§2.6), and nothing was scanned.
-    expect(result.stderr).toContain("fg --preport");
+    expect(result.stderr).toContain("fguard --preport");
     expect(readdirSync(dir)).toEqual(["fg.mjs"]);
   });
 
@@ -556,8 +556,8 @@ describe("(e) --help documents the new command and the new arguments", () => {
       // and the placeholder in the page's own language (V5 findings #5, #8 and #12).
       expect(page.stdout.split("\n")[0]).toBe(
         lang === "ru"
-          ? "fg --iconf [-o <файл>] [--ui-kit …]"
-          : "fg --iconf [-o <file>] [--ui-kit …]",
+          ? "fguard --iconf [-o <файл>] [--ui-kit …]"
+          : "fguard --iconf [-o <file>] [--ui-kit …]",
       );
       expect(page.stdout.split("\n")[1]).toBe(
         `  ${lang === "ru" ? "также:" : "also:"} --init-config`,
@@ -572,10 +572,10 @@ describe("(e) --help documents the new command and the new arguments", () => {
       // the same `ArgSpec.name` the parser reads them from (V5 finding #5).
       expect(usage).not.toContain("--lint");
       expect(usage).toContain("[--format …]");
-      expect(usage).not.toContain("html|compact|json|sarif");
+      expect(usage).not.toContain("html|summary|compact|json|sarif");
       expect([...usage].length).toBeLessThanOrEqual(100);
       const table = await fg(dir, ["--lang", lang, "--help"]);
-      expect(table.stdout).toContain("--format html|compact|json|sarif");
+      expect(table.stdout).toContain("--format html|summary|compact|json|sarif");
     });
   }
 });
